@@ -5,7 +5,7 @@
 
 void StrDocElem::draw(HTMLFrame *view, bool onlyIfChanged) {
 	if (onlyIfChanged) return;
-	view->DrawString(x,y+h-3,w-5,str,m_style); // XXX I don't really like the "-3"
+	view->DrawString(x,y+h-1,w,str,m_style); // XXX I don't really like the "-1"
 	printPosition("Str_draw");
 }
 
@@ -14,6 +14,5 @@ void StrDocElem::geometry(HTMLFrame *view) {
 	free(str);
 	str = buf;
 	view->StringDim(buf, m_style,&w,&h);
-	w+=2; // XXX Some spaces between words : bad
 	fixedW = w;
 }
