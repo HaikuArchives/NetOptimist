@@ -174,8 +174,8 @@ void HTMLView::StringDim(const char* str, const Style *style, int* w, int *h) {
 	font_height fh;
 	font_.GetHeight(&fh);
 	*h = fh.leading + fh.ascent + fh.descent; // XXX TODO : round it up
-/*	if (style->IsUnderline())
-		(*h)++;*/
+	if (style->IsUnderline())
+		(*h)++;
 }
 
 void HTMLView::DrawString(int x, int y, int w, const char *str, const Style *style) {
@@ -195,15 +195,14 @@ void HTMLView::DrawString(int x, int y, int w, const char *str, const Style *sty
 
 // NEXUS/FIXME: B_UNDERSCORE_FACE should do the trick, but doesn't do it for some reason...
 
-/*	if (style->IsUnderline()) {
-		MovePenTo(x, y);
+	if (style->IsUnderline()) {
+		MovePenTo(x, y-1);
 		BView::DrawString(str);
 		StrokeLine(BPoint(x,y), BPoint(x+w,y));
-	} else {*/
+	} else {
 		MovePenTo(x, y);
-	BView::DrawString(str);
-
-//	}
+		BView::DrawString(str);
+	}
 }
 
 void HTMLView::FillRect(int x, int y, int w, int h, const Style *style) {
