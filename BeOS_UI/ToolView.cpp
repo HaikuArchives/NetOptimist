@@ -1,5 +1,7 @@
 #include "ToolView.h"
+#ifdef __BEOS__
 #include <TranslationKit.h>
+#endif
 #include <iostream.h>
 #include <Roster.h>
 #include <Alert.h>
@@ -36,9 +38,6 @@ void ToolView::AttachedToWindow()
 }
 ToolView::ToolView(BMessage *data) : BView(data)
 {
-	BAlert *alert = new BAlert(NULL, "Restauration du bitmapLow impossible!", "OK");
-	alert->Go();
-	
 	BMessage restore;
 	if(data->FindMessage("bitmapLow", &restore) == B_OK)
 	{
@@ -160,17 +159,15 @@ void ToolView::MouseUp(BPoint point)
 
 void ToolView::Draw(BRect r)
 {
-	
 	SetDrawingMode(B_OP_COPY);
-	//SetHighColor((rgb_color){44,55,44,124});
-	if(!original)
-	{
+	if(!original) {
 		SetHighColor(Parent()->ViewColor());
-		//SetHighColor(ui_color(B_DESKTOP_COLOR));
 		FillRect(Bounds());
+	} else {
+		BBitmap *bitmap = ((ToolBarView *)Parent() )->bitmap;
+		if (bitmap)
+			DrawBitmap( bitmap, Frame(), Bounds());
 	}
-	else
-		DrawBitmap( ( (ToolBarView *)Parent() )->bitmap, Frame(), Bounds());
 	
 	SetBlendingMode(B_PIXEL_ALPHA,B_ALPHA_OVERLAY);
 	SetDrawingMode(B_OP_ALPHA);
@@ -184,7 +181,6 @@ void ToolView::Draw(BRect r)
 			DrawBitmap( bitmapHigh, BPoint(0,0));
 	}
 	SetDrawingMode(B_OP_COPY);
-	//printf("llllll\n");
 }
 
 bool ToolView::SetEnabled(bool enabled)
