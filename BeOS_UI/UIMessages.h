@@ -65,12 +65,15 @@
 #define bmsgPrefGenDaysInGo		'pgdg'
 
 // Preferences/Display
+#define bmsgPrefDispEncoding		'pden'
+/*
 #define bmsgPrefDispEncWestern	'pdew'
 #define bmsgPrefDispEncUnicode	'pdeu'
 #define bmsgPrefDispEncJapanese	'pdej'
 #define bmsgPrefDispEncGreek		'pdeg'
 #define bmsgPrefDispEncCyrillic		'pdec'
 #define bmsgPrefDispEncCE		'pdee'
+*/
 #define bmsgPrefDispPropFont		'pdpf'
 #define bmsgPrefDispPropSize		'pdps'
 #define bmsgPrefDispPropMinSize	'pdpm'
@@ -86,7 +89,7 @@
 #define bmsgPrefDispUseBgColors	'pdbc'
 #define bmsgPrefDispUseFgColors	'pdfc'
 #define bmsgPrefDispPlaySounds	'pdso'
-#define bmsgPrefDispFlickerFree	'pdff'
+#define bmsgPrefDispFlickerFree	'pdfl'
 
 // Preferences/Connections
 #define bmsgPrefConEnableProxies	'pcep'

@@ -168,13 +168,21 @@ DisplayView::DisplayView(BRect rect, Pref *pref) : BView(rect, "display_tab_view
 
 	BPopUpMenu *menu = new BPopUpMenu("encoding_menu");
 	BMenuItem *menu_item;
-	menu->AddItem(menu_item = new BMenuItem("Central European", new BMessage(bmsgPrefDispEncCE)));
+	BMessage *msg;
+	
+	menu->AddItem(menu_item = new BMenuItem("Central European", msg = new BMessage(bmsgPrefDispEncoding)));
+	msg->AddInt8("encoding", NO_CENTRAL_EUROPEAN);
 	menu_item->SetMarked(true);
-	menu->AddItem(menu_item = new BMenuItem("Cyrillic", new BMessage(bmsgPrefDispEncCyrillic)));
-	menu->AddItem(menu_item = new BMenuItem("Greek", new BMessage(bmsgPrefDispEncGreek)));
-	menu->AddItem(menu_item = new BMenuItem("Japanese", new BMessage(bmsgPrefDispEncJapanese)));
-	menu->AddItem(menu_item = new BMenuItem("Unicode", new BMessage(bmsgPrefDispEncUnicode)));
-	menu->AddItem(menu_item = new BMenuItem("Western", new BMessage(bmsgPrefDispEncWestern)));
+	menu->AddItem(menu_item = new BMenuItem("Cyrillic", msg = new BMessage(bmsgPrefDispEncoding)));
+	msg->AddInt8("encoding", NO_CYRILLIC);
+	menu->AddItem(menu_item = new BMenuItem("Greek", msg = new BMessage(bmsgPrefDispEncoding)));
+	msg->AddInt8("encoding", NO_GREEK);
+	menu->AddItem(menu_item = new BMenuItem("Japanese", msg = new BMessage(bmsgPrefDispEncoding)));
+	msg->AddInt8("encoding", NO_JAPANESE);
+	menu->AddItem(menu_item = new BMenuItem("Unicode", msg = new BMessage(bmsgPrefDispEncoding)));
+	msg->AddInt8("encoding", NO_UNICODE);
+	menu->AddItem(menu_item = new BMenuItem("Western", msg = new BMessage(bmsgPrefDispEncoding)));
+	msg->AddInt8("encoding", NO_WESTERN);
 	
 	BMenuField *menu_field = new BMenuField(r, "for_encoding", "For the encoding:", menu);
 	menu_field->SetAlignment(B_ALIGN_RIGHT);
@@ -184,7 +192,6 @@ DisplayView::DisplayView(BRect rect, Pref *pref) : BView(rect, "display_tab_view
 	r.OffsetBy(0,25);
 	
 	menu = new BPopUpMenu("proportional_menu");
-	BMessage *msg;
 
 	// NOTE: We select font settings for Central European, cause it is just a first item in a list
 	int32 numFamilies = count_font_families();
@@ -830,10 +837,6 @@ PrefWindow::PrefWindow() : BWindow(BRect(WND_X, WND_Y, WND_W, WND_H),
 // Message handler
 void PrefWindow::MessageReceived(BMessage *msg) {
 
-// IMPORTANT FIXME:
-// 	should use temporary Pref object for storing intermediate values,
-//	which should be copied to Pref::Default when B_OK is caught
-
 	BTextControl *text = NULL;
 	BCheckBox *chkbox = NULL;
 
@@ -877,6 +880,36 @@ void PrefWindow::MessageReceived(BMessage *msg) {
 			if (B_OK == msg->FindPointer("source", (void **) &text))
 				m_pref->SetDaysInGo(atoi(text->Text()));
 			break;
+		case bmsgPrefDispEncoding: {
+			display_encoding de;
+			if (B_OK != msg->FindInt8("encoding", (int8 *) &de))
+				break;
+			// FIXME:
+			// 1. get prop font family name
+			// 2. scan the menu and select one
+			// 3. get prop font sizes
+			// 4. scan the menus and select
+			// do the same for fixed font
+			break;
+		}
+		// FIXME:
+		case bmsgPrefDispPropFont:
+			int8 size;
+			if (B_OK != msg->FindInt8("size", (int8) &size))
+				break;
+			
+			break;
+		case bmsgPrefDispPropSize:
+			break;
+		case bmsgPrefDispPropMinSize:
+			break;
+		case bmsgPrefDispFixedFont:
+			break;
+		case bmsgPrefDispFixedSize:
+			break;
+		case bmsgPrefDispFixedMinSize:
+			break;
+
 		case bmsgPrefDispShowImages:
 			if (B_OK == msg->FindPointer("source", (void **) &chkbox))
 				m_pref->SetShowImages((bool)chkbox->Value());
