@@ -467,7 +467,7 @@ void HttpServerConnection::ParseHeader(const char *keyword, char *value) {
 				m_memoryResource->m_modified = dateStrToNumber(value, "Last-Modified");
 			break;
 		case HttpHdrSetCookie:
-			Cookie::parseCookieFromHttp( value, this->Host());
+			//Cookie::parseCookieFromHttp( value, this->Host());
 			break;
 		case HttpHdrStatus:
 		case HttpHdrCacheControl:
