@@ -9,7 +9,7 @@
 #include <stdio.h>
 
 
-ResourceGetter::ResourceGetter(BLooper *notify) {
+ResourceGetter::ResourceGetter(BLooper *notify) : BLooper("Http worker") {
 	m_notify = notify;
 }
 
@@ -18,9 +18,10 @@ void ResourceGetter::MessageReceived(BMessage *msg) {
 	switch(msg->what) {
 		case GET_IMAGE:
 			msg->FindString("url", &urlStr);
+			fprintf(stderr, "ResourceGetter: got work : url %s\n", urlStr);
 			if (urlStr) {
 				Resource *rsc;
-				UrlQuery query;
+				UrlQuery query;	 // XXX Should not create new UrlQuery. Reuse existing one instead.
 				query.m_method = METHOD_NORMAL;
 				query.SetUrl(urlStr);
 				query.m_name = NULL;
