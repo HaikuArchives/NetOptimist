@@ -152,46 +152,40 @@ void HTMLView::TargetedByScrollView(BScrollView *scroller) {
 }
 
 void HTMLView::StringDim(const char* str, const Style *style, int* w, int *h) {
-
-	
-	BFont *f;
 	if (style) {
-		f = new BFont();
-		f->SetFamilyAndStyle(Pref::Default.FontFamily(displayEncoding_), NULL);
-		if (0 < style->Size())
-			f->SetSize(style->Size());
-		else
-			f->SetSize(Pref::Default.FontSize(displayEncoding_));
-		f->SetFace(style->Face());
-	} else {
-	 	f = new BFont(&propFont_);
-	}
-	f->SetEncoding(B_UNICODE_UTF8);
-	*w = (int) f->StringWidth(str);
+		font_.SetFamilyAndStyle(Pref::Default.FontFamily(displayEncoding_), NULL);
+		if (0 < style->Size()) font_.SetSize(style->Size());
+		else font_.SetSize(Pref::Default.FontSize(displayEncoding_));
+		font_.SetFace(style->Face());
+	} else font_ = propFont_; 
+
+	font_.SetEncoding(B_UNICODE_UTF8);
+
+	*w = (int) font_.StringWidth(str);
 	font_height fh;
-	f->GetHeight(&fh);
+	font_.GetHeight(&fh);
 	*h = fh.leading + fh.ascent + fh.descent; // XXX TODO : round it up
 /*	if (style->IsUnderline())
 		(*h)++;*/
-	delete f;
 }
 
 void HTMLView::DrawString(int x, int y, int w, const char *str, const Style *style) {
-	BFont *f;
+
+	BView::SetFont(be_plain_font);
 	if (style) {
-		f = new BFont(/*style->Font()*/);
-		f->SetFamilyAndStyle(Pref::Default.FontFamily(displayEncoding_), NULL);
+
+		font_.SetFamilyAndStyle(Pref::Default.FontFamily(displayEncoding_), NULL);
 		if (0 < style->Size())
-			f->SetSize(style->Size());
+			font_.SetSize(style->Size());
 		else		
-			f->SetSize(Pref::Default.FontSize(displayEncoding_));
-		f->SetFace(style->Face());
+			font_.SetSize(Pref::Default.FontSize(displayEncoding_));
+		font_.SetFace(style->Face());
 		SetHighColor(style->Color());
 		SetLowColor(style->BGColor());
-	} else f = new BFont(propFont_);
-	f->SetEncoding(B_UNICODE_UTF8);
-	SetFont(f);
-	delete f;
+	} else font_ = propFont_;
+	font_.SetEncoding(B_UNICODE_UTF8);
+	fprintf(stdout, "%s, style(0x%X)\n", str, style->Face());
+	BView::SetFont(&font_);
 
 // NEXUS/FIXME: B_UNDERSCORE_FACE should do the trick, but doesn't do it for some reason...
 
@@ -201,8 +195,8 @@ void HTMLView::DrawString(int x, int y, int w, const char *str, const Style *sty
 		StrokeLine(BPoint(x,y), BPoint(x+w,y));
 	} else {*/
 		MovePenTo(x, y-3);
-		BView::DrawString(str);
-//	fprintf(stdout, "%s\n", str);
+	BView::DrawString(str);
+
 //	}
 }
 

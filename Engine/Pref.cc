@@ -11,7 +11,7 @@
 #include <storage/Path.h> 
 #include <storage/Entry.h> 
 #include <storage/FindDirectory.h>
-
+#include <be/storage/Directory.h>
 #include "Settings.h"
 
 /***************************************************************/
@@ -75,11 +75,16 @@ Pref::Pref() :
 	// Cache
 	char cacheDir[1024];
 #ifdef __BEOS__
+	cacheDir[0] = 0;
 	BPath path;
 	find_directory(B_USER_SETTINGS_DIRECTORY, &path);
-	path.Append(APP_NAME"/NetCache/");
-	strcpy(cacheDir, path.Path());
-	strcat(cacheDir, "/");
+	strcat(cacheDir, path.Path());
+	strcat(cacheDir, "/"APP_NAME"/NetCache/");
+//	path.Append(APP_NAME"/NetCache/", true);
+	if (B_OK != path.SetTo(cacheDir)) 
+		create_directory(cacheDir, 0x666);
+//	strcpy(cacheDir, path.Path());
+//	strcat(cacheDir, "/");
 #else
 	sprintf(cacheDir, "%s/%s", getenv("HOME"), ".w3m/");
 #endif	
@@ -121,18 +126,19 @@ Pref& Pref::operator = (const Pref& p) {
 		FREE(m_fixedFontFamily[fi]);
 	}
 	// copy everything		
-	m_homePage = strdup(p.m_homePage); 
-	m_searchPage = strdup(p.m_searchPage);
-	m_downloadDirectory = strdup(p.m_downloadDirectory);
+
+	m_homePage = STRDUP(p.m_homePage); 
+	m_searchPage = STRDUP(p.m_searchPage);
+	m_downloadDirectory = STRDUP(p.m_downloadDirectory);
 	m_newWindowAction = p.m_newWindowAction;
 	m_cookieAction = p.m_cookieAction;
 	m_launchDownloaded = p.m_launchDownloaded;
 	m_daysInGo = p.m_daysInGo;
 	for (int i=0; i<MAX_DISPLAY_ENCODINGS; i++) {
-		if (NULL != p.m_fontFamily[i]) m_fontFamily[i] = strdup(p.m_fontFamily[i]);
+		if (NULL != p.m_fontFamily[i]) m_fontFamily[i] = STRDUP(p.m_fontFamily[i]);
 		m_fontSize[i] = p.m_fontSize[i];
 		m_fontMinSize[i] = p.m_fontMinSize[i];
-		if (NULL != p.m_fixedFontFamily[i]) m_fixedFontFamily[i] = strdup(p.m_fixedFontFamily[i]);
+		if (NULL != p.m_fixedFontFamily[i]) m_fixedFontFamily[i] = STRDUP(p.m_fixedFontFamily[i]);
 		m_fixedFontSize[i] = p.m_fixedFontSize[i];
 		m_fixedFontMinSize[i] = p.m_fixedFontMinSize[i];
 	}
@@ -148,12 +154,12 @@ Pref& Pref::operator = (const Pref& p) {
 	m_flickerFree = p.m_flickerFree;
 	m_useJavaScript = p.m_useJavaScript;
 	m_enableProxies = p.m_enableProxies;
-	m_httpProxyName = strdup(p.m_httpProxyName);
+	m_httpProxyName = STRDUP(p.m_httpProxyName);
 	m_httpProxyPort = p.m_httpProxyPort;
-	m_ftpProxyName = strdup(p.m_ftpProxyName);
+	m_ftpProxyName = STRDUP(p.m_ftpProxyName);
 	m_ftpProxyPort = p.m_ftpProxyPort;
 	m_maxConnections = p.m_maxConnections;
-	m_cacheLocation = strdup(p.m_cacheLocation);
+	m_cacheLocation = STRDUP(p.m_cacheLocation);
 	m_refreshCache = p.m_refreshCache;
 	m_cacheSize = p.m_cacheSize;
 	m_unsecureFormWarning = p.m_unsecureFormWarning;

@@ -7,7 +7,7 @@ const StyleMgr StyleMgr::DefaultStyleMgr;
 // Tags like H1-6 should set relative size to according positive or negative value
 
 Style::Style() : 
-		face_(B_REGULAR_FACE),
+		face_(0),
 		size_(0)
 	 {
 	color = kBlack;

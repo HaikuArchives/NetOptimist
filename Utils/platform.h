@@ -28,7 +28,12 @@ static inline int min(int a, int b) { return a>b?b:a; }
 
 #define app_signature "application/x-vnd.NetOptimist"
 
+#ifndef MAXHOSTNAMELEN
+#define MAXHOSTNAMELEN	256
+#endif
+
 // Useful macros
 #define FREE(p) if (p) { free(p); p=NULL; }
+#define STRDUP(p) ((p)?strdup(p):NULL)
 
 #endif

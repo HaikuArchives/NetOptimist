@@ -10,7 +10,8 @@ class ResourceGetter;
 class DocFormater;
 class BLooper;
 #include <string.h>
-#include <be_prim.h>
+#include <be/support/SupportDefs.h>
+//#include <be_prim.h>
 #include "User.h"
 #include "Document.h"
 #include "Action.h"

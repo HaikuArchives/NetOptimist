@@ -20,6 +20,8 @@ class HTMLView : public BView, public HTMLFrame
 	int32 propFontSize_;
 	display_encoding displayEncoding_;
 	
+	BFont font_;
+		
 public :
 	HTMLView(BLooper *container, BRect fr);
 	
