@@ -5,9 +5,6 @@
 #include <ctype.h>
 #include <errno.h>
 
-// Hey Stephane why are you putting this include back again and again - it doesn't compile here!
-// #include "Be.h"
-
 #include "platform.h"
 #include "Frame.h"
 #include "Html.h"
@@ -293,6 +290,12 @@ bool DocFormater::Select(int x, int y, Action action, UrlQuery *query) {
 			if (activeElem->Action(action, query)) {
 				const char *url_text = query->Url();
 				if (url_text) {
+					const char javascript_prefix[] = "javascript:";
+					if (action == MOUSE_CLICK && strprefix(url_text, javascript_prefix)) {
+						printf("found  code = '%s'\n", url_text);
+						m_jsctx->Execute(url_text+sizeof(javascript_prefix)-1);
+						return false;	// Execution done. Do nothing above.
+					}
 					char msg[1024];
 					snprintf(msg, sizeof(msg)-1, "link to %s", query->Url());
 					m_frame->Message(msg);
