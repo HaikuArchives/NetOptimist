@@ -559,7 +559,7 @@ bool NOWindow::QuitRequested() {
 }
 
 uint32 NOWindow::SetEncoding(uint32 enc) {
-	uint32 prev;
+	uint32 prev = 0;
 	if (drawArea) {
 		prev = drawArea->SourceEncoding();
 		drawArea->SetSourceEncoding(enc);
