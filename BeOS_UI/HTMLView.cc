@@ -28,7 +28,7 @@ void HTMLView::AttachedToWindow() {
 void HTMLView::SetFrame(int maxX, int maxY) {
 	BScrollBar *sb;
 
-	sb = scrollView->ScrollBar(B_HORIZONTAL);
+	sb = scrollView ? scrollView->ScrollBar(B_HORIZONTAL) : NULL;
 	if (sb) {
 		float w = this->Bounds().Width();
 		if (maxX>w) {
@@ -40,7 +40,7 @@ void HTMLView::SetFrame(int maxX, int maxY) {
 		}
 	}
 
-	sb = scrollView->ScrollBar(B_VERTICAL);
+	sb = scrollView ? scrollView->ScrollBar(B_VERTICAL) : NULL;
 	if (sb) {
 		float h = this->Bounds().Height();
 		if (maxY>h) {
@@ -112,20 +112,20 @@ void HTMLView::MessageReceived(BMessage *message) {
 void HTMLView::KeyUp(const char *bytes, int32 numBytes) {
 	if (ISTRACE(DEBUG_MESSAGING))
 		fprintf(stderr, "KeyUp in HTMLView\n");
-	scrollView->KeyUp(bytes, numBytes);
-	//BView::KeyUp(bytes, numBytes);
+	if (scrollView)
+		scrollView->KeyUp(bytes, numBytes);
 }
 	
 void HTMLView::KeyDown(const char *bytes, int32 numBytes) {
 	if (ISTRACE(DEBUG_MESSAGING))
 		fprintf(stderr, "KeyDown in HTMLView\n");
-	scrollView->KeyDown(bytes, numBytes);
-	//BView::KeyDown(bytes, numBytes);
+	if (scrollView)
+		scrollView->KeyDown(bytes, numBytes);
 }
 
 void HTMLView::TargetedByScrollView(BScrollView *scroller) {
-		scrollView = scroller;
-		BView::TargetedByScrollView(scroller);
+	scrollView = scroller;
+	BView::TargetedByScrollView(scroller);
 }
 
 void HTMLView::StringDim(const char* str, const Style *style, int* w, int *h) {
