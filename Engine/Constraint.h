@@ -2,6 +2,7 @@
 #define Constraint_H
 
 #include "traces.h"
+#include <stdio.h>
 
 class DocElem;
 class TableDocElem;

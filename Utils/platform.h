@@ -6,6 +6,7 @@
 #include <macros.h>
 typedef int bool;
 typedef int int32;
+typedef unsigned char uint8;
 typedef int status_t;
 
 const int true = (0==0);
