@@ -3,6 +3,7 @@
 #include "js.h"
 #include "Html.h"
 #include "NOWindow.h"
+#include "traces.h"
 
 /* I/O function for the standard error stream. */
 int io_stderr (void *context, unsigned char *buffer, unsigned int amount) {
@@ -107,7 +108,6 @@ nojs_window_url(JSClassPtr , void *instance_context, JSInterpPtr ,
 		strcpy(error_return, "not implemented");
 		return JS_ERROR;
 	} else {
-		DocFormater *doc = (DocFormater*)instance_context;
 		fprintf(stderr, "nojs_window_url : trying to read property\n");
 		return JS_OK;
 	}
@@ -117,13 +117,27 @@ struct JsData {
 	JSInterpPtr interp;
 };
 
+JsCtx::JsCtx() {
+	m_jsdata = NULL;
+}
+
+JsCtx::~JsCtx() {
+	if (m_jsdata != NULL) {
+		// XXX memory allocation bug... see solaris fix !
+		// XXX js_destroy_interp(m_jsdata->interp);
+		delete m_jsdata;
+	}
+}
+
 void JsCtx::Init(DocFormater *document) {
 	JSInterpOptions options;
 
 	m_jsdata = new JsData;
 	
 	js_init_default_options (&options);
-	options.verbose = 2;
+	if (ISTRACE(DEBUG_JAVASCRIPT)) {
+		options.verbose = 2;
+	}
 	options.s_stderr = io_stderr;
 	options.s_context = NULL;
 
@@ -155,6 +169,9 @@ void JsCtx::Init(DocFormater *document) {
 }
 
 void JsCtx::Execute(const char *t) {
+	if (ISTRACE(DEBUG_JAVASCRIPT)) {
+		fprintf (stdout, ">> JsCtx::Execute code:\n%s\n", t);
+	}
 	if (!js_eval(m_jsdata->interp, (char*)t)) {
 		fprintf (stderr, ">> JsCtx::Execute failed: %s\n", js_error_message (m_jsdata->interp));
 	}

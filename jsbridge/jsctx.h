@@ -7,6 +7,8 @@ class DocFormater;
 class JsCtx {
 	JsData *m_jsdata;
 public:
+	JsCtx();
+	~JsCtx();
 	void Init(DocFormater *doc);
 	void Execute(const char *jscode);
 	void ExecuteStip(const char *jscode);
