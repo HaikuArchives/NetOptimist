@@ -6,10 +6,13 @@
 #include <Resources.h>
 #include <Message.h>
 #include <Bitmap.h>
+#include <List.h>
 #include <stdio.h>
 #include "ToolView.h"
 #include "UIMessages.h"
+#ifdef __BEOS__
 #include <TranslationKit.h>
+#endif
 #include <Dragger.h>
 
 #include <iostream.h>
@@ -22,8 +25,8 @@ struct ARGBPixel { uint8 b,g,r,a; };
 struct ARGBPixel { uint8 a,r,g,b; };
 #endif
 
-ToolBarView::ToolBarView(BRect r, BLooper *l) :
-	BView(r,"ToolBar", B_FOLLOW_LEFT_RIGHT, B_NAVIGABLE | B_FRAME_EVENTS | B_WILL_DRAW )
+ToolBarView::ToolBarView(BRect frame, BLooper *l) :
+	BView(frame,"ToolBar", B_FOLLOW_LEFT_RIGHT, B_NAVIGABLE | B_FRAME_EVENTS | B_WILL_DRAW )
 {
 	m_documentIcon=NULL;
 	bitmap=NULL;
@@ -32,7 +35,6 @@ ToolBarView::ToolBarView(BRect r, BLooper *l) :
 	bg12=BTranslationUtils::GetBitmapFile("Icons/BackGround1_2.png");
 	bg2=BTranslationUtils::GetBitmapFile("Icons/BackGround2.png");
 	SetViewColor(B_TRANSPARENT_COLOR);
-	computeBitmap(Bounds());
 
 	/*
 	BFile file("NetOptimist", B_READ_ONLY);
@@ -169,6 +171,10 @@ ToolBarView::~ToolBarView()
 	}
 }
 
+void ToolBarView::AttachedToWindow() {
+	computeBitmap(Bounds());
+}
+
 void ToolBarView::FrameResized(float w, float h)
 {
 	computeBitmap(BRect(0,0,w,h));
@@ -179,6 +185,7 @@ void ToolBarView::FrameResized(float w, float h)
 }
 void ToolBarView::computeBitmap(BRect r)
 {
+#ifdef __BEOS__
 	if(bitmap!=NULL)
 	{
 		bitmap->RemoveChild(bitmapView);
@@ -217,13 +224,16 @@ void ToolBarView::computeBitmap(BRect r)
 		bitmapView->Sync();
 		bitmapView->UnlockLooper();
 	}	
+#endif
 	Draw(Bounds());
 }
 
 
 	
 void ToolBarView::Draw(BRect updateRect) {
+#ifdef __BEOS__
 	DrawBitmap(bitmap, BPoint(0,0));
+#endif
 	if (m_documentIcon)
 		DrawBitmap(m_documentIcon, BPoint(3,5));
 }
