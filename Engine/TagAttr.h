@@ -3,20 +3,12 @@
 
 #include "platform.h"
 #include "Colors.h"
+#include "Alignment.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include "StrPlus.h"
 #include "traces.h"
-
-enum Alignment {
-	al_center,
-	al_top,
-	al_left,
-	al_right
-	// TODO anything else ? 
-	// From www.blooberry.com/indexdot/htm : Texttop | Middle | Absmiddle | Baseline | Bottom | Absbottom
-};
 
 class TagAttr {
 	static const char *attrNames[];

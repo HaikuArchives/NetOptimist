@@ -18,6 +18,7 @@ Style::Style() :
 	ownerId = 0;
 	m_indent = 0;
 	m_nobr = false;
+	m_alignment = al_bottom;
 }
 
 Style::Style(const Style &c) {
@@ -30,6 +31,7 @@ Style::Style(const Style &c) {
 	m_nobr = c.m_nobr;
 	face_ = c.face_;
 	size_ = c.size_;
+	m_alignment = c.m_alignment;
 }
 
 void Style::SetLink() {
@@ -57,6 +59,14 @@ void Style::IncIndent(short inc) {
 
 short Style::Indent() const {
 	return m_indent;
+}
+
+void Style::SetAlignment(Alignment al) {
+	m_alignment = al;
+}
+
+Alignment Style::Align() const {
+	return m_alignment;
 }
 
 static char styleString[50];

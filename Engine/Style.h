@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "Colors.h"
+#include "Alignment.h"
 
 #include <Font.h>
 
@@ -20,6 +21,7 @@ class Style {
 	bool isUnderline;
 	uint16 face_;
 	int size_;
+	Alignment m_alignment;
 	
 	Style(const Style &c);
 public:
@@ -56,6 +58,8 @@ public:
 	void SetSize(int s) { size_ = s; }
 	int Size() const { return size_; }
 	
+	void SetAlignment(Alignment);
+	Alignment Align() const;
 	const char *toString() const;
 	void SetLink();
 	bool IsLink() const;

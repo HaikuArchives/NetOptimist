@@ -877,7 +877,7 @@ void TD_DocElem::place() {
 	if (x == -1 && y == -1) {
 		fprintf(stderr, "TD_DocElem(%d) has not been placed by container\n", id);
 		if (constraint) {
-			constraint->NextPosition(&x, &y, w, h, m_style->Indent()); // Ok this is bad but better than nothing
+			constraint->NextPosition(&x, &y, w, h, m_style->Indent(), m_style->Align()); // Ok this is bad but better than nothing
 		}
 	}
 	int border = 0;

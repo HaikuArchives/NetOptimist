@@ -248,6 +248,7 @@ void IMG_DocElem::geometry(HTMLFrame *view) {
 	attr_border = m_style->IsLink() ? 1 : 0;
 
 	bool dummy;
+	attr_align = al_bottom;
 	for (TagAttr *iter = list; iter!=NULL; iter=iter->Next()) {
 		iter->ReadInt("HEIGHT",&reqH);
 		iter->ReadDim("WIDTH",&reqW,&dummy,w);
@@ -257,6 +258,10 @@ void IMG_DocElem::geometry(HTMLFrame *view) {
 		iter->ReadStrRef("SRC",&m_attr_src);
 		iter->ReadAlignment("ALIGN",& attr_align);
 		iter->ReadInt("border",&attr_border);
+	}
+	if (attr_align!=al_bottom) {
+		m_includedStyle = m_style->clone(id);
+		m_includedStyle->SetAlignment(attr_align);
 	}
 	if (m_attr_alt.IsFree() && !m_attr_src.IsFree()) {
 		// Not Alt tag : display the filename
@@ -291,6 +296,7 @@ void IMG_DocElem::GetSize() {
 }
 
 void IMG_DocElem::dynamicGeometry(HTMLFrame *view) {
+	if (m_includedStyle) m_style = m_includedStyle;
 	for (TagAttr *iter = list; iter!=NULL; iter=iter->Next()) {
 		bool dummy;
 		if (iter->ReadDim("WIDTH",&reqW,&dummy,constraint->Width())) {

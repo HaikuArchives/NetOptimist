@@ -27,7 +27,7 @@ void TagDocElem::place() {
 		}
 	}
 
-	constraint->NextPosition(&x, &y, w, h, m_style->Indent());
+	constraint->NextPosition(&x, &y, w, h, m_style->Indent(), m_style->Align());
 
 	if (t->info) {
 		if (t->closing || t->info->closeMode==NEVER_CLOSE) {

@@ -33,7 +33,7 @@ void DocElem::initPlacement() {
 }
 
 void DocElem::place() {
-	constraint->NextPosition(&x, &y, w, h, m_style->Indent());
+	constraint->NextPosition(&x, &y, w, h, m_style->Indent(), m_style->Align());
 
 	trace(DEBUG_RENDER)
 		printPosition("place");
