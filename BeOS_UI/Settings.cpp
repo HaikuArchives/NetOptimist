@@ -1,5 +1,4 @@
 #include <Message.h>
-#include <Messenger.h>
 #include <File.h>
 #include <FindDirectory.h>
 

@@ -24,6 +24,8 @@ static inline void create_directory(const char *, int) {}
 #ifdef __BEOS__
 static inline int max(int a, int b) { return a>b?a:b; }
 static inline int min(int a, int b) { return a>b?b:a; }
+#else
+#include "Be.h"
 #endif
 
 #define app_signature "application/x-vnd.NetOptimist"
