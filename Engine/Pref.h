@@ -192,9 +192,9 @@ public:
 	// FIXME: we have methods for this now. remove!
 	const char *CacheDir();
 	
-	// Save preferences
+	// Save/load preferences
 	void Save();
-
+	void Load();
 };
 
 #endif

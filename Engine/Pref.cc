@@ -11,6 +11,19 @@
 #include <storage/FindDirectory.h>
 #endif
 
+#include "Settings.h"
+
+/***************************************************************/
+/*  FIXME/NEXUS: Rewrite it to be more smart,	*/
+/*  say, using templates and mapping Pref fields	*/
+/*  to actual data in Settings file			*/
+/***************************************************************/
+
+#define APP_NAME "NetOptimist"
+
+#define DEFAULT_PROP_FONT "Dutch801 Rm BT"
+#define DEFAULT_FIX_FONT "Courier10 BT"
+
 // NOTE: when the new fields added both first constructor and = operator should be updated
 Pref::Pref() : 
 	m_homePage(NULL), 
@@ -48,16 +61,35 @@ Pref::Pref() :
 	appDir = NULL;
 #endif
 	for (int i=0; i<MAX_DISPLAY_ENCODINGS; i++) {
-		m_fontFamily[i] = NULL;
+		m_fontFamily[i] = strdup(DEFAULT_PROP_FONT);
 		m_fontSize[i] = 12;
 		m_fontMinSize[i]= 9;
-		m_fixedFontFamily[i] = NULL;
+		m_fixedFontFamily[i] = strdup(DEFAULT_FIX_FONT);
 		m_fixedFontSize[i] = 12;
 		m_fixedFontMinSize[i]= 9;
 	}
 		
 	// Connections
 	m_online = true;
+
+	// Cache
+	char cacheDir[1024];
+#ifdef __BEOS__
+	BPath path;
+	find_directory(B_USER_SETTINGS_DIRECTORY, &path);
+	path.Append(APP_NAME"/NetCache/");
+	strcpy(cacheDir, path.Path());
+	strcat(cacheDir, "/");
+#else
+	sprintf(cacheDir, "%s/%s", getenv("HOME"), ".w3m/");
+#endif	
+	m_cacheLocation = strdup(cacheDir);
+
+	// General
+	m_homePage = strdup("http://netoptimist.sf.net");
+	m_searchPage = strdup("http://www.google.com");
+	m_downloadDirectory = strdup("/boot/home/");
+	Load();
 }
 
 // Copy constructor (mind that strings should be initialized)
@@ -140,11 +172,6 @@ void Pref::Init() {
 	path.GetParent(&path); 
 	appDir = strdup(path.Path());
 	printf("--- current dir %s\n", appDir);
-
-	// FIXME: read em from config file
-	m_homePage = strdup("http://www.be.com");
-	m_searchPage = strdup("http://www.google.com");
-	m_downloadDirectory = strdup("/boot/home/");
 }
 
 Pref::~Pref() {
@@ -165,7 +192,7 @@ const char* Pref::CacheDir() {
 	// FIXME: shouldn't calculate it every time (!!!)
 	BPath path;
 	find_directory(B_USER_SETTINGS_DIRECTORY, &path);
-	path.Append("NetOptimist/NetCache/");
+	path.Append(APP_NAME"/NetCache/");
 	strcpy(cacheDir, path.Path());
 	strcat(cacheDir, "/");
 	return cacheDir;
@@ -344,7 +371,144 @@ void Pref::SetWarnLeaveSecureSite(const bool b) { m_warnLeaveSecureSite = b; }
 
 // Misc
 void Pref::Save() {
-// FIXME:
+	Settings *settings = new Settings(APP_NAME"/"APP_NAME);
+	settings->SetString("_homePage", m_homePage);
+	settings->SetString("_searchPage", m_searchPage);
+	settings->SetString("_downloadDirectory", m_downloadDirectory);
+	settings->SetInt32("_newWindowAction", m_newWindowAction);
+	settings->SetInt32("_cookieAction", m_cookieAction);
+	settings->SetInt32("_launchDownloaded", m_launchDownloaded);
+	settings->SetInt32("_daysInGo", m_daysInGo);
+	for (int i=0; i<MAX_DISPLAY_ENCODINGS; i++) {
+		char enc[50];
+		sprintf(enc, "_fontFamily%d", i);
+		settings->SetString(enc, m_fontFamily[i]);
+		sprintf(enc, "_fontSize%d", i);
+		settings->SetInt32(enc, m_fontSize[i]);
+		sprintf(enc, "_fontMinSize%d", i);
+		settings->SetInt32(enc, m_fontMinSize[i]);
+		sprintf(enc, "_fixedFontFamily%d", i);
+		settings->SetString(enc, 	m_fixedFontFamily[i]);
+		sprintf(enc, "_fixedFontSize%d", i);
+		settings->SetInt32(enc, m_fixedFontSize[i]);
+		sprintf(enc, "_fixedFontMinSize%d", i);
+		settings->SetInt32(enc, m_fixedFontMinSize[i]);
+	}
+	settings->SetBool("_showImages", m_showImages);
+	settings->SetBool("_showBgImages", m_showBgImages);
+	settings->SetBool("_showAnimations", m_showAnimations);
+	settings->SetBool("_underlineLinks", m_underlineLinks);
+	settings->SetBool("_haikuErrors", m_haikuErrors);
+	settings->SetBool("_useFonts", m_useFonts);
+	settings->SetBool("_useBgColors", m_useBgColors);
+	settings->SetBool("_useFgColors", m_useFgColors);
+	settings->SetBool("_playSounds", m_playSounds);
+	settings->SetBool("_flickerFree", m_flickerFree);
+	settings->SetBool("_useJavaScript", m_useJavaScript);
+	settings->SetBool("_enableProxies", m_enableProxies);
+	settings->SetString("_httpProxyName", m_httpProxyName);
+	settings->SetInt32("_httpProxyPort", m_httpProxyPort);
+	settings->SetString("_ftpProxyName", m_ftpProxyName);
+	settings->SetInt32("_ftpProxyPort", m_ftpProxyPort);
+	settings->SetInt32("_maxConnections", m_maxConnections);
+	settings->SetString("_cacheLocation", m_cacheLocation);
+	settings->SetInt32("_refreshCache", m_refreshCache);
+	settings->SetInt32("_cacheSize", m_cacheSize);
+	settings->SetInt32("_unsecureFormWarning", m_unsecureFormWarning);
+	settings->SetBool("_warnEnterSecureSite", m_warnEnterSecureSite);
+	settings->SetBool("_warnLeaveSecureSite", m_warnLeaveSecureSite);
+	delete settings;
+}
+
+void Pref::Load() {
+	Settings *settings = new Settings(APP_NAME"/"APP_NAME);
+	const char *str = NULL;
+	int32 n;
+	bool b;
+	if (B_OK == settings->FindString("_homePage", &str))
+		m_homePage = strdup(str);
+	if (B_OK == settings->FindString("_searchPage", (const char **)&str))
+		m_searchPage = strdup(str);
+	if (B_OK == settings->FindString("_downloadDirectory", (const char **)&str))
+		m_downloadDirectory = strdup(str);
+	if (B_OK == settings->FindInt32("_newWindowAction", &n))
+		m_newWindowAction = (new_window_action) n;
+	if (B_OK == settings->FindInt32("_cookieAction", &n))
+		m_cookieAction = (cookie_action) n;
+	if (B_OK == settings->FindBool("_launchDownloaded", &b))
+		m_launchDownloaded = b;
+	if (B_OK == settings->FindInt32("_daysInGo", &n))
+		m_daysInGo = n;
+
+	for (int i=0; i<MAX_DISPLAY_ENCODINGS; i++) {
+		char enc[50];
+		sprintf(enc, "_fontFamily%d", i);
+		if (B_OK == settings->FindString(enc, (const char **) &str))
+			m_fontFamily[i] = strdup(str);
+		sprintf(enc, "_fontSize%d", i);
+		if (B_OK == settings->FindInt32(enc, &n))
+			m_fontSize[i] = n;
+		sprintf(enc, "_fontMinSize%d", i);
+		if (B_OK == settings->FindInt32(enc, &n))
+			m_fontMinSize[i] = n;
+		sprintf(enc, "_fixedFontFamily%d", i);
+		if (B_OK == settings->FindString(enc, (const char **) &str))
+			m_fixedFontFamily[i] = strdup(str);
+		sprintf(enc, "_fixedFontSize%d", i);
+		if (B_OK == settings->FindInt32(enc, &n))
+			m_fixedFontSize[i] = n;
+		sprintf(enc, "_fixedFontMinSize%d", i);
+		if (B_OK == settings->FindInt32(enc, &n))
+			m_fixedFontMinSize[i] = n;
+	}
+
+	if (B_OK == settings->FindBool("_showImages", &b))
+		m_showImages = b;
+	if (B_OK == settings->FindBool("_showBgImages", &b))
+		m_showBgImages = b;
+	if (B_OK == settings->FindBool("_showAnimations", &b))
+		m_showAnimations = b;
+	if (B_OK == settings->FindBool("_underlineLinks", &b))
+		m_underlineLinks = b;
+	if (B_OK == settings->FindBool("_haikuErrors", &b))
+		m_haikuErrors = b;
+	if (B_OK == settings->FindBool("_useFonts", &b))
+		m_useFonts = b;
+	if (B_OK == settings->FindBool("_useBgColors", &b))
+		m_useBgColors = b;
+	if (B_OK == settings->FindBool("_useFgColors", &b))
+		m_useFgColors = b;
+	if (B_OK == settings->FindBool("_playSounds", &b))
+		m_playSounds = b;
+	if (B_OK == settings->FindBool("_flickerFree", &b))
+		m_flickerFree = b;
+	if (B_OK == settings->FindBool("_useJavaScript", &b))
+		m_useJavaScript = b;
+	if (B_OK == settings->FindBool("_enableProxies", &b))
+		m_enableProxies = b;
+	if (B_OK == settings->FindString("_httpProxyName", (const char **)&str))
+		m_httpProxyName = strdup(str);
+	if (B_OK == settings->FindInt32("_httpProxyPort", &n))
+		m_httpProxyPort = n;
+	if (B_OK == settings->FindString("_ftpProxyName", (const char **)&str))
+		m_ftpProxyName = strdup(str);
+	if (B_OK == settings->FindInt32("_ftpProxyPort", &n))
+		m_ftpProxyPort = n;	
+	if (B_OK == settings->FindInt32("_maxConnections", &n))
+		m_maxConnections = n;
+	if (B_OK == settings->FindString("_cacheLocation", (const char **)&str))
+		m_cacheLocation = strdup(str);
+	if (B_OK == settings->FindInt32("_refreshCache", &n))
+		m_refreshCache = (refresh_cache) n;
+	if (B_OK == settings->FindInt32("_cacheSize", &n))
+		m_cacheSize = n;
+	if (B_OK == settings->FindInt32("_unsecureFormWarning", &n))
+		m_unsecureFormWarning = (unsecure_form_warning) n;
+	if (B_OK == settings->FindBool("_warnEnterSecureSite", &b))
+		m_warnEnterSecureSite = b;
+	if (B_OK == settings->FindBool("_warnLeaveSecureSite", &b))
+		m_warnLeaveSecureSite = b;
+	delete settings;		
 }
 
 Pref Pref::Default;

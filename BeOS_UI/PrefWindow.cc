@@ -28,6 +28,14 @@
 #define MARGIN 10
 
 // Constants below used for messaging inside the window
+#define CTL_ENCODING_MENU "for_encoding"
+#define CTL_PROP_FONT_MENU "proportional_font"
+#define CTL_PROP_FONT_SIZE_MENU "prop_font_size"
+#define CTL_PROP_FONT_MINSIZE_MENU "prop_mfont_size"
+#define CTL_FIX_FONT_MENU "fixed_font"
+#define CTL_FIX_FONT_SIZE_MENU "fixed_font_size"
+#define CTL_FIX_FONT_MINSIZE_MENU "fixed_mfont_size"
+
 #define CTL_HTTP_PROXY_NAME	"http_proxy_name"
 #define CTL_HTTP_PROXY_PORT	"http_proxy_port"
 #define CTL_FTP_PROXY_NAME		"ftp_proxy_name"
@@ -184,7 +192,7 @@ DisplayView::DisplayView(BRect rect, Pref *pref) : BView(rect, "display_tab_view
 	menu->AddItem(menu_item = new BMenuItem("Western", msg = new BMessage(bmsgPrefDispEncoding)));
 	msg->AddInt32("encoding", NO_WESTERN);
 	
-	BMenuField *menu_field = new BMenuField(r, "for_encoding", "For the encoding:", menu);
+	BMenuField *menu_field = new BMenuField(r, CTL_ENCODING_MENU, "For the encoding:", menu);
 	menu_field->SetAlignment(B_ALIGN_RIGHT);
 	menu_field->SetDivider(divider+2);
 	AddChild(menu_field);
@@ -208,7 +216,7 @@ DisplayView::DisplayView(BRect rect, Pref *pref) : BView(rect, "display_tab_view
 				menu_item->SetMarked(true);
 		}
 	}
-	menu_field = new BMenuField(r, "proportional_font", "Proportional font:", menu);
+	menu_field = new BMenuField(r, CTL_PROP_FONT_MENU, "Proportional font:", menu);
 	menu_field->SetAlignment(B_ALIGN_RIGHT);
 	menu_field->SetDivider(divider+2);
 	AddChild(menu_field);
@@ -246,7 +254,7 @@ DisplayView::DisplayView(BRect rect, Pref *pref) : BView(rect, "display_tab_view
 	if (24 == pref->FontSize(NO_CENTRAL_EUROPEAN))
 		menu_item->SetMarked(true);
 
-	menu_field = new BMenuField(r1, "prop_font_size", "Size:", menu);
+	menu_field = new BMenuField(r1, CTL_PROP_FONT_SIZE_MENU, "Size:", menu);
 	menu_field->SetAlignment(B_ALIGN_RIGHT);
 	menu_field->SetDivider(34);
 	AddChild(menu_field);
@@ -282,7 +290,7 @@ DisplayView::DisplayView(BRect rect, Pref *pref) : BView(rect, "display_tab_view
 	if (24 == pref->FontMinSize(NO_CENTRAL_EUROPEAN))
 		menu_item->SetMarked(true);
 
-	menu_field = new BMenuField(r1, "prop_mfont_size", "Min. size:", menu);
+	menu_field = new BMenuField(r1, CTL_PROP_FONT_MINSIZE_MENU, "Min. size:", menu);
 	menu_field->SetAlignment(B_ALIGN_RIGHT);
 	menu_field->SetDivider(be_plain_font->StringWidth("Min. size:")+4);
 	AddChild(menu_field);
@@ -304,7 +312,7 @@ DisplayView::DisplayView(BRect rect, Pref *pref) : BView(rect, "display_tab_view
 		}
 	}
 
-	menu_field = new BMenuField(r, "fixed_font", "Fixed font:", menu);
+	menu_field = new BMenuField(r, CTL_FIX_FONT_MENU, "Fixed font:", menu);
 	menu_field->SetAlignment(B_ALIGN_RIGHT);
 	menu_field->SetDivider(divider+2);
 	AddChild(menu_field);
@@ -342,7 +350,7 @@ DisplayView::DisplayView(BRect rect, Pref *pref) : BView(rect, "display_tab_view
 	if (24 == pref->FixedFontSize(NO_CENTRAL_EUROPEAN))
 		menu_item->SetMarked(true);
 
-	menu_field = new BMenuField(r1, "fixed_font_size", "Size:", menu);
+	menu_field = new BMenuField(r1, CTL_FIX_FONT_SIZE_MENU, "Size:", menu);
 	menu_field->SetAlignment(B_ALIGN_RIGHT);
 	menu_field->SetDivider(34);
 	AddChild(menu_field);
@@ -378,7 +386,7 @@ DisplayView::DisplayView(BRect rect, Pref *pref) : BView(rect, "display_tab_view
 	if (24 == pref->FixedFontMinSize(NO_CENTRAL_EUROPEAN))
 		menu_item->SetMarked(true);
 
-	menu_field = new BMenuField(r1, "fixed_mfont_size", "Min. size:", menu);
+	menu_field = new BMenuField(r1, CTL_FIX_FONT_MINSIZE_MENU, "Min. size:", menu);
 	menu_field->SetAlignment(B_ALIGN_RIGHT);
 	menu_field->SetDivider(be_plain_font->StringWidth("Min. size:")+4);
 	AddChild(menu_field);
@@ -884,7 +892,7 @@ void PrefWindow::MessageReceived(BMessage *msg) {
 			display_encoding de;
 			if (B_OK != msg->FindInt32("encoding", (int32 *) &de))
 				break;
-			BMenuField *field = (BMenuField*) FindView("proportional_font");
+			BMenuField *field = (BMenuField*) FindView(CTL_PROP_FONT_MENU);
 			if (NULL == field) break;
 			BPopUpMenu	 *menu = (BPopUpMenu*)field->Menu();
 
@@ -896,7 +904,7 @@ void PrefWindow::MessageReceived(BMessage *msg) {
 				if (NULL != item) item->SetMarked(true); // shouldn't break here, cause font may just has been deleted
 			}
 
-			field = (BMenuField*) FindView("prop_font_size");
+			field = (BMenuField*) FindView(CTL_PROP_FONT_SIZE_MENU);
 			if (NULL == field) break;
 			menu = (BPopUpMenu*)field->Menu();
 			if (NULL != menu) {
@@ -906,7 +914,7 @@ void PrefWindow::MessageReceived(BMessage *msg) {
 				if (NULL != item) item->SetMarked(true);
 			}
 
-			field = (BMenuField*) FindView("prop_font_msize");
+			field = (BMenuField*) FindView(CTL_PROP_FONT_MINSIZE_MENU);
 			if (NULL == field) break;
 			menu = (BPopUpMenu*)field->Menu();
 			if (NULL != menu) {
@@ -916,7 +924,7 @@ void PrefWindow::MessageReceived(BMessage *msg) {
 				if (NULL != item) item->SetMarked(true);
 			}
 
-			field = (BMenuField*) FindView("fixed_font");
+			field = (BMenuField*) FindView(CTL_FIX_FONT_MENU);
 			if (NULL == field) break;
 			menu = (BPopUpMenu*)field->Menu();
 
@@ -928,7 +936,7 @@ void PrefWindow::MessageReceived(BMessage *msg) {
 				if (NULL != item) item->SetMarked(true); // shouldn't break here, cause font may just has been deleted
 			}
 
-			field = (BMenuField*) FindView("fixed_font_size");
+			field = (BMenuField*) FindView(CTL_FIX_FONT_SIZE_MENU);
 			if (NULL == field) break;
 			menu = (BPopUpMenu*)field->Menu();
 			if (NULL != menu) {
@@ -938,7 +946,7 @@ void PrefWindow::MessageReceived(BMessage *msg) {
 				if (NULL != item) item->SetMarked(true);
 			}
 
-			field = (BMenuField*) FindView("fixed_font_msize");
+			field = (BMenuField*) FindView(CTL_FIX_FONT_MINSIZE_MENU);
 			if (NULL == field) break;
 			menu = (BPopUpMenu*)field->Menu();
 			if (NULL != menu) {
@@ -955,7 +963,7 @@ void PrefWindow::MessageReceived(BMessage *msg) {
 			display_encoding de;
 			if (B_OK != msg->FindString("family", &str))
 				break;
-			BMenuField *field = (BMenuField*) FindView("for_encoding");
+			BMenuField *field = (BMenuField*) FindView(CTL_ENCODING_MENU);
 			if (NULL == field) break;
 			BPopUpMenu	 *menu = (BPopUpMenu*)field->Menu();
 			if (NULL == menu) break;
@@ -972,7 +980,7 @@ void PrefWindow::MessageReceived(BMessage *msg) {
 			display_encoding de;
 			if (B_OK != msg->FindInt8("size", (int8 *) &size))
 				break;
-			BMenuField *field = (BMenuField*) FindView("for_encoding");
+			BMenuField *field = (BMenuField*) FindView(CTL_ENCODING_MENU);
 			if (NULL == field) break;
 			BPopUpMenu	 *menu = (BPopUpMenu*)field->Menu();
 			if (NULL == menu) break;
@@ -989,16 +997,15 @@ void PrefWindow::MessageReceived(BMessage *msg) {
 			display_encoding de;
 			if (B_OK != msg->FindInt8("size", (int8 *) &size))
 				break;
-			BMenuField *field = (BMenuField*) FindView("for_encoding");
+			BMenuField *field = (BMenuField*) FindView(CTL_ENCODING_MENU);
 			if (NULL == field) break;
 			BPopUpMenu	 *menu = (BPopUpMenu*)field->Menu();
-
 			if (NULL == menu) break;
 			BMenuItem *item = menu->FindMarked();
 			if (NULL == item) break;
 			BMessage *item_msg = item->Message();
 			if (NULL == item_msg) break;
-			if (B_OK != item_msg->FindInt8("encoding", (int8 *) &de)) break;
+			if (B_OK != item_msg->FindInt32("encoding", (int32 *) &de)) break;
 			m_pref->SetFontMinSize(de, size);
 			break;
 		}
@@ -1007,7 +1014,7 @@ void PrefWindow::MessageReceived(BMessage *msg) {
 			display_encoding de;
 			if (B_OK != msg->FindString("family", &str))
 				break;
-			BMenuField *field = (BMenuField*) FindView("for_encoding");
+			BMenuField *field = (BMenuField*) FindView(CTL_ENCODING_MENU);
 			if (NULL == field) break;
 			BPopUpMenu	 *menu = (BPopUpMenu*)field->Menu();
 			if (NULL == menu) break;
@@ -1024,7 +1031,7 @@ void PrefWindow::MessageReceived(BMessage *msg) {
 			display_encoding de;
 			if (B_OK != msg->FindInt8("size", (int8 *) &size))
 				break;
-			BMenuField *field = (BMenuField*) FindView("for_encoding");
+			BMenuField *field = (BMenuField*) FindView(CTL_ENCODING_MENU);
 			if (NULL == field) break;
 			BPopUpMenu	 *menu = (BPopUpMenu*)field->Menu();
 			if (NULL == menu) break;
@@ -1041,7 +1048,7 @@ void PrefWindow::MessageReceived(BMessage *msg) {
 			display_encoding de;
 			if (B_OK != msg->FindInt8("size", (int8 *) &size))
 				break;
-			BMenuField *field = (BMenuField*) FindView("for_encoding");
+			BMenuField *field = (BMenuField*) FindView(CTL_ENCODING_MENU);
 			if (NULL == field) break;
 			BPopUpMenu	 *menu = (BPopUpMenu*)field->Menu();
 			if (NULL == menu) break;
