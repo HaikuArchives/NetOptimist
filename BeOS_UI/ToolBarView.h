@@ -2,6 +2,9 @@
 #define ToolBarView_H
 #include <View.h>
 
+class BList;
+class BLooper;
+
 class ToolBarView : public BView 
 {
 private:
