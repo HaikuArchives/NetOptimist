@@ -1,6 +1,5 @@
 #include "LinkBarView.h"
 #include "Document.h"
-#include <stdio.h>
 #include <Font.h>
 
 void LinkBarView::AddLinkFromDocument(const Document *docInfo) {

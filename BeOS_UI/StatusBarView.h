@@ -2,7 +2,6 @@
 #define STATUS_BAR_H
 
 #include <View.h>
-#include <stdio.h>
 #include "StrPlus.h"
 
 class StatusBarView : public BView {
