@@ -67,6 +67,7 @@ bool INPUT_DocElem::Activated() const {
 
 bool INPUT_DocElem::IsActive() {
 	return m_type == T_SUBMIT
+	|| m_type == T_BUTTON
 	|| m_type == T_IMAGE
 	|| m_type == T_RADIO
 	|| m_type == T_CHECKBOX
@@ -126,6 +127,8 @@ void INPUT_DocElem::PrintState(char*str) {
 			type = "IMAGE"; break;
 		case T_SUBMIT:
 			type = "SUBMIT"; break;
+		case T_BUTTON:
+			type = "BUTTON"; break;
 		case T_RESET:
 			type = "RESET"; break;
 		default:
@@ -165,7 +168,6 @@ void INPUT_DocElem::geometry(HTMLFrame *view) {
 	int attr_size = -1;
 	char attr_type[10];
 	StrRef src;
-	Style *s;
 
 	TagDocElem::geometry(view);
 	attr_type[0] = '\0';
@@ -183,6 +185,8 @@ void INPUT_DocElem::geometry(HTMLFrame *view) {
 		m_type = T_HIDDEN;
 	} else if (!strcasecmp(attr_type, "submit")) {
 		m_type = T_SUBMIT;
+	} else if (!strcasecmp(attr_type, "button")) {
+		m_type = T_BUTTON;
 	} else if (!strcasecmp(attr_type, "reset")) {
 		m_type = T_RESET;
 	} else if (!strcasecmp(attr_type, "checkbox")) {
@@ -201,6 +205,7 @@ void INPUT_DocElem::geometry(HTMLFrame *view) {
 	}
 	switch(m_type)
 	{
+		case T_BUTTON:
 		case T_SUBMIT:
 		case T_RESET:
 			{
@@ -209,10 +214,9 @@ void INPUT_DocElem::geometry(HTMLFrame *view) {
 				h=max(attr_height, strh+10);
 				w=max(attr_width, strw+20);
 				fixedW=w;
-				s = m_style->clone(id);
-				s->SetBGColor(kGray);
-				s->SetColor(kBlack);
-				m_style = s;
+				m_s = m_style->clone(id);
+				m_s->SetBGColor(kGray);
+				m_s->SetColor(kBlack);
 			}
 			break;
 		case T_RADIO:
@@ -226,10 +230,9 @@ void INPUT_DocElem::geometry(HTMLFrame *view) {
 			m_activated = true;
 			h=20;
 			w=0;
-			s = m_style->clone(id);
-			s->SetBGColor(kWhite);
-			s->SetColor(kBlack);
-			m_style = s;
+			m_s = m_style->clone(id);
+			m_s->SetBGColor(kWhite);
+			m_s->SetColor(kBlack);
 			if (attr_width>0 && attr_size<0) {
 				// width is in pixels. However, if size (in char) is supplied,
 				// we ignore this attribute
@@ -239,7 +242,7 @@ void INPUT_DocElem::geometry(HTMLFrame *view) {
 				// using the width of a const string to have an
 				// approximation of the width
 				int dummy;
-				view->StringDim("0123456789", s, &w, &dummy);
+				view->StringDim("0123456789", m_s, &w, &dummy);
 				w = w/10;
 				//printf("input size = %d, w(_)=%d\n", attr_size, w);
 				w = w * attr_size + 20;
@@ -350,8 +353,11 @@ void INPUT_DocElem::GetSize() {
 
 
 void INPUT_DocElem::draw(HTMLFrame *view, bool /*onlyIfChanged*/) { 
+	if (m_s) m_style = m_s;
+
 	switch(m_type)
 	{
+		case T_BUTTON:
 		case T_SUBMIT:
 		case T_RESET:
 			view->DrawBorder3D(x+1,y+1,w-2,h-2,m_style,3, HTMLFrame::LOOK_UP);

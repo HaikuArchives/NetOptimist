@@ -29,6 +29,7 @@ public:
 class INPUT_DocElem : public TagDocElem {
 	enum {
 		T_SUBMIT,
+		T_BUTTON,
 		T_RESET,
 		T_RADIO,
 		T_CHECKBOX,
@@ -38,6 +39,7 @@ class INPUT_DocElem : public TagDocElem {
 		T_HIDDEN,
 		T_BOGGUS	// Unknown input type
 	} m_type;
+	Style *m_s;
 	char m_name[50];
 	char m_value[500];
 	bool m_activated;
@@ -60,6 +62,7 @@ public:
 		m_bmp = NULL;
 		m_badImage = false;
 		m_image_url = NULL;
+		m_s = NULL;
 	}
 	const char *Name() { return m_name; }
 	virtual void dynamicGeometry(HTMLFrame *view);
