@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <errno.h>
 
+#include "Be.h"
 #include "platform.h"
 #include "Frame.h"
 #include "Html.h"
@@ -519,6 +520,11 @@ void DocFormater::html_ctrlchar_alter(char *wholestr, char *& ptr) {
 				ptr = (wholestr+i) + 1;
 				return;
 			}
+			if (!strcmp(wholestr+i+1,"apos;")) {
+				strcpy(wholestr+i,"'");
+				ptr = (wholestr+i) + 1;
+				return;
+			}
 			if (!strcmp(wholestr+i+1,"gt;")) {
 				strcpy(wholestr+i,">");
 				ptr = (wholestr+i) + 1;
@@ -667,6 +673,13 @@ TagDocElem* DocFormater::html_parse_tag() {
 										// remove it from the code :
 										while (code>buf && *code!='<') code--;
 										if (*code=='<') *code = '\0';
+										// remove --> a the end of the script
+										code--;
+										while (code > buf && 
+											(*code =='\t' || *code==' ' || *code=='\n')) 
+											code--;
+										if (code-2>=buf && strprefix(code-2,"-->"))
+											*(code-2) = '\0';
 										// now remove <!-- in the front :
 										code = buf;
 										printf("code font = %d\n", code[0]);
