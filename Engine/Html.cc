@@ -417,7 +417,7 @@ void DocFormater::html_ctrlchar_alter(char *wholestr, char *& ptr) {
 		{"reg;",	"(r)",	"(r)",	false},
 		{"deg;",	"",	"�",	false},
 		{"middot;",	"",	".",	false},	// XXX low dot
-		{"szlig;",	"ss",	"ss",	false}, // XXX
+		{"szlig;",	"ß",	"ss",	false},
 		{"iexcl;",	"!",	"!",	false},
 		{"iquest;",	"?",	"?",	false},
 		{"raquo;",	">",	">",	false},	// XXX ?
@@ -428,6 +428,14 @@ void DocFormater::html_ctrlchar_alter(char *wholestr, char *& ptr) {
 		{"gt;",	">",	">",	false},
 		{"quot;",	"\"",	"\"",	false},
 		{"apos;",	"'",	"'",	false},
+#ifdef __BEOS__
+		{"auml;",	"ä",	"XXXX",	false},
+		{"Auml;",	"Ä",	"XXXX",	false},
+		{"ouml;",	"ö",	"XXXX",	false},
+		{"Ouml;",	"Ö",	"XXXX",	false},
+		{"uuml;",	"ü",	"XXXX",	false},
+		{"Uuml;",	"Ü",	"XXXX",	false},
+#endif		
 		{NULL, "", "", false}
 	};
 	char *c = ptr;
