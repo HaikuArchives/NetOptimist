@@ -71,7 +71,7 @@ enum HttpKeywordIds {
 	HttpHdrP3P
 };
 
-static void httpDateStr(time_t *t, char str[], int len) {
+static void httpDateStr(time_t t, char str[], int len) {
 	/* This function should generate RFC 1123 date strings
 	   with 'GMT' as timezone (which is the one recommended
 	   by http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.3.1
@@ -82,10 +82,10 @@ static void httpDateStr(time_t *t, char str[], int len) {
 	const char *month[] = { "Jan", "Feb", "Mar", "Apr" , "May", "Jun", "Jul",
 				"Aug", "Sep", "Oct", "Nov", "Dec" };
 	struct tm tm;
-	*t -= timezone;	// XXX i'm not really happy with this. What is the std way ?
+	t -= timezone;	// XXX i'm not really happy with this. What is the std way ?
 	if (ISTRACE(DEBUG_HTTP_DATE))
 		printf("TIMEZONE = %ld\n", timezone);
-	gmtime_r(t, &tm);
+	gmtime_r(&t, &tm);
 	snprintf(str, len-1, "%s, %02d %s %d %02d:%02d:%02d GMT",
 		wkday[tm.tm_wday], tm.tm_mday, month[tm.tm_mon], tm.tm_year+1900, tm.tm_hour, tm.tm_min, tm.tm_sec);
 	str[len]='\0';
@@ -103,7 +103,7 @@ static time_t dateStrToNumber(const char *datestr, const char *dateNameForDebug=
 		time_t age = mktime(&tm);
 		trace(DEBUG_HTTP_DATE) {
 			char redate[100];
-			httpDateStr(&age, redate, 99);
+			httpDateStr(age, redate, 99);
 			if (dateNameForDebug) {
 				fprintf(stderr, "dateStrToNumber : %s, %ld='%s'\n", dateNameForDebug, age, redate);
 			} else {
@@ -292,7 +292,7 @@ void HttpServerConnection::PrepareHeader(Url *url, time_t ifModifiedSince, bool 
 #endif
 	if (ifModifiedSince>0) {
 		char datestr[50];
-		httpDateStr(&ifModifiedSince, datestr, 49);
+		httpDateStr(ifModifiedSince, datestr, 49);
 		ptr += sprintf(ptr, "If-Modified-Since: %s\r\n", datestr);
 	}
 
@@ -505,8 +505,13 @@ void HttpServerConnection::ParseHeader(const char *keyword, char *value) {
 			}
 			break;
 		case HttpHdrDate:
-			if (m_memoryResource)
+			if (m_memoryResource) {
 				m_memoryResource->m_date = dateStrToNumber(value, "Date");
+				// Some servers have a bad date. This mean that a resource
+				// could always be obsolete. So we correct the date here
+				time_t now = time(0);
+				if (m_memoryResource->m_date < now) m_memoryResource->m_date = now;
+			}
 			break;
 		case HttpHdrExpires:
 			if (m_memoryResource)

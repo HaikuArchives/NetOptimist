@@ -83,32 +83,26 @@ bool Cache::cacheLine::IsValid() {
 	if (!resource) return false;
 	time_t now = time(0);
 	int in_cache = now-resource->m_date;
-	int age_when_downloaded = resource->m_date-resource->m_modified;
+	int age_when_downloaded = resource->m_modified>0 ? resource->m_date-resource->m_modified : 0;
 	if (in_cache>60*60 && in_cache > age_when_downloaded) {
 		// This resource has been to long in our cache
+		printf("IsValid: in cache since %ds - age when downloaded %ds\n", in_cache, age_when_downloaded);
 		return false;
 	}
-	if ((resource->m_expires>0 && resource->m_expires<now)
-			 || now-resource->m_date>5*24*60*60) {
-		return in_cache<10; // This is the minimum amount of time of validity
-	}
-	return true;
+	return ((resource->m_expires==0 || resource->m_expires>=now)
+			 && in_cache<5*24*60*60);
 }
 
 bool Cache::cacheLine::NeedValidate() {
-	if (!resource) return false;
 	time_t now = time(0);
 	int in_cache = now-resource->m_date;
-	int age_when_downloaded = resource->m_date-resource->m_modified;
-	if (in_cache>60*60/2 && in_cache > age_when_downloaded) {
+	int age_when_downloaded = resource->m_modified>0 ? resource->m_date-resource->m_modified : 0;
+	if (in_cache>60*60/2 || (in_cache>60 && in_cache > age_when_downloaded)) {
 		// This resource has been to long in our cache
+		printf("NeedValidate: in cache since %ds - age when downloaded %ds\n", in_cache, age_when_downloaded);
 		return true;
 	}
-	if ((resource->m_expires>0 && resource->m_expires<now)
-			 || now-resource->m_date>2*60*60) {	// XXX revalidate every 2 hours ?
-		return in_cache>10; // This is the minimum amount of time of validity
-	}
-	return false;
+	return (resource->m_expires>0 && resource->m_expires<=now);
 }
 
 void Cache::cacheLine::Remove() {
@@ -355,9 +349,10 @@ Resource *Cache::Find (Url * url) {
 			trace (DEBUG_CACHE)
 				fprintf (stderr, "Cache::Find no resource for this entry\n");
 		} else {
-				const char *file;
-				trace (DEBUG_CACHE)
-					fprintf (stderr, "Cache::Find FOUND url %s\n", urlAbsolute);
+			const char *file;
+			trace (DEBUG_CACHE)
+				fprintf (stderr, "Cache::Find FOUND url %s\n", urlAbsolute);
+			if (l->m_state == cacheLine::STATE_OK) {
 				if (l->IsValid()) {
 					struct stat buf;
 					rsc = l->resource;
@@ -393,6 +388,7 @@ Resource *Cache::Find (Url * url) {
 					trace (DEBUG_CACHE)
 						fprintf (stderr, "Cache: Url %s has expired\n", urlAbsolute);
 				}
+			}
 		}
 		l = FindNextCacheLine(urlAbsolute, l);
 	}
@@ -452,9 +448,9 @@ bool Cache::AddResource(const char *url, Resource *rsc, cacheLine *l) {
 		if (l->resource) {
 			l->Remove();
 		}
+		l->resource = rsc;
 		l->m_type = cacheLine::TYPE_MEMORY;
 		l->m_state = cacheLine::STATE_OK;
-		l->resource = rsc;
 	} else {
 		empty = created ;
 	}
@@ -487,7 +483,7 @@ Resource *Cache::Retrieve (Url * url, bool async, bool reformat) {
 			rsc = l->resource;
 			trace (DEBUG_CACHE)
 				fprintf (stderr, "Cache::Retrieve FOUND url %s\n", urlAbsolute);
-			needValidate = l->NeedValidate();
+			needValidate = l->NeedValidate() || l->m_state == cacheLine::STATE_VALIDATING;
 		}
 		if (!found)
 			l = FindNextCacheLine(urlAbsolute, l);
