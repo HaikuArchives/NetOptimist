@@ -11,6 +11,7 @@
 #include <be/storage/Directory.h>
 #include <be/storage/Entry.h>
 #include <be/storage/Path.h>
+#include <be/storage/Node.h>
 #include <be/support/SupportDefs.h>
 #ifdef __BEOS__
 #include <be/storage/FilePanel.h>
