@@ -1,5 +1,5 @@
 #ifndef HTMLView_H
-#define HTMVView_H
+#define HTMLView_H
 
 #include <View.h>
 #include <Message.h>
