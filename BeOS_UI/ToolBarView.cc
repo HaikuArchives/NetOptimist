@@ -10,9 +10,7 @@
 #include <stdio.h>
 #include "ToolView.h"
 #include "UIMessages.h"
-#ifdef __BEOS__
-#include <TranslationKit.h>
-#endif
+#include <TranslationUtils.h>
 #include <Dragger.h>
 
 #include <iostream.h>
@@ -26,7 +24,7 @@ struct ARGBPixel { uint8 a,r,g,b; };
 #endif
 
 ToolBarView::ToolBarView(BRect frame, BLooper *l) :
-	BView(frame,"ToolBar", B_FOLLOW_LEFT_RIGHT, B_NAVIGABLE | B_FRAME_EVENTS | B_WILL_DRAW )
+	BView(frame,"ToolBar", B_FOLLOW_TOP | B_FOLLOW_LEFT_RIGHT, B_NAVIGABLE | B_FRAME_EVENTS | B_WILL_DRAW )
 {
 	m_documentIcon=NULL;
 	bitmap=NULL;
@@ -245,7 +243,7 @@ void ToolBarView::Draw(BRect updateRect) {
 void ToolBarView::MessageReceived(BMessage *message) {
 	BView::MessageReceived(message);
 	trace(DEBUG_MESSAGING)
-		fprintf(stderr, "Message received %4s in ToolBarView\n", (char *)&message->what);
+		fprintf(stderr, "Message received %4.4s in ToolBarView\n", (char *)&message->what);
 }
 
 void ToolBarView::SetDocumentIcon(const BBitmap *bmp) {
