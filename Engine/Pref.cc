@@ -11,6 +11,7 @@
 #include <storage/FindDirectory.h>
 #endif
 
+// NOTE: when the new fields added both first constructor and = operator should be updated
 Pref::Pref() : 
 	m_homePage(NULL), 
 	m_searchPage(NULL),
@@ -29,16 +30,75 @@ Pref::Pref() :
 	m_useFgColors(true),
 	m_playSounds(true),
 	m_flickerFree(true),
-	m_useJavaScript(true)
-	
-	 {
+	m_useJavaScript(true),
+	m_enableProxies(false),
+	m_httpProxyName(NULL),
+	m_httpProxyPort(-1),
+	m_ftpProxyName(NULL),
+	m_ftpProxyPort(-1),
+	m_maxConnections(3),
+	m_cacheLocation(NULL),
+	m_refreshCache(NO_REFRESH_ONCE_PER_SESSION),
+	m_cacheSize(10),
+	m_unsecureFormWarning(NO_WARN_ALWAYS),
+	m_warnEnterSecureSite(true),
+	m_warnLeaveSecureSite(true)
+
+{
 #ifdef __BEOS__
 	appDir = NULL;
 #endif
 
 	// Connections
-	m_proxyName = NULL;
 	m_online = true;
+	m_cacheLocation = NULL;
+}
+
+Pref::Pref(const Pref &p) {
+	(*this) = p;
+}
+
+Pref& Pref::operator = (const Pref& p) {
+	// free possibly allocated strings
+/*	FREE(m_homePage);
+	FREE(m_searchPage);
+	FREE(m_downloadDirectory);
+	FREE(m_httpProxyName);
+	FREE(m_ftpProxyName);
+	FREE(m_cacheLocation);
+*/
+	// copy everything		
+	m_homePage = strdup(p.m_homePage); 
+	m_searchPage = strdup(p.m_searchPage);
+	m_downloadDirectory = strdup(p.m_downloadDirectory);
+	m_newWindowAction = p.m_newWindowAction;
+	m_cookieAction = p.m_cookieAction;
+	m_launchDownloaded = p.m_launchDownloaded;
+	m_daysInGo = p.m_daysInGo;
+	m_showImages = p.m_showImages;
+	m_showBgImages = p.m_showBgImages;
+	m_showAnimations = p.m_showAnimations;
+	m_underlineLinks = p.m_underlineLinks;
+	m_haikuErrors = p.m_haikuErrors;
+	m_useFonts = p.m_useFonts;
+	m_useBgColors = p.m_useBgColors;
+	m_useFgColors = p.m_useFgColors;
+	m_playSounds = p.m_playSounds;
+	m_flickerFree = p.m_flickerFree;
+	m_useJavaScript = p.m_useJavaScript;
+	m_enableProxies = p.m_enableProxies;
+	m_httpProxyName = strdup(p.m_httpProxyName);
+	m_httpProxyPort = p.m_httpProxyPort;
+	m_ftpProxyName = strdup(p.m_ftpProxyName);
+	m_ftpProxyPort = p.m_ftpProxyPort;
+	m_maxConnections = p.m_maxConnections;
+	m_cacheLocation = strdup(p.m_cacheLocation);
+	m_refreshCache = p.m_refreshCache;
+	m_cacheSize = p.m_cacheSize;
+	m_unsecureFormWarning = p.m_unsecureFormWarning;
+	m_warnEnterSecureSite = p.m_warnEnterSecureSite;
+	m_warnLeaveSecureSite = p.m_warnLeaveSecureSite;
+	return *this;
 }
 
 #ifdef __BEOS__
@@ -59,15 +119,16 @@ void Pref::Init() {
 }
 
 Pref::~Pref() {
-	if (appDir) free(appDir);
+	FREE(appDir);
+	FREE(m_homePage);
+	FREE(m_searchPage);
+	FREE(m_downloadDirectory);
+	FREE(m_httpProxyName);
+	FREE(m_ftpProxyName);	
 }
 
 const char* Pref::AppDir() {
 	return appDir;
-}
-
-int Pref::ProxyPort() {
-	return 0;
 }
 
 const char* Pref::CacheDir() {
@@ -83,10 +144,6 @@ const char* Pref::CacheDir() {
 
 #else
 
-int Pref::ProxyPort() {
-	return 3128;
-}
-
 const char* Pref::CacheDir() {
 	static char cacheDir[1024];
 /*
@@ -101,16 +158,6 @@ const char* Pref::CacheDir() {
 }
 
 #endif
-
-void Pref::SetProxyName(const char *proxy) {
-	m_proxyName = proxy;
-}
-
-const char* Pref::ProxyName() {
-	if (m_proxyName)
-		return m_proxyName;
-	return NULL;
-}
 
 bool Pref::Online() const {
 	return m_online;
@@ -140,52 +187,101 @@ void Pref::SetDownloadDirectory(const char *s) {
 }
 const char * Pref::DownloadDirectory() { return m_downloadDirectory; }
 
-void Pref::SetNewWindowAction(new_window_action action) { m_newWindowAction = action; }
+void Pref::SetNewWindowAction(const new_window_action action) { m_newWindowAction = action; }
 const new_window_action Pref::NewWindowAction() { return m_newWindowAction; }
 
-void Pref::SetCookieAction(cookie_action action) { m_cookieAction = action; }
+void Pref::SetCookieAction(const cookie_action action) { m_cookieAction = action; }
 const cookie_action Pref::CookieAction() { return m_cookieAction; }
 
-void Pref::SetLaunchDownloaded(bool launch) { m_launchDownloaded = launch; }
+void Pref::SetLaunchDownloaded(const bool launch) { m_launchDownloaded = launch; }
 const bool Pref::LaunchDownloaded() { return m_launchDownloaded; }
 
-void Pref::SetDaysInGo(int days) { m_daysInGo = days; }
+void Pref::SetDaysInGo(const int days) { m_daysInGo = days; }
 const int Pref::DaysInGo() { return m_daysInGo; }
 
 // Display page
-bool Pref::ShowImages() { return m_showImages; }
-void Pref::SetShowImages(bool b) { m_showImages = b; }
+const bool Pref::ShowImages() { return m_showImages; }
+void Pref::SetShowImages(const bool b) { m_showImages = b; }
 
-bool Pref::ShowBgImages() { return m_showBgImages; }
-void Pref::SetShowBgImages(bool b) { m_showBgImages = b; }
+const bool Pref::ShowBgImages() { return m_showBgImages; }
+void Pref::SetShowBgImages(const bool b) { m_showBgImages = b; }
 
-bool Pref::ShowAnimations() { return m_showAnimations; }
-void Pref::SetShowAnimations(bool b) { m_showAnimations = b; }
+const bool Pref::ShowAnimations() { return m_showAnimations; }
+void Pref::SetShowAnimations(const bool b) { m_showAnimations = b; }
 
-bool Pref::UnderlineLinks() { return m_underlineLinks; }
-void Pref::SetUnderlineLinks(bool b) { m_underlineLinks = b; }
+const bool Pref::UnderlineLinks() { return m_underlineLinks; }
+void Pref::SetUnderlineLinks(const bool b) { m_underlineLinks = b; }
 
-bool Pref::HaikuErrors() { return m_haikuErrors; }
-void Pref::SetHaikuErrors(bool b) { m_haikuErrors = b; }
+const bool Pref::HaikuErrors() { return m_haikuErrors; }
+void Pref::SetHaikuErrors(const bool b) { m_haikuErrors = b; }
 
-bool Pref::UseFonts() { return m_useFonts; }
-void Pref::SetUseFonts(bool b) { m_useFonts = b; }
+const bool Pref::UseFonts() { return m_useFonts; }
+void Pref::SetUseFonts(const bool b) { m_useFonts = b; }
 
-bool Pref::UseBgColors() { return m_useBgColors; }
-void Pref::SetUseBgColors(bool b) { m_useBgColors = b; }
+const bool Pref::UseBgColors() { return m_useBgColors; }
+void Pref::SetUseBgColors(const bool b) { m_useBgColors = b; }
 
-bool Pref::UseFgColors() { return m_useFgColors; }
-void Pref::SetUseFgColors(bool b) { m_useFgColors = b; }
+const bool Pref::UseFgColors() { return m_useFgColors; }
+void Pref::SetUseFgColors(const bool b) { m_useFgColors = b; }
 
-bool Pref::UsePlaySounds() { return m_playSounds; }
-void Pref::SetUsePlaySounds(bool b) { m_playSounds = b; }
+const bool Pref::PlaySounds() { return m_playSounds; }
+void Pref::SetPlaySounds(const bool b) { m_playSounds = b; }
 
-bool Pref::FlickerFree() { return m_flickerFree; }
-void Pref::SetFlickerFree(bool b) { m_flickerFree = b; }
+const bool Pref::FlickerFree() { return m_flickerFree; }
+void Pref::SetFlickerFree(const bool b) { m_flickerFree = b; }
 
-bool Pref::UseJavaScript() { return m_useJavaScript; }
-void Pref::SetUseJavaScript(bool b) { m_useJavaScript = b; }
+const bool Pref::UseJavaScript() { return m_useJavaScript; }
+void Pref::SetUseJavaScript(const bool b) { m_useJavaScript = b; }
 
+// Connections
+const bool Pref::EnableProxies() { return m_enableProxies; }
+void Pref::SetEnableProxies(const bool b) { m_enableProxies = b; }
+
+const char * Pref::HttpProxyName() { return m_httpProxyName; }
+void Pref::SetHttpProxyName(const char *s) {
+	if (m_httpProxyName) free(m_httpProxyName);
+	m_httpProxyName = strdup(s);
+}
+
+const int Pref::HttpProxyPort() { return m_httpProxyPort; }
+void Pref::SetHttpProxyPort(const int n) { m_httpProxyPort = n; }
+
+const char * Pref::FtpProxyName() { return m_ftpProxyName; }
+void Pref::SetFtpProxyName(const char *s) {
+	if (m_ftpProxyName) free(m_ftpProxyName);
+	m_ftpProxyName = strdup(s);
+}
+
+const int Pref::FtpProxyPort() { return m_ftpProxyPort; }
+void Pref::SetFtpProxyPort(const int n) { m_ftpProxyPort = n; } 
+
+const int Pref::MaxConnections() { return m_maxConnections; }
+void Pref::SetMaxConnections(const int n) { m_maxConnections = n; }
+
+// Cache
+const char *Pref::CacheLocation() { return m_cacheLocation; }
+void Pref::SetCacheLocation(const char *s) {
+	FREE(m_cacheLocation);
+	m_cacheLocation = strdup(s);
+}
+
+const refresh_cache Pref::RefreshCache() { return m_refreshCache; }
+void Pref::SetRefreshCache(const refresh_cache r) { m_refreshCache = r; }
+
+const int Pref::CacheSize() { return m_cacheSize; }
+void Pref::SetCacheSize(const int n) { m_cacheSize = n; } 
+
+// Security
+const unsecure_form_warning Pref::UnsecureFormWarning() { return m_unsecureFormWarning; }
+void Pref::SetUnsecureFormWarning(const unsecure_form_warning u) { m_unsecureFormWarning = u; }
+
+const bool Pref::WarnEnterSecureSite() { return m_warnEnterSecureSite; }
+void Pref::SetWarnEnterSecureSite(const bool b) { m_warnEnterSecureSite = b; }
+
+const bool Pref::WarnLeaveSecureSite() { return m_warnLeaveSecureSite; }
+void Pref::SetWarnLeaveSecureSite(const bool b) { m_warnLeaveSecureSite = b; } 
+
+// Misc
 void Pref::Save() {
 // FIXME:
 }

@@ -9,7 +9,6 @@
 #ifdef __BEOS__
 #include <DataIO.h>
 #endif
-#include "Be.h"
 #include "platform.h"
 #include "Pref.h"
 #include "StrPlus.h"

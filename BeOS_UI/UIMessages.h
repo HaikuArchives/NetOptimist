@@ -90,10 +90,10 @@
 
 // Preferences/Connections
 #define bmsgPrefConEnableProxies	'pcep'
-#define bmsgPrefConHttpUrl		'pchu'
-#define bmsgPrefConHttpPort		'pchp'
-#define bmsgPrefConFtpUrl		'pcfu'
-#define bmsgPrefConFtpPort		'pcfp'
+#define bmsgPrefConHttpProxyName	'pchu'
+#define bmsgPrefConHttpProxyPort	'pchp'
+#define bmsgPrefConFtpProxyName	'pcfu'
+#define bmsgPrefConFtpProxyPort	'pcfp'
 #define bmsgPrefConMaxConnections	'pcmc'
 
 // Preferences/Cache

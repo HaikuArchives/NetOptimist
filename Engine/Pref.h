@@ -24,6 +24,19 @@ enum display_encoding {
 	NO_CENTRAL_EUROPEAN
 };
 
+enum refresh_cache {
+	NO_REFRESH_EVERY_TIME = 0x60,
+	NO_REFRESH_ONCE_PER_SESSION,
+	NO_REFRESH_ONCE_PER_DAY,
+	NO_REFRESH_NEVER
+};
+
+enum unsecure_form_warning {
+	NO_WARN_NEVER = 0x100,
+	NO_WARN_MORE_THAN_ONE_LINE,
+	NO_WARN_ALWAYS
+};
+
 class Pref {
 	char *appDir;
 	
@@ -36,11 +49,9 @@ class Pref {
 	bool m_launchDownloaded; // automatically launch files after download
 	int m_daysInGo; // days to keep files in Go menu
 	
-	
 	// Display
-	
+
 	// FIXME: Fonts/encodings
-	
 	bool m_showImages;
 	bool m_showBgImages;
 	bool m_showAnimations;
@@ -54,16 +65,32 @@ class Pref {
 	bool m_useJavaScript;
 
 	// Connections
-	const char *m_proxyName;
-	bool m_online; 	// Allows http
-	
+	bool m_enableProxies;
+	char *m_httpProxyName;
+	int m_httpProxyPort;
+	char *m_ftpProxyName;
+	int m_ftpProxyPort;
+	int m_maxConnections;
+
 	// Cache
+	char *m_cacheLocation;
+	refresh_cache m_refreshCache;
+	int m_cacheSize;
 	
 	// Security
+	unsecure_form_warning m_unsecureFormWarning;
+	bool m_warnEnterSecureSite;
+	bool m_warnLeaveSecureSite;
+	
+	bool m_online; 	// Allows http
+
 public:
 	static Pref Default;
 
 	Pref();
+	Pref(const Pref&);
+	Pref& operator = (const Pref&);
+		
 #ifdef __BEOS__
 	~Pref();
 	const char *AppDir();
@@ -76,47 +103,76 @@ public:
 	const char * SearchPage();
 	void SetDownloadDirectory(const char *);
 	const char * DownloadDirectory();
-	void SetNewWindowAction(new_window_action action);
+	void SetNewWindowAction(const new_window_action action);
 	const new_window_action NewWindowAction();	
-	void SetCookieAction(cookie_action action);
+	void SetCookieAction(const cookie_action action);
 	const cookie_action CookieAction();
-	void SetLaunchDownloaded(bool launch);
+	void SetLaunchDownloaded(const bool launch);
 	const bool LaunchDownloaded();
-	void SetDaysInGo(int days);
+	void SetDaysInGo(const int days);
 	const int DaysInGo();
 	
 	// Display
-	bool ShowImages();
-	void SetShowImages(bool);
-	bool ShowBgImages();
-	void SetShowBgImages(bool);
-	bool ShowAnimations();
-	void SetShowAnimations(bool);
-	bool UnderlineLinks();
-	void SetUnderlineLinks(bool);
-	bool HaikuErrors();
-	void SetHaikuErrors(bool);
-	bool UseFonts();
-	void SetUseFonts(bool);
-	bool UseBgColors();
-	void SetUseBgColors(bool);
-	bool UseFgColors();
-	void SetUseFgColors(bool);
-	bool UsePlaySounds();
-	void SetUsePlaySounds(bool);
-	bool FlickerFree();
-	void SetFlickerFree(bool);
-	bool UseJavaScript();
-	void SetUseJavaScript(bool);
+	const bool ShowImages();
+	void SetShowImages(const bool);
+	const bool ShowBgImages();
+	void SetShowBgImages(const bool);
+	const bool ShowAnimations();
+	void SetShowAnimations(const bool);
+	const bool UnderlineLinks();
+	void SetUnderlineLinks(const bool);
+	const bool HaikuErrors();
+	void SetHaikuErrors(const bool);
+	const bool UseFonts();
+	void SetUseFonts(const bool);
+	const bool UseBgColors();
+	void SetUseBgColors(const bool);
+	const bool UseFgColors();
+	void SetUseFgColors(const bool);
+	const bool PlaySounds();
+	void SetPlaySounds(const bool);
+	const bool FlickerFree();
+	void SetFlickerFree(const bool);
+	const bool UseJavaScript();
+	void SetUseJavaScript(const bool);
 	
+	// Connections
+	const bool EnableProxies();
+	void SetEnableProxies(const bool);
+	const char *HttpProxyName();
+	void SetHttpProxyName(const char *);
+	const int HttpProxyPort();
+	void SetHttpProxyPort(const int);
+	const char *FtpProxyName();
+	void SetFtpProxyName(const char *);
+	const int FtpProxyPort();
+	void SetFtpProxyPort(const int);
+	const int MaxConnections();
+	void SetMaxConnections(const int);
+		
+	// Cache
+	const char *CacheLocation();
+	void SetCacheLocation(const char *);
+	const refresh_cache RefreshCache();
+	void SetRefreshCache(const refresh_cache);
+	const int CacheSize();
+	void SetCacheSize(const int);
 	
+	// Security
+	const unsecure_form_warning UnsecureFormWarning();
+	void SetUnsecureFormWarning(const unsecure_form_warning);
+	const bool WarnEnterSecureSite();
+	void SetWarnEnterSecureSite(const bool);
+	const bool WarnLeaveSecureSite();
+	void SetWarnLeaveSecureSite(const bool);
+
+	// Misc...
 	void SetOnline(bool online);
 	bool Online() const;
-	const char *ProxyName();
-	void SetProxyName(const char *);
-	int ProxyPort();
+	
+	// FIXME: we have methods for this now. remove!
 	const char *CacheDir();
-
+	
 	// Save preferences
 	void Save();
 

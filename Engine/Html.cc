@@ -5,7 +5,6 @@
 #include <ctype.h>
 #include <errno.h>
 
-#include "Be.h"
 #include "platform.h"
 #include "Frame.h"
 #include "Html.h"

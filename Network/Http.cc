@@ -638,8 +638,8 @@ ServerConnection* ConnectionMgr::GetConnection(Url *url) {
 
 	int proxyPort;
 	const char *proxy;
-	proxy = Pref::Default.ProxyName();
-	proxyPort = Pref::Default.ProxyPort();
+	proxy = Pref::Default.HttpProxyName();
+	proxyPort = Pref::Default.HttpProxyPort();
 
 	struct hostent *hostinfo;
 	struct sockaddr_in serverAddr;
