@@ -27,6 +27,7 @@ public:
 };
 
 class INPUT_DocElem : public TagDocElem {
+	typedef TagDocElem super;
 	enum {
 		T_SUBMIT,
 		T_BUTTON,
