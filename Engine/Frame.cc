@@ -79,7 +79,6 @@ void HTMLFrame::ModifyUrl(Url *newUrl) {
 		Refresh();
 
 
-#ifdef __BEOS__
 		// Notify container
 		StrRef ref;
 		newUrl->ToStrRef(&ref);
@@ -87,7 +86,7 @@ void HTMLFrame::ModifyUrl(Url *newUrl) {
 		BMessage msg(URL_MODIFIED);
 		msg.AddString("URL", ref.Str());
 		m_container->PostMessage(&msg);
-#endif
+
 		NewDocumentLoaded();
 	} else {
 		// XXX we should notify the user that this
