@@ -121,7 +121,7 @@ void HTMLFrame::Back() {
 	UrlQuery query;
 
 	// STAS:
-	if (!History::history.Back())
+	if (!History::history.HasBack())
 		return;
 	// /STAS
 
@@ -134,7 +134,7 @@ void HTMLFrame::Forward() {
 	UrlQuery query;
 
 	// STAS:
-	if (!History::history.Forward())
+	if (!History::history.HasForward())
 		return;
 	// /STAS
 

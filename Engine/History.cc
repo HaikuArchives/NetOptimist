@@ -51,6 +51,15 @@ StrRef *History::Forward() {
 	}
 }
 
+
+bool History::HasBack() {
+	return (cur && cur->prev);
+}
+
+bool History::HasForward() {
+	return (cur && cur->next);
+}
+
 void History::Query(const char *url) {
 	if (strlen(url)<5) return;
 	HistLine *p = last;
