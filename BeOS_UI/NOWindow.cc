@@ -10,7 +10,10 @@
 #include <be/storage/Directory.h>
 #include <be/storage/Entry.h>
 #include <be/storage/Path.h>
+#include <be/support/SupportDefs.h>
+#ifdef __BEOS__
 #include <be/storage/FilePanel.h>
+#endif
 #include <TextControl.h>
 #include <Shelf.h>
 #include "NOWindow.h"      
@@ -289,7 +292,9 @@ NOWindow::NOWindow(BRect windowfr) : BWindow(windowfr, "NetOptimist", B_DOCUMENT
 	drawArea->SetStatusBarView(m_statusView);
 	UpdateNavControls();
 	
+#ifdef __BEOS__
 	fileOpenPanel_ = new BFilePanel;
+#endif
 }
 
 // do some clean-ups here...
@@ -416,12 +421,6 @@ void NOWindow::MessageReceived(BMessage *message) {
 			}
 			break;
 		case bmsgButtonBACK:
-			if (!History::history.Back()) {
-				fprintf(stdout, "######## No history to go back\n");
-				return;
-			}
-			else				
-				fprintf(stdout, "######## Going back\n");
 			drawArea->Back();
 			UpdateNavControls();
 			break;
@@ -499,9 +498,11 @@ void NOWindow::MessageReceived(BMessage *message) {
 			break;
 		}
 
+#ifdef __BEOS__
 		case bmsgFileOpenFile:
 			fileOpenPanel_->Show();
 			break;
+#endif
 
 		case bmsgForceTableBorder:
 			if (ISTRACE(DEBUG_FORCETABLEBORDER))
@@ -566,4 +567,8 @@ uint32 NOWindow::SetEncoding(uint32 enc) {
 		Pref::Default.SetEncoding(enc);
 	}
 	return prev;
+}
+
+HTMLFrame *NOWindow::MainFrame() {
+	return drawArea;
 }

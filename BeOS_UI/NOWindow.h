@@ -1,7 +1,8 @@
 #ifndef NOWindow_H
 #define NOWindow_H
 #include <Window.h>
-#include <be/storage/FilePanel.h>
+
+#include "HTMLWindow.h"
 
 class BTextControl;
 class BTextView;
@@ -16,7 +17,7 @@ class StatusBarView;
 class HTMLView;
 class DocFormater;
 
-class NOWindow : public BWindow {
+class NOWindow : public BWindow, public HTMLWindow {
 	const int ToolBarViewHeigth;
 	bool m_fullScreen;
 	BRect m_orgFrame; // the frame before Full Screen
@@ -43,6 +44,7 @@ public :
 	bool QuitRequested();
 	void MessageReceived(BMessage *message);
 	void IsDownloading(bool);
+	HTMLFrame *MainFrame();
 private:
 	void UrlChanged(const char *);
 	void UpdateNavControls();
