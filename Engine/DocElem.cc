@@ -69,7 +69,7 @@ void DocElem::dynamicGeometry(HTMLFrame *) {
 		fixedW = max(fixedW, includedConstraint->minW);
 	}
 	if (constraint)
-		constraint->RegisterWidth(fixedW);
+		constraint->RegisterWidth(w);
 }
 
 DocElem::~DocElem() {
