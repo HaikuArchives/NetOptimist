@@ -5,8 +5,6 @@
 #include <stdlib.h> // this one must be included first because of redefinition of abs in macros.h
 #include <macros.h>
 typedef int bool;
-typedef int int32;
-typedef unsigned char uint8;
 typedef int status_t;
 
 const int true = (0==0);
@@ -31,8 +29,5 @@ static inline int min(int a, int b) { return a>b?b:a; }
 #endif
 
 #define app_signature "application/x-vnd.NetOptimist"
-
-// Useful macros
-#define FREE(p) if (p) { free(p); p=NULL; }
 
 #endif

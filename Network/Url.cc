@@ -5,11 +5,9 @@
 #include <strings.h>
 #include <unistd.h>
 #include <sys/stat.h>
-#ifdef __BEOS__
 #include <storage/Directory.h>
-#else
+#ifndef __BEOS__
 #include <libgen.h>
-#include "Be.h"
 #endif
 #include <Message.h>
 #include "platform.h"

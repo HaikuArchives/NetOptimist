@@ -15,6 +15,7 @@ void A_DocElem::geometry(HTMLFrame *view) {
 		iter->ReadStrRef("HREF",&attr_href);
 		iter->ReadStrRef("NAME",&m_attr_name);
 		iter->ReadStrRef("ALT",&m_attr_alt);
+		iter->ReadStrRef("ONCLICK",&m_attr_onclick);
 	}
 	if (!strnull(attr_href.Str())) {
 		// This tag is a link
@@ -38,7 +39,11 @@ bool A_DocElem::Action(::Action action, UrlQuery *href) {
 	if (action == ANCHOR_SEARCH) {
 		return (!m_attr_name.IsFree() && !strcasecmp(href->m_name, m_attr_name.Str()));
 	} else {
-		href->SetUrl(&attr_href);
+		if (Pref::Default.UseJavaScript() && (action == MOUSE_CLICK)) {
+			href->SetUrl(&m_attr_onclick);
+		} else {
+			href->SetUrl(&attr_href);
+		}
 		href->m_name = m_attr_alt.Str();
 		return true;
 	}

@@ -6,9 +6,7 @@
 #include <stdlib.h>
 #include <netdb.h>
 #include <time.h>
-#ifdef __BEOS__
 #include <DataIO.h>
-#endif
 #include "platform.h"
 #include "Pref.h"
 #include "StrPlus.h"

@@ -66,6 +66,7 @@ class A_DocElem : public TagDocElem {
 	StrRef attr_href;
 	StrRef m_attr_name;
 	StrRef m_attr_alt;
+	StrRef m_attr_onclick;
 public:
 	A_DocElem(Tag *tag, TagAttr *attrs) : TagDocElem(tag,attrs) {
 	}

@@ -2,6 +2,7 @@
 #include "jsbridge/jsctx.h"
 #include "js.h"
 #include "Html.h"
+#include "NOWindow.h"
 
 /* I/O function for the standard error stream. */
 int io_stderr (void *context, unsigned char *buffer, unsigned int amount) {
@@ -59,6 +60,59 @@ nojs_document_writeln(JSClassPtr , void *instance_context, JSInterpPtr ,
 	return nojs_document_write_helper(instance_context, argc, argv, error_return, true);
 }
 
+static JSMethodResult 
+nojs_window_open(JSClassPtr , void *instance_context, JSInterpPtr ,
+	    int argc, JSType *argv, JSType *, char *error_return) {
+	if (argc < 1 || argc > 3) {
+		strcpy (error_return, "wrong amount of arguments");
+		return JS_ERROR;
+	}
+
+	if (argv[0].type != JS_TYPE_STRING) {
+		strcpy (error_return, "wrong argument(1) type");
+		return JS_ERROR;
+	}
+
+	char *url = new char[argv[0].u.s->len + 1];
+	strncpy(url, (char *)argv[0].u.s->data, argv[0].u.s->len);
+	url[argv[0].u.s->len] = '\0';
+#ifdef DEBUG_ONLY
+	fprintf(stderr, "openning new window for url %s\n", url);
+	delete[] url;
+#else
+	{
+	NOWindow *win = new NOWindow(BRect(10,100,600,600));
+	win->SetUrl(url);
+	win->Show();
+	}
+#endif
+
+	return JS_OK;
+}
+
+static JSMethodResult
+nojs_window_url(JSClassPtr , void *instance_context, JSInterpPtr ,
+		int setp, JSType *value, char *error_return) {
+	if (setp) {
+		fprintf(stderr, "nojs_window_url : trying to set property\n");
+		if (value->type != JS_TYPE_STRING) {
+			strcpy (error_return, "wrong value type");
+			return JS_ERROR;
+		}
+
+		// XXX Not implemented !
+		// Warning : we should post a message to set new url and not
+		// call SetUrl (or whatever) directly because the js code
+		// is run within the context of the window.
+		strcpy(error_return, "not implemented");
+		return JS_ERROR;
+	} else {
+		DocFormater *doc = (DocFormater*)instance_context;
+		fprintf(stderr, "nojs_window_url : trying to read property\n");
+		return JS_OK;
+	}
+}
+
 struct JsData {
 	JSInterpPtr interp;
 };
@@ -77,24 +131,32 @@ void JsCtx::Init(DocFormater *document) {
 
 	JSClassPtr cls;
 
-	// document object
+	// document class
 	cls = js_class_create (NULL, NULL, 0 /* no_auto_destroy */, NULL /*ctor*/);
 	js_class_define_method (cls, "write", 0, nojs_document_write);
 	js_class_define_method (cls, "writeln", 0, nojs_document_writeln);
 	js_define_class (m_jsdata->interp, cls, "NetOptimistDocument");
 
+	// document object
 	JSType * documentObject = new JSType;
 	js_instantiate_class (m_jsdata->interp, cls, document, NULL, documentObject);
-
 	js_set_var (m_jsdata->interp, "document", documentObject);
 	
-	// window object
+	// window class
 	cls = js_class_create (NULL, NULL, 0 /* no_auto_destroy */, NULL /*ctor*/);
+	js_class_define_method (cls, "open", JS_CF_STATIC, nojs_window_open);
+	js_class_define_property (cls, "url", 0, nojs_window_url);
+	js_define_class (m_jsdata->interp, cls, "NetOptimistDocument");
+
+	// window object
+	JSType * windowObject = new JSType;
+	js_instantiate_class (m_jsdata->interp, cls, document, NULL, windowObject);
+	js_set_var (m_jsdata->interp, "window", windowObject);
 }
 
 void JsCtx::Execute(const char *t) {
 	if (!js_eval(m_jsdata->interp, (char*)t)) {
-		fprintf (stderr, "JsCtx::Execute failed: %s\n", js_error_message (m_jsdata->interp));
+		fprintf (stderr, ">> JsCtx::Execute failed: %s\n", js_error_message (m_jsdata->interp));
 	}
 }
 
