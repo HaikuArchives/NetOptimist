@@ -50,7 +50,7 @@ bool A_DocElem::Action(::Action action, UrlQuery *href) {
 }
 
 void SCRIPT_DocElem::geometry(HTMLFrame *view) { 
-	// TODO : TYPE LANGUAGE and SRC are currently ignored
+	// TODO : TYPE, LANGUAGE and SRC are currently ignored
 	char attr_type[50];
 	char attr_language[50];
 	StrRef attr_src;
@@ -70,6 +70,9 @@ void SCRIPT_DocElem::geometry(HTMLFrame *view) {
 		if (code) {
 			printf("<SCRIPT> : %s\n---\n", code->str);
 		}
+	}
+	if (!attr_src.IsFree()) {
+		fprintf(stderr, "Warning : JavaScript code in separate file is not supported (id=%d)\n", id);
 	}
 }
 
@@ -265,6 +268,12 @@ void IMG_DocElem::geometry(HTMLFrame *view) {
 		iter->ReadStrRef("SRC",&m_attr_src);
 		iter->ReadAlignment("ALIGN",& attr_align);
 		iter->ReadInt("border",&attr_border);
+	}
+	if (m_attr_alt.IsFree() && !m_attr_src.IsFree()) {
+		// Not Alt tag : display the filename
+		const char *image_src = m_attr_src.Str();
+		const char *filename = strrchr(image_src, '/');
+		m_attr_alt.SetToDup(filename ? filename+1 : image_src);
 	}
 	if (!url && !strnull(m_attr_src.Str()) && Pref::Default.ShowImages()) {
 			// download in background and reformat only if size is not in html file
