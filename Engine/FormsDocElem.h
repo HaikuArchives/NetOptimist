@@ -68,7 +68,7 @@ public:
 	const char *Name() { return m_name; }
 	virtual void dynamicGeometry(HTMLFrame *view);
 	virtual void geometry(HTMLFrame *view);
-	virtual void draw(HTMLFrame *m_view, bool onlyIfChanged=false);
+	virtual void draw(HTMLFrame *m_view, const BRect *, bool onlyIfChanged=false);
 	virtual void RelationSet(HTMLFrame *view);
 	virtual bool IsActive();
 	virtual bool Action(::Action action, UrlQuery * href);
