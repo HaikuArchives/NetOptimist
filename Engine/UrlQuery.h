@@ -12,7 +12,6 @@ enum ProtocolMethod {
 
 
 class UrlQuery {
-	StrRef m_url;
 public:
 	UrlQuery() {
 		m_name = NULL;
@@ -24,11 +23,14 @@ public:
 	void SetUrl(const char *);
 	void SetUrl(StrRef *);
 	const char *Url() const ;
+
 	const char *m_name;
 	ProtocolMethod m_method;
 	int m_maxHop;		// The max url redirect we may cross
 	int m_nbFields;
 	char **m_fields;
+private:
+	StrRef m_url;
 };
 
 #endif
