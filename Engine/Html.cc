@@ -170,7 +170,6 @@ public:
 		m_curp = m_curt->m_offset;
 	}
 	void InsertText(const char *p, int len) {
-printf("InsertText() : %s\n", p);
 		if (m_curt) {
 			// Verify that all text has been commited
 			if (m_curp != m_curt->m_offset) {
@@ -420,7 +419,8 @@ void DocFormater::html_ctrlchar_alter(char *wholestr, char *& ptr) {
 		{"szlig;",	"ß",	"ss",	false},
 		{"iexcl;",	"¡",	"!",	false},
 		{"iquest;",	"¿",	"?",	false},
-		{"raquo;",	">",	">",	false},	// XXX ?
+		{"raquo;",	"»",	">",	false},	// XXX ?
+		{"laquo;",	"«",	">",	false},	// XXX ?
 		{"mdash;",	"-",	"-",	false}, // XXX ?
 		{"amp;",	"&",	"&",	false},
 		{"nbsp;",	" ",	" ",	false},
@@ -1128,6 +1128,12 @@ void DocFormater::parse_html(Resource *resource) {
 	fprintf(stderr, "new ordinary blocks : %d\n", alloc_info_end.ordblks - alloc_info_start.ordblks);
 	fprintf(stderr, "new small blocks : %d\n", alloc_info_end.smblks - alloc_info_start.smblks);
 #endif
+}
+
+void DocFormater::AttachToWindow(HTMLWindow *win) {
+	if (m_jsctx) {
+		m_jsctx->SetWindow(win);
+	}
 }
 
 void DocFormater::AttachToFrame(HTMLFrame *frame) {
