@@ -255,27 +255,12 @@ void DocFormater::Draw(BRect r, bool onlyIfChanged) {
 		onlyIfChanged = false;
 	}	
 	DocElem *iter;
-	printf("DocFormater::Draw : top %d, bottom %d\n", (int)r.top, (int)r.bottom);
+	//printf("DocFormater::Draw : top %d, bottom %d\n", (int)r.top, (int)r.bottom);
 	DocWalker walk(doc);
 	while ((iter = walk.Next())) {
 		if (iter->y<=r.bottom || iter->y+iter->h>=r.top) {
 			iter->draw(m_frame, onlyIfChanged);
 		}
-		walk.Feed(iter);
-	}
-}
-
-void DocFormater::Draw(bool onlyIfChanged) {
-	printf("DocFormater::Draw : FULL\n");
-	if (m_nb_format) {
-		format();
-		m_nb_format = 0;
-		onlyIfChanged = false;
-	}	
-	DocElem *iter;
-	DocWalker walk(doc);
-	while ((iter = walk.Next())) {
-		iter->draw(m_frame, onlyIfChanged);
 		walk.Feed(iter);
 	}
 }
@@ -438,13 +423,13 @@ void DocFormater::html_ctrlchar_alter(char *wholestr, char *& ptr) {
 		{"copy;",	"Â©",	"©",	false},
 		{"reg;",	"Â®",	"(r)",	false},
 		{"deg;",	"Â°",	"°",	false},
-		{"middot;",	"â€¢",	"·",	false},	// XXX low dot
+		{"middot;",	"â€¢",	"·",	false},
 		{"szlig;",	"ÃŸ",	"ß",	false},
 		{"iexcl;",	"Â¡",	"¡",	false},
 		{"iquest;",	"Â¿",	"¿",	false},
-		{"raquo;",	"Â»",	"»",	false},	// XXX ?
-		{"laquo;",	"Â«",	"«",	false},	// XXX ?
-		{"mdash;",	"-",	"-",	false}, // XXX ?
+		{"raquo;",	"Â»",	"»",	false},
+		{"laquo;",	"Â«",	"«",	false},
+		{"mdash;",	"-",	"-",	false},
 		{"amp;",	"&",	"&",	false},
 		{"nbsp;",	" ",	" ",	false},
 		{"lt;",	"<",	"<",	false},
@@ -465,6 +450,8 @@ void DocFormater::html_ctrlchar_alter(char *wholestr, char *& ptr) {
 		{"Ouml;",	"Ã–",	"Ö",	false},
 		{"uuml;",	"Ã¼",	"ü",	false},
 		{"Uuml;",	"Ãœ",	"Ü",	false},
+		{"ccedil;",	"Ã§",	"ç",	false},
+		{"Ccedil;",	"Ã‡",	"Ç",	false},
 		{NULL, "", "", false}
 	};
 	char *c = ptr;
@@ -490,48 +477,25 @@ void DocFormater::html_ctrlchar_alter(char *wholestr, char *& ptr) {
 	for(int i=pos; pos-i < 15 && i>=0; i--) {
 		if (wholestr[i]=='&') {
 			// Replace '?cedil;' by '?'
-			if (!strcmp(wholestr+i+2,"cedil;")) {
-				wholestr[i] = wholestr[i+1];
-				wholestr[i+1] = '\0';
-				ptr = (wholestr+i) + 1;
-				return;
-			}
 			// Replace '?circ;' by '?'
-			if (!strcmp(wholestr+i+2,"circ;")) {
-				wholestr[i] = wholestr[i+1];
-				wholestr[i+1] = '\0';
-				ptr = (wholestr+i) + 1;
-				return;
-			}
 			// Replace '?acute;' by '?'
-			if (!strcmp(wholestr+i+2,"acute;")) {
-				wholestr[i] = wholestr[i+1];
-				wholestr[i+1] = '\0';
-				ptr = (wholestr+i) + 1;
-				return;
-			}
 			// Replace '?grave;' by '?'
-			if (!strcmp(wholestr+i+2,"grave;")) {
-				wholestr[i] = wholestr[i+1];
-				wholestr[i+1] = '\0';
-				ptr = (wholestr+i) + 1;
-				return;
-			}
 			// Replace '?uml;' by '?'
-			if (!strcmp(wholestr+i+2,"uml;")) {
-				wholestr[i] = wholestr[i+1];
-				wholestr[i+1] = '\0';
-				ptr = (wholestr+i) + 1;
-				return;
-			}
 			// Replace '?tilde;' by '?'
-			if (!strcmp(wholestr+i+2,"tilde;")) {
+			if (!strcmp(wholestr+i+2,"cedil;") ||
+			!strcmp(wholestr+i+2,"circ;") ||
+			!strcmp(wholestr+i+2,"acute;") ||
+			!strcmp(wholestr+i+2,"grave;") ||
+			!strcmp(wholestr+i+2,"uml;") ||
+			!strcmp(wholestr+i+2,"tilde;")) {
+				fprintf(stderr, "Unknown html sequence : '%s'\n", wholestr);
 				wholestr[i] = wholestr[i+1];
 				wholestr[i+1] = '\0';
 				ptr = (wholestr+i) + 1;
 				return;
 			}
 			if (wholestr[i+1]=='#') {
+				fprintf(stderr, "Unknown html char code : '%s'\n", wholestr);
 				strcpy(wholestr+i,"*");
 				ptr = (wholestr+i) + 1;
 				return;

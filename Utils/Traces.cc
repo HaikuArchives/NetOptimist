@@ -3,6 +3,7 @@
 int enableTrace = 
 	//DEBUG_PARSER |
 	//DEBUG_CORRECT |
+	//DEBUG_COLOR |
 	//TAG_STACK |
 	//DEBUG_RENDER |
 	//DEBUG_TABLE_RENDER |
@@ -20,8 +21,9 @@ int enableTrace =
 	//BE_LIB |
 	//X11_EVENT |
 	//WRITE_FWT_FILE |
-	DEBUG_FILE |
+	//DEBUG_FILE |
 	//DEBUG_FORMS |
 	//DEBUG_JAVASCRIPT |
 	//DEBUG_SOCKET |
+	//DEBUG_BVIEW |
 	0;

@@ -3,10 +3,11 @@
 
 #include <View.h>
 #include <Message.h>
-#include <ScrollView.h>
 #include <Font.h>
 #include "Frame.h"
 #include "Pref.h"
+
+class BScrollView;
 
 class Style;
 class StatusBarView;

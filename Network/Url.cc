@@ -97,7 +97,7 @@ bool Cache::cacheLine::NeedValidate() {
 	time_t now = time(0);
 	int in_cache = now-resource->m_date;
 	int age_when_downloaded = resource->m_modified>0 ? resource->m_date-resource->m_modified : 0;
-	if (in_cache>60*60/2 || (in_cache>60 && in_cache > age_when_downloaded)) {
+	if (in_cache>60*60*8 || (in_cache>60 && in_cache > age_when_downloaded/8)) {
 		// This resource has been to long in our cache
 		printf("NeedValidate: in cache since %ds - age when downloaded %ds\n", in_cache, age_when_downloaded);
 		return true;
@@ -547,6 +547,7 @@ Resource *Cache::Retrieve (Url * url, bool async, bool reformat) {
 						printf("Cache::Retreive queueing url %s\n", urlAbsolute);
 					BMessage msg (GET_IMAGE);
 					msg.AddString ("url", urlAbsolute);
+					msg.AddPointer("urlObject", url);
 					msg.AddBool ("reformat", reformat);
 					m_getter->PostMessage (&msg);
 				}

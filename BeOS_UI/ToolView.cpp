@@ -1,7 +1,4 @@
 #include "ToolView.h"
-#ifdef __BEOS__
-#include <TranslationKit.h>
-#endif
 #include <iostream.h>
 #include <Roster.h>
 #include <Alert.h>

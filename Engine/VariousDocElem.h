@@ -1,10 +1,6 @@
 #ifndef VariousDocElem_H
 #define VariousDocElem_H
 
-#ifdef __BEOS__
-#include <be/translation/TranslationUtils.h>
-#endif
-
 #include "TagDocElem.h"
 #include "StrDocElem.h"
 #include "DocWalker.h"

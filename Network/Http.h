@@ -3,7 +3,6 @@
 
 #ifdef __BEOS__
 #include <sys/socket.h>
-#include <be/support/DataIO.h>
 #else
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -28,7 +27,7 @@ class HttpServerConnection : public ServerConnection {
 	int protocol; // http/https
 	int version;
 	int state;
-	char header[1024];
+	char header[4096];
 // Connection : 
 	bool m_error;	// something is wrong
 	StrRef m_reason;

@@ -11,9 +11,7 @@ class DocFormater;
 class BLooper;
 class HTMLWindow;
 #include <string.h>
-#ifdef __BEOS__
 #include <be/support/SupportDefs.h>
-#endif
 #include "User.h"
 #include "Document.h"
 #include "Action.h"

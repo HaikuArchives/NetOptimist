@@ -75,9 +75,8 @@ void HTMLFrame::ModifyUrl(Url *newUrl) {
 
 		m_format->AttachToWindow(GetHTMLWindow());
 		m_format->parse_html(rsc);
-		m_format->InvalidateLayout();
 		m_format->AttachToFrame(this);
-		Refresh();
+		Redraw();
 
 		// Notify container
 		StrRef ref;

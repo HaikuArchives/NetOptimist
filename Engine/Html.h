@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include "Event.h"
 #include "Frame.h"
-#include "HTMLWindow.h"
 #include <Rect.h>
 
 class DocElem;
@@ -13,6 +12,7 @@ class Resource;
 class Tag;
 class UrlQuery;
 class TagStack;
+class HTMLWindow;
 
 class BufferReader;
 class JsCtx;
@@ -52,7 +52,6 @@ public:
 	void AttachToFrame(HTMLFrame *frame);
 	void AttachToWindow(HTMLWindow *window);
 	void Draw(BRect r, bool onlyIfChanged = false);
-	void Draw(bool onlyIfChanged = false);
 	bool Select(int x, int y, Action action, UrlQuery *name);
 	void InvalidateLayout() {
 		m_nb_format++;

@@ -11,7 +11,7 @@ void Events::Add(int evt, bool noduplicate) {
 	assert(count<SIZE);
 	assert(noduplicate == false);
 	event[(start+count)%SIZE].code=evt;
-	trace(DEBUG_EVENT) printf("Events::Add %4s\n", (char*)&evt);
+	trace(DEBUG_EVENT) printf("Events::Add %4.4s\n", (char*)&evt);
 	count++;
 }
 

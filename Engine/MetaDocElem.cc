@@ -61,7 +61,7 @@ void MetaDocElem::geometry(HTMLFrame *view) {
 			while(content && *content) {
 				int r = strcaseprefix(content, "charset=");
 				if (r>0) {
-					printf("META URL=%s\n", content+r);
+					printf("META charset=%s\n", content+r);
 					ref.SetToDup(content+r);
 					break;
 				}

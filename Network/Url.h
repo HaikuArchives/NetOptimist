@@ -5,9 +5,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <netdb.h>
-#ifdef __BEOS__
-#include <DataIO.h>
-#endif
 #include <sys/param.h>
 #include "platform.h"
 

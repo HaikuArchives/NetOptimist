@@ -6,7 +6,7 @@
 #include "Style.h"
 #include "StrPlus.h"
 #include "Resource.h"
-#include <TranslationKit.h>
+#include <TranslationUtils.h>
 #include <Bitmap.h>
 
 void FORM_DocElem::Register(INPUT_DocElem *field) {
@@ -153,7 +153,7 @@ const char *INPUT_DocElem::Text() const {
 	}
 }
 
-void INPUT_DocElem::dynamicGeometry(HTMLFrame *view) {
+void INPUT_DocElem::dynamicGeometry(HTMLFrame */*view*/) {
 	if (m_type == T_IMAGE) {
 		LoadImage(m_image_url);
 	}

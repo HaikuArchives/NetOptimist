@@ -1,5 +1,6 @@
 #include "VariousDocElem.h"
 #include "Url.h"
+#include <translation/TranslationUtils.h>
 #include <Bitmap.h>
 #include "Frame.h"
 #include "Resource.h"
