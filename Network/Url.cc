@@ -71,7 +71,7 @@ struct Cache::cacheLine {
 		TYPE_NONE, TYPE_FILEREF, TYPE_MEMORY
 	} m_type;
 	enum {
-		STATE_PENDING, STATE_OK, STATE_VALIDATING
+		STATE_PENDING, STATE_OK, STATE_VALIDATING, STATE_FAILED
 	} m_state;
 	Resource *resource;
 	bool IsValid();
@@ -514,6 +514,12 @@ Resource *Cache::Retrieve (Url * url, bool async, bool reformat) {
 					int status = proto->protocolGetter(url, &rsc, ifModifiedSince);
 					if (status) {
 						fprintf(stderr, "%s error when downloading : %s\n", proto->name, urlAbsolute);
+						if (l) {
+							// XXX I guess that in certain circonstancies
+							// we may want to revalidate existing resources
+							// eg. when offline
+							l->m_state = cacheLine::STATE_FAILED;
+						}
 					}
 				}
 				if (rsc) {
