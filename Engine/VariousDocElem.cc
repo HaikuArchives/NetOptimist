@@ -90,20 +90,18 @@ void HR_DocElem::geometry(HTMLFrame *view) {
 }
 
 void HR_DocElem::dynamicGeometry(HTMLFrame *view) {
-	int reqW = 0;
+	int reqW = -1;
 	bool dummy;
 	w = constraint->Width();
 	for (TagAttr *iter = list; iter!=NULL; iter=iter->Next()) {
-		if (iter->ReadDim("WIDTH",&reqW,&dummy,w)) {
-			fprintf(stderr, "HR_DocElem::dynamicGeometry() : WIDTH %d\n", reqW);
-		}
+		iter->ReadDim("WIDTH",&reqW,&dummy,w);
 	}
 	if (reqW>=0) w = reqW;
 	h = 15;
 }
 
 void HR_DocElem::draw(HTMLFrame *view, bool /*onlyIfChanged*/) {
-	view->DrawRect(x+10,y+5,w-20,4, m_style);
+	view->DrawRect(x+10,y+5,w-20,3, m_style);
 	TagDocElem::draw(view);
 }
 
