@@ -88,29 +88,27 @@ void HTMLView::DecResourceWaiting() {
 
 void HTMLView::Draw(BRect updateRect) {
 	if (m_format) {
-		m_format->Msg(EXPOSE);
-		m_format->ProcessAll();
+		m_format->Draw(updateRect);
 	}
 }
 
 void HTMLView::FrameResized(float width, float height) {
 	if (Resize((int)width, (int)height)) {
-		Refresh(); // FIXME: will redraw the whole view == BAD
+		Redraw(); // FIXME: will redraw the whole view == BAD
 	}
 }
 
-void HTMLView::Refresh() {
+void HTMLView::Redraw() {
 	// XXX bad : we should only reformat if something has changed in size
 	if (m_format) {
-		m_format->Msg(FORMAT);
+		m_format->InvalidateLayout();
 	}
 	Invalidate();
 }
 
-void HTMLView::Redraw() {
+void HTMLView::Refresh() {
 	if (m_format) {
-		m_format->Msg(EXPOSE_IF_CHANGED);
-		m_format->ProcessAll();
+		m_format->Draw(true);
 	}
 }
 
@@ -180,8 +178,6 @@ void HTMLView::StringDim(const char* str, const Style *style, int* w, int *h) {
 }
 
 void HTMLView::DrawString(int x, int y, int w, const char *str, const Style *style) {
-
-	BView::SetFont(be_plain_font);
 	if (style) {
 
 		font_.SetFamilyAndStyle(Pref::Default.FontFamily(displayEncoding_), NULL);

@@ -5,12 +5,7 @@
 #include "Event.h"
 #include "Frame.h"
 #include "HTMLWindow.h"
-
-enum DocFormaterMsg {
-	FORMAT = 'FORM',
-	EXPOSE = 'EXPO',
-	EXPOSE_IF_CHANGED = 'EXND'
-};
+#include <Rect.h>
 
 class DocElem;
 class TagDocElem;
@@ -22,7 +17,7 @@ class TagStack;
 class BufferReader;
 class JsCtx;
 
-class DocFormater : public EventProcessor {
+class DocFormater {
 private:
 	HTMLFrame *m_frame;		// ptr to graphical object
 	BufferReader *m_bufferReader;	// helper object to read html streams
@@ -44,7 +39,6 @@ private:
 	void CloseDocElem(const Tag *elem);
 	void ForceCloseHead();
 	void format();
-	void Draw(bool onlyIfChanged = false);
 public:
 	DocFormater() {
 		m_frame = NULL;
@@ -57,32 +51,11 @@ public:
 	void parse_html(Resource *resource);
 	void AttachToFrame(HTMLFrame *frame);
 	void AttachToWindow(HTMLWindow *window);
+	void Draw(BRect r, bool onlyIfChanged = false);
+	void Draw(bool onlyIfChanged = false);
 	bool Select(int x, int y, Action action, UrlQuery *name);
-	void Process(int evt) {
-		switch(evt) {
-		case EXPOSE:
-			if (m_nb_format) {
-				format();
-				m_nb_format = 0;
-			}
-			Draw();
-			break;
-		case EXPOSE_IF_CHANGED:
-			if (m_nb_format) {
-				format();
-				m_nb_format = 0;
-				Draw();
-			} else {
-				Draw(true);
-			}
-			break;
-		case FORMAT:
-			m_nb_format++;
-			break;
-		default:
-			fprintf(stderr,"DocFormater: Message not handled\n");
-			break;
-		}
+	void InvalidateLayout() {
+		m_nb_format++;
 	}
 	void InsertText(const char *text, int len);
 };

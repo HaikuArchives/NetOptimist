@@ -248,7 +248,30 @@ DocFormater::~DocFormater() {
 	m_jsctx = NULL;
 }
 
+void DocFormater::Draw(BRect r, bool onlyIfChanged) {
+	if (m_nb_format) {
+		format();
+		m_nb_format = 0;
+		onlyIfChanged = false;
+	}	
+	DocElem *iter;
+	printf("DocFormater::Draw : top %d, bottom %d\n", (int)r.top, (int)r.bottom);
+	DocWalker walk(doc);
+	while ((iter = walk.Next())) {
+		if (iter->y<=r.bottom || iter->y+iter->h>=r.top) {
+			iter->draw(m_frame, onlyIfChanged);
+		}
+		walk.Feed(iter);
+	}
+}
+
 void DocFormater::Draw(bool onlyIfChanged) {
+	printf("DocFormater::Draw : FULL\n");
+	if (m_nb_format) {
+		format();
+		m_nb_format = 0;
+		onlyIfChanged = false;
+	}	
 	DocElem *iter;
 	DocWalker walk(doc);
 	while ((iter = walk.Next())) {
@@ -415,12 +438,12 @@ void DocFormater::html_ctrlchar_alter(char *wholestr, char *& ptr) {
 		{"copy;",	"Â©",	"©",	false},
 		{"reg;",	"Â®",	"(r)",	false},
 		{"deg;",	"Â°",	"°",	false},
-		{"middot;",	"â€¢",	".",	false},	// XXX low dot
-		{"szlig;",	"ÃŸ",	"ss",	false},
-		{"iexcl;",	"Â¡",	"!",	false},
-		{"iquest;",	"Â¿",	"?",	false},
-		{"raquo;",	"Â»",	">",	false},	// XXX ?
-		{"laquo;",	"Â«",	">",	false},	// XXX ?
+		{"middot;",	"â€¢",	"·",	false},	// XXX low dot
+		{"szlig;",	"ÃŸ",	"ß",	false},
+		{"iexcl;",	"Â¡",	"¡",	false},
+		{"iquest;",	"Â¿",	"¿",	false},
+		{"raquo;",	"Â»",	"»",	false},	// XXX ?
+		{"laquo;",	"Â«",	"«",	false},	// XXX ?
 		{"mdash;",	"-",	"-",	false}, // XXX ?
 		{"amp;",	"&",	"&",	false},
 		{"nbsp;",	" ",	" ",	false},
@@ -428,23 +451,20 @@ void DocFormater::html_ctrlchar_alter(char *wholestr, char *& ptr) {
 		{"gt;",	">",	">",	false},
 		{"quot;",	"\"",	"\"",	false},
 		{"apos;",	"'",	"'",	false},
-		{"aacute;",	"Ã¡",	"a",	false},
-		{"iacute;",	"Ã­",	"i",	false},
-		{"oacute;",	"Ã³",	"o",	false},
-		{"uacute;",	"Ãº",	"u",	false},
-		{"igrave;",	"Ã¬",	"i",	false},
-		{"ograve;",	"Ã²",	"o",	false},
-		{"ugrave;",	"Ã¹",	"u",	false},
-		{"ntilde;",	"Ã±",	"n",	false},
-#ifdef __BEOS__
-		{"auml;",	"Ã¤",	"XXXX",	false},
-		{"Auml;",	"Ã„",	"XXXX",	false},
-		{"ouml;",	"Ã¶",	"XXXX",	false},
-		{"Ouml;",	"Ã–",	"XXXX",	false},
-		{"uuml;",	"Ã¼",	"XXXX",	false},
-		{"Uuml;",	"Ãœ",	"XXXX",	false},
-
-#endif		
+		{"aacute;",	"Ã¡",	"á",	false},
+		{"iacute;",	"Ã­",	"í",	false},
+		{"oacute;",	"Ã³",	"ó",	false},
+		{"uacute;",	"Ãº",	"ú",	false},
+		{"igrave;",	"Ã¬",	"ì",	false},
+		{"ograve;",	"Ã²",	"ò",	false},
+		{"ugrave;",	"Ã¹",	"ù",	false},
+		{"ntilde;",	"Ã±",	"ñ",	false},
+		{"auml;",	"Ã¤",	"ä",	false},
+		{"Auml;",	"Ã„",	"Ä",	false},
+		{"ouml;",	"Ã¶",	"ö",	false},
+		{"Ouml;",	"Ã–",	"Ö",	false},
+		{"uuml;",	"Ã¼",	"ü",	false},
+		{"Uuml;",	"Ãœ",	"Ü",	false},
 		{NULL, "", "", false}
 	};
 	char *c = ptr;

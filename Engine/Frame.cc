@@ -75,6 +75,7 @@ void HTMLFrame::ModifyUrl(Url *newUrl) {
 
 		m_format->AttachToWindow(GetHTMLWindow());
 		m_format->parse_html(rsc);
+		m_format->InvalidateLayout();
 		m_format->AttachToFrame(this);
 		Refresh();
 
@@ -168,7 +169,6 @@ void HTMLFrame::CheckUrl() {
 	Resource *rsc;
 
 	if (m_nextUrl==NULL) {
-		printf("HTMLFrame::CheckUrl() not waiting\n");
 		return; // Nothing to do.
 	}
 
