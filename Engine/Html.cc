@@ -245,6 +245,7 @@ DocFormater::~DocFormater() {
 	}
 	last = cur = doc = NULL;
 	delete m_jsctx;
+	m_jsctx = NULL;
 }
 
 void DocFormater::Draw(bool onlyIfChanged) {
@@ -339,7 +340,6 @@ void DocFormater::format() {
 		}
 
 		doc->constraint->Init(0,0, m_frame->DocWidth());
-		iter = doc;
 		DocWalker walk2(doc);
 		while ((iter = walk2.Next())) {
 			iter->place();
@@ -687,12 +687,13 @@ TagDocElem* DocFormater::html_parse_tag() {
 											*(code-2) = '\0';
 										// now remove <!-- in the front :
 										code = buf;
-										printf("code font = %d\n", code[0]);
 										while (*code == '\r' || *code == '\n' || *code == ' ' || *code =='\t') code++;
 										if (strprefix(code, "<!--")) code+=4;
-										if (!strnull(code)) {
+
+										if (m_jsctx && !strnull(code)) {
 											m_jsctx->Execute(code);
 										}
+
 										trace(DEBUG_TAGPARSE) printf("TAG: end of script tag\n");
 										ptr = buf;
 										end = true;
@@ -820,8 +821,12 @@ void DocFormater::parse_html(Resource *resource) {
 	m_parseMode = 0;
 	m_openedTags = new TagStack;
 
-	m_jsctx = new JsCtx;
-	m_jsctx->Init(this);
+	if (Pref::Default.UseJavaScript()) {
+		m_jsctx = new JsCtx;
+		m_jsctx->Init(this);
+	} else {
+		m_jsctx = NULL;
+	}
 
 	m_relationAlreadySet = false;
 
@@ -1120,21 +1125,23 @@ void DocFormater::parse_html(Resource *resource) {
 	m_openedTags->dump();
 	if (found) resource->Close();
 
-	// -------- This is POST-PARSING --------
-	DocWalker walk(doc);
-	DocElem *iter;
+	if (doc) {
+		// -------- This is POST-PARSING --------
+		DocWalker walk(doc);
+		DocElem *iter;
 
-	while ((iter = walk.Next())) {
-		if (!m_relationAlreadySet) {
-			iter->RelationSet(m_frame);
+		while ((iter = walk.Next())) {
+			if (!m_relationAlreadySet) {
+				iter->RelationSet(m_frame);
+			}
+			walk.Feed(iter);
 		}
-		walk.Feed(iter);
-	}
-	if (!m_relationAlreadySet) {
-		/* Do it once but after relation are set */
-#ifndef __BEOS__
-		ExportToFWT(doc);
-#endif
+		if (!m_relationAlreadySet) {
+			/* Do it once but after relation are set */
+	#ifndef __BEOS__
+			ExportToFWT(doc);
+	#endif
+		}
 	}
 	m_relationAlreadySet = true;
 
