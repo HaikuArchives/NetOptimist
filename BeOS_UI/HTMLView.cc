@@ -2,6 +2,7 @@
 
 #include <Window.h>
 #include <be/support/UTF8.h>
+#include "NOWindow.h"
 #include "Html.h"
 #include "Style.h"
 #include "StrPlus.h"
@@ -98,6 +99,20 @@ void HTMLView::NewDocumentLoaded() {
 	}
 	BWindow *window = Window();
 	if (window) window->SetTitle(title);
+}
+
+void HTMLView::IncResourceWaiting() {
+	NOWindow *container = dynamic_cast<NOWindow *>(Window());
+	if (container) {
+		container->IsDownloading(true);
+	}
+}
+
+void HTMLView::DecResourceWaiting() {
+	NOWindow *container = dynamic_cast<NOWindow *>(Window());
+	if (container) {
+		container->IsDownloading(false);
+	}
 }
 
 void HTMLView::MouseDown(BPoint point) {

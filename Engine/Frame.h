@@ -72,6 +72,9 @@ public:
 	virtual void Redraw(void)=0;
 	virtual void Refresh(void)=0;
 	virtual void NewDocumentLoaded(void)=0;
+	// Use these methods to tell the user that a resource is being downloaded
+	virtual void IncResourceWaiting() = 0;
+	virtual void DecResourceWaiting() = 0;
 };
 
 #endif

@@ -4,6 +4,7 @@
 #include <View.h>
 #include <Message.h>
 #include <ScrollView.h>
+#include <Font.h>
 #include "Frame.h"
 
 class Style;
@@ -44,6 +45,8 @@ public :
 	void SetFrameColor(const Style *style);
 	void SetFrame(int maxX, int maxY);
 	void SetTitle(const char *title);
+	virtual void IncResourceWaiting();
+	virtual void DecResourceWaiting();
 	virtual void NewDocumentLoaded(void);
 	void Refresh();
 	void Redraw();

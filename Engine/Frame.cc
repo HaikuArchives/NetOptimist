@@ -162,6 +162,7 @@ void HTMLFrame::SetUrl(UrlQuery *urlQuery) {
 	Cache::cache.SetResourceGetter(m_getter);
 	m_nextQuery = urlQuery;
 	m_nextUrl = new Url(m_nextQuery, m_document.CurrentUrl(), true, true);
+	IncResourceWaiting();
 	CheckUrl();
 }
 
@@ -198,6 +199,7 @@ void HTMLFrame::CheckUrl() {
 		printf("HTMLFrame::CheckUrl() success\n");
 		SetToUrl(m_nextUrl);
 		m_nextUrl = NULL;
+		DecResourceWaiting();
 		delete m_nextQuery;
 	} else {
 		printf("HTMLFrame::CheckUrl() waiting but not avail\n");

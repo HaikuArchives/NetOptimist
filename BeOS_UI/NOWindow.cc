@@ -15,6 +15,9 @@
 #include "NOWindow.h"      
 #include "EventCodes.h"
 #include "ResourceGetter.h"
+#include "Html.h"
+#include "HTMLView.h"
+#include "ToolBarView.h"
 #include "LinkBarView.h"
 #include "StatusBarView.h"
 #include "traces.h"
@@ -88,7 +91,6 @@ NOWindow::NOWindow(BRect windowfr) : BWindow(windowfr, "NetOptimist", B_DOCUMENT
 	AddChild(m_menu);
 	
 	BMenuItem *menuitem;
-	//BMenu *subsubmenu; 
 	BMenu *submenu;
 	
 	// Le menu File
@@ -151,6 +153,7 @@ NOWindow::NOWindow(BRect windowfr) : BWindow(windowfr, "NetOptimist", B_DOCUMENT
 	m_menu->AddItem(submenu);
 
 	// Le menu Bookmarks
+	BMenu *m_bookmarks;
 	m_bookmarks = new BMenu("Bookmarks");
 	m_bookmarks->AddItem(menuitem=new BMenuItem("Add to Bookmarks",new BMessage(bmsgBookmarksAdd),'B',B_COMMAND_KEY));
 	menuitem->SetEnabled(false);
@@ -270,6 +273,9 @@ NOWindow::NOWindow(BRect windowfr) : BWindow(windowfr, "NetOptimist", B_DOCUMENT
 	UpdateNavControls();
 }
 
+void NOWindow::IsDownloading(bool set) {
+	toolBarView->SetEnabled(bmsgButtonSTOP, set);
+}
 
 void NOWindow::SetUrl(const char *url) {
 	if (Lock()) {
