@@ -9,8 +9,7 @@
 #include <be/app/Looper.h>
 
 const int GET_IMAGE = 'GIMG';
-const int REFRESH='RFSH';
-const int REFORMAT='RFMT';
+const int URL_LOADED='ULDD';
 
 
 class ResourceGetter : public BLooper {

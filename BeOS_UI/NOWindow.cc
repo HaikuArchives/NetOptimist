@@ -178,17 +178,15 @@ NOWindow::NOWindow(BRect windowfr) : BWindow(windowfr, "NetOptimist", B_DOCUMENT
 	m_debugNoFillRect->SetMarked(! ISTRACE(FILLRECT));
 	m_menu->AddItem(submenu);
 	
-#ifdef __BEOS__
 	r = Bounds();
 	r.top+=m_menu->Frame().bottom+1;
 	r.bottom=r.top+32;
 	toolBarView = new ToolBarView(r, this);
+#ifdef __BEOS__
 	BShelf *fShelf = new BShelf(toolBarView);
 	fShelf->SetDisplaysZombies(true);
-	AddChild(toolBarView);
-#else
-	toolBarView = NULL;
 #endif
+	AddChild(toolBarView);
 	
 #ifdef __BEOS__
 #if 1
@@ -204,7 +202,6 @@ NOWindow::NOWindow(BRect windowfr) : BWindow(windowfr, "NetOptimist", B_DOCUMENT
 	int const LinkBarHeight = 15;
 	
 	r = Bounds();
-	if (toolBarView) // XXX TEMP
 	r.top+=toolBarView->Frame().bottom+3;
 	r.right -= B_V_SCROLL_BAR_WIDTH;
 	r.bottom -= B_H_SCROLL_BAR_HEIGHT * 2 + LinkBarHeight;
@@ -256,9 +253,7 @@ void NOWindow::UrlChanged(const char *str) {
 		m_linkBarView->Invalidate();
 	}
 	fprintf(stderr, "Url changed to %s\n", str);
-#ifdef __BEOS__
 	toolBarView->SetDocumentIcon(drawArea->m_document.Icon());
-#endif
 }
 
 
@@ -267,10 +262,10 @@ void NOWindow::UpdateNavControls() {
 	bool back = History::history.HasBack();
 	bool forward = History::history.HasForward();
 	fprintf(stderr, "*** Updating nav.controls: Back (%u), Fwd (%u)\n", back, forward);
-#ifdef __BEOS__
 	toolBarView->SetEnabled(bmsgButtonBACK, back);
-	m_menu->FindItem(bmsgButtonBACK)->SetEnabled(back);
 	toolBarView->SetEnabled(bmsgButtonNEXT, forward);
+#ifdef __BEOS__
+	m_menu->FindItem(bmsgButtonBACK)->SetEnabled(back);
 	m_menu->FindItem(bmsgButtonNEXT)->SetEnabled(forward);
 #endif
 }
@@ -344,15 +339,17 @@ void NOWindow::MessageReceived(BMessage *message) {
 #endif
 			}
 			break;
-		case REFRESH:
-			trace(DEBUG_MESSAGING)
-				fprintf(stdout, "######## Message REFRESH received in NO Window\n");
-			drawArea->Redraw();
-			break;
-		case REFORMAT:
+		case URL_LOADED:
 			trace(DEBUG_MESSAGING)
 				fprintf(stdout, "######## Message REFORMAT received in NO Window\n");
-			drawArea->Refresh();
+			{
+				bool reformat = false;
+				message->FindBool("reformat", &reformat);
+				if (reformat)
+					drawArea->Redraw();
+				else
+					drawArea->Refresh();
+			}
 			break;
 		case bmsgButtonBACK:
 			if (!History::history.Back()) {
