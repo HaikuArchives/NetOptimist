@@ -18,7 +18,7 @@ enum cookie_action {
 
 #define MAX_DISPLAY_ENCODINGS 6
 enum display_encoding {
-	NO_CENTRAL_EUROPEAN = 0x40,
+	NO_CENTRAL_EUROPEAN = 0, // should start from 0, as they used as indices later (thanks Kian)
 	NO_CYRILLIC,
 	NO_GREEK,
 	NO_JAPANESE,
