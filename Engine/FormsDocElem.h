@@ -3,7 +3,9 @@
 
 #include "TagDocElem.h"
 #include "UrlQuery.h"
+#include "Url.h"
 
+class BBitmap;
 class INPUT_DocElem;
 
 class FORM_DocElem : public TagDocElem {
@@ -41,6 +43,13 @@ class INPUT_DocElem : public TagDocElem {
 	bool m_activated;
 	const char* Text() const;
 	FORM_DocElem *m_container;
+	
+	// These are for img input fields
+	Url *m_image_url;
+	BBitmap *m_bmp;
+	bool m_badImage;
+	void LoadImage(Url *url);
+	void GetSize();
 public:
 	INPUT_DocElem(Tag *tag, TagAttr *attrs) : TagDocElem(tag,attrs) {
 		m_type = T_BOGGUS;
@@ -48,8 +57,12 @@ public:
 		m_value[0] = '\0';
 		m_container = NULL;
 		m_activated = false;
+		m_bmp = NULL;
+		m_badImage = false;
+		m_image_url = NULL;
 	}
 	const char *Name() { return m_name; }
+	virtual void dynamicGeometry(HTMLFrame *view);
 	virtual void geometry(HTMLFrame *view);
 	virtual void draw(HTMLFrame *m_view, bool onlyIfChanged=false);
 	virtual void RelationSet(HTMLFrame *view);

@@ -5,6 +5,9 @@
 #include "Frame.h"
 #include "Style.h"
 #include "StrPlus.h"
+#include "Resource.h"
+#include <TranslationKit.h>
+#include <Bitmap.h>
 
 void FORM_DocElem::Register(INPUT_DocElem *field) {
 	if (ISTRACE(DEBUG_FORMS)) {
@@ -150,11 +153,18 @@ const char *INPUT_DocElem::Text() const {
 	}
 }
 
+void INPUT_DocElem::dynamicGeometry(HTMLFrame *view) {
+	if (m_type == T_IMAGE) {
+		LoadImage(m_image_url);
+	}
+}
+
 void INPUT_DocElem::geometry(HTMLFrame *view) { 
 	int attr_width = -1;
 	int attr_height = 10;
 	int attr_size = -1;
 	char attr_type[10];
+	StrRef src;
 	Style *s;
 
 	TagDocElem::geometry(view);
@@ -167,6 +177,7 @@ void INPUT_DocElem::geometry(HTMLFrame *view) {
 		iter->ReadInt("width",&attr_width);
 		iter->ReadInt("height",&attr_height);
 		iter->ReadInt("size",&attr_size);
+		iter->ReadStrRef("src", &src);
 	}
 	if (!strcasecmp(attr_type, "hidden")) {
 		m_type = T_HIDDEN;
@@ -230,7 +241,7 @@ void INPUT_DocElem::geometry(HTMLFrame *view) {
 				int dummy;
 				view->StringDim("0123456789", s, &w, &dummy);
 				w = w/10;
-				printf("input size = %d, w(_)=%d\n", attr_size, w);
+				//printf("input size = %d, w(_)=%d\n", attr_size, w);
 				w = w * attr_size + 20;
 			}
 			if (w<=0) w=50;
@@ -240,6 +251,12 @@ void INPUT_DocElem::geometry(HTMLFrame *view) {
 			h=attr_height;
 			w=max(attr_width, 30);
 			fixedW=w;
+			if (!src.IsFree()) {
+				UrlQuery query;
+				query.SetUrl(&src);
+				m_image_url = new Url(&query, view->m_document.CurrentUrl(), true, attr_width <=0 || attr_height <=0);
+				LoadImage(m_image_url);
+			}
 			break;
 		case T_HIDDEN:
 			m_activated = true;
@@ -272,6 +289,66 @@ void INPUT_DocElem::RelationSet(HTMLFrame *view) {
 
 }
 
+
+/* XXX This function is a simple copy/paste of IMG_DocElem::LoadImage() */
+void INPUT_DocElem::LoadImage(Url *url) {
+	if (m_bmp == NULL && url!=NULL && !m_badImage) {
+		Resource *resource;
+
+		resource = url->GetIfAvail();
+		if (resource) {
+			const char *mimetype = resource->MimeType();
+			if (!resource) printf("Image has no resource (yet)\n");
+			if (mimetype) {
+				if (!strprefix(mimetype, "image/")) {
+					/* Mime types should begin with image/...
+					   For example, when image is "404 not found", the mimetype returned
+					   is text/html. Of course, Trying to decode a image from an html
+					   file may just fail, but actually, with ImageMagick it sometimes
+					   crashes the browser. This is why we filter image mimetypes here.
+					*/
+					fprintf(stderr, "IMG_DocElem::LoadImage : wrong mimetype = %s\n", mimetype);
+					m_badImage = true;
+					return;
+				}
+			}
+			if (!resource->Data() && !resource->CachedFile()) {
+				fprintf(stderr, "ERROR IMG_DocElem::LoadImage: url %s downloaded but no data\n", url->DisplayName()->Str());
+			} else {
+				if (resource->CachedFile()) {
+					m_bmp = BTranslationUtils::GetBitmapFile(resource->CachedFile());
+				}
+				if (resource->Data()) {
+					m_bmp = BTranslationUtils::GetBitmap(resource->Data());
+				}
+				if (!m_bmp) {
+					fprintf(stderr, "LoadImage : could not create image from data\n");
+					m_badImage = true;
+				}
+			}
+			if (m_bmp && !m_bmp->IsValid()) printf("Image bitmap is invalid\n");
+			if (m_bmp != NULL && !m_bmp->IsValid()) {
+				delete m_bmp;
+				m_bmp = NULL;
+				m_badImage = true;
+				fprintf(stderr, "Url %s cannot be translated into image\n", url->DisplayName()->Str() );
+			}
+		}
+	}
+	GetSize();
+}
+
+void INPUT_DocElem::GetSize() {
+	// XXX this function is not correct wrt the requested sizes
+	if (m_bmp) {
+		BRect bounds = m_bmp->Bounds();
+		h = (int)bounds.Height();
+		w = (int)bounds.Width();
+	}
+	fixedW = w;
+}
+
+
 void INPUT_DocElem::draw(HTMLFrame *view, bool /*onlyIfChanged*/) { 
 	switch(m_type)
 	{
@@ -281,7 +358,11 @@ void INPUT_DocElem::draw(HTMLFrame *view, bool /*onlyIfChanged*/) {
 			view->DrawString(x+9,y+h-6,w-20,Text(),m_style);
 			break;
 		case T_IMAGE:
-			view->DrawBorder3D(x,y,w,h,m_style,3, HTMLFrame::LOOK_UP);
+			if (m_bmp) {
+				view->DrawImg(x,y,w,h,m_bmp);
+			} else {
+				view->DrawBorder3D(x,y,w,h,m_style,3, HTMLFrame::LOOK_UP);
+			}
 			break;
 		case T_RADIO:
 		case T_CHECKBOX:
