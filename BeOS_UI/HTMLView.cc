@@ -144,7 +144,7 @@ void HTMLView::StringDim(const char* str, const Style *style, int* w, int *h) {
 void HTMLView::DrawString(int x, int y, int w, const char *str, const Style *style) {
 	if (style) {
 		const BFont *f = (style->Font()) ? style->Font() : be_plain_font;
-#if __BEOS__
+#if __BEOS__ && 0 // XXX this is disabled because we don't know the source encoding
 		BFont f2(f);
 		f2.SetEncoding(B_ISO_8859_1);
 		SetFont(&f2);
