@@ -1,9 +1,9 @@
-#include <Application.h>
-
+#include <stdio.h>
 #include <iostream.h>
 #include "NOWindow.h"
 #include "UIMessages.h"
 #include "Pref.h"
+#include "Url.h"
 #include <be/app/Roster.h>
 #include <be/storage/File.h>
 #include <be/storage/Node.h>
@@ -12,6 +12,7 @@
 #include <be/storage/AppFileInfo.h>
 #include <Alert.h>
 #include <NodeInfo.h>
+#include <Application.h>
 
 class NetOptimist : public BApplication 
 {
@@ -26,6 +27,8 @@ public :
 
 NetOptimist::NetOptimist(const char *url_text = NULL) : BApplication(app_signature) {
 	Pref::Default.Init();
+	Cache::cache.Init();
+
 	if (url_text) {
 		CreateWindow(url_text);
 	}
