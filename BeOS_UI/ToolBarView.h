@@ -14,6 +14,7 @@ public :
 	ToolBarView(BRect r, BLooper *looper);
 	~ToolBarView();
 	virtual void FrameResized(float w,float h);
+	void AttachedToWindow();
 	void Draw(BRect updateRect);
 	void MessageReceived(BMessage *message);
 	
