@@ -7,6 +7,7 @@
 #endif
 #include <be/storage/Directory.h>
 #include <be/storage/Entry.h>
+#include <be/storage/Path.h>
 #include <TextControl.h>
 #include <Shelf.h>
 #include "NOWindow.h"      
@@ -25,6 +26,37 @@
 #define bmsgForceTableBorder 'NOTB'
 #define bmsgExportToFwt 'EFWT'
 #define bmsgNoBackground 'NBGC'
+
+static void buildBookmarksMenu(BMenu *menu, const char *dirname) {
+	// Read bookmarks
+	BDirectory dir(dirname);
+	int32 count = dir.CountEntries();
+	BEntry entry;
+	
+	for(int32 i=0; i<count; i++) {
+		if(B_ENTRY_NOT_FOUND == dir.GetNextEntry(&entry, true))
+			break;
+
+		BNode node(&entry);
+		char url[256];		
+		char name[256];
+		if(0 < node.ReadAttr("META:url", B_STRING_TYPE, 0, url, sizeof url-1)
+			&& 0 < node.ReadAttr("META:title", B_STRING_TYPE, 0, name, sizeof name-1)) {
+			BMessage *msg = new BMessage(bmsgBookmarkSelected);
+			msg->AddString("url", url);
+			menu->AddItem(new BMenuItem(name, msg));
+		}
+		if (node.IsDirectory()) {
+			char name[B_FILE_NAME_LENGTH];
+			BPath path; 
+			entry.GetPath(&path);
+			entry.GetName(name);
+			BMenu *submenu = new BMenu(name);
+			buildBookmarksMenu(submenu, path.Path());
+			menu->AddItem(submenu);
+		}
+	}
+}
 
 NOWindow::NOWindow(BRect windowfr) : BWindow(windowfr, "NetOptimist", B_DOCUMENT_WINDOW, /*B_OUTLINE_RESIZE|*/B_ASYNCHRONOUS_CONTROLS),
 		ToolBarViewHeigth(30), m_fullScreen(false)
@@ -95,9 +127,10 @@ NOWindow::NOWindow(BRect windowfr) : BWindow(windowfr, "NetOptimist", B_DOCUMENT
 	submenu->AddItem(menuitem = new BMenuItem("Forward",new BMessage(bmsgButtonNEXT),B_RIGHT_ARROW,B_COMMAND_KEY));
 	submenu->AddItem(menuitem=new BMenuItem("Home",new BMessage(bmsgButtonHOME),'H',B_COMMAND_KEY));
 	submenu->AddItem(menuitem=new BMenuItem("Search",new BMessage(bmsgGoSearch),'S',B_SHIFT_KEY|B_COMMAND_KEY));
-	menuitem->SetEnabled(false);
 	submenu->AddSeparatorItem();
+	buildBookmarksMenu(submenu, "/boot/home/config/settings/NetPositive/History");
 	m_menu->AddItem(submenu);
+
 	// Le menu Bookmarks
 	m_bookmarks = new BMenu("Bookmarks");
 	m_bookmarks->AddItem(menuitem=new BMenuItem("Add to Bookmarks",new BMessage(bmsgBookmarksAdd),'B',B_COMMAND_KEY));
@@ -105,32 +138,10 @@ NOWindow::NOWindow(BRect windowfr) : BWindow(windowfr, "NetOptimist", B_DOCUMENT
 	m_bookmarks->AddItem(menuitem=new BMenuItem("Show Bookmarks",new BMessage(bmsgBookmarksShow)));
 	menuitem->SetEnabled(false);
 	m_bookmarks->AddSeparatorItem();
-	
-#ifdef __BEOS__
-	// Read bookmarks
-	BDirectory dir("/boot/home/config/settings/NetPositive/Bookmarks");
-	int32 count = dir.CountEntries();
-	BEntry entry;
-	
-	for(int32 i=0; i<count; i++) {
-		if(B_ENTRY_NOT_FOUND == dir.GetNextEntry(&entry, true))
-			break;
-
-		BNode node(&entry);
-		char url[256];		
-		char name[256];
-		if(0 < node.ReadAttr("META:url", B_STRING_TYPE, 0, url, 256/*sizeof url*/)
-			&& 0 < node.ReadAttr("META:title", B_STRING_TYPE, 0, name, 256/*sizeof name*/)) {
-			BMessage *msg = new BMessage(bmsgBookmarkSelected);
-			msg->AddString("url", url);
-			m_bookmarks->AddItem(new BMenuItem(name, msg));
-		}
-	}	
-
+	buildBookmarksMenu(m_bookmarks, "/boot/home/config/settings/NetPositive/Bookmarks");
 	m_bookmarks->AddSeparatorItem();
 	// Add Bookmarks submenu
 	m_menu->AddItem(m_bookmarks);
-#endif
 	
 	// Le menu View
 	submenu = new BMenu("View");
@@ -360,6 +371,10 @@ void NOWindow::MessageReceived(BMessage *message) {
 			break;
 		case bmsgButtonHOME:
 			SetUrl(Pref::Default.HomePage());
+			UpdateNavControls();
+			break;
+		case bmsgGoSearch:
+			SetUrl(Pref::Default.SearchPage());
 			UpdateNavControls();
 			break;
 		case bmsgBookmarkSelected: {
