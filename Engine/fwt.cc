@@ -80,7 +80,11 @@ int ExportToFWT(DocElem *doc) {
 		} else {
 			StrDocElem *str;
 			str = dynamic_cast<StrDocElem *>(iter);
-			fprintf(file, "%s ", str->printSpecific());
+			if (str) {
+				fprintf(file, "%s ", str->printSpecific());
+			} else {
+				fprintf(stderr, "Unknown doc elem type\n");
+			}
 		}
 	}
 	fclose(file);
