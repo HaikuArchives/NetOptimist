@@ -208,6 +208,10 @@ protected:
 			int len = TextLength();
 			Select(0, len);
 			printf("Action !!!\n");
+			BWindow *win = Window();
+			if (win && length==1) {
+				win->PostMessage(URL_ENTERED);
+			}
 		}
 	}
 	void DeleteText(int32 start, int32 finish) {
