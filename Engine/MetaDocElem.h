@@ -32,7 +32,6 @@ public:
 			StrDocElem *titleElem;
 			if ((titleElem = dynamic_cast<StrDocElem *>(elem))) {
 				strcat(m_title, titleElem->str);
-				strcat(m_title, " ");
 			}
 		}
 		if (m_title[0]!='\0') {
@@ -54,6 +53,7 @@ public:
 };
 
 class LINK_DocElem : public TagDocElem {
+	typedef TagDocElem super;
 	Url *m_iconUrl;
 public:
 	LINK_DocElem(Tag *tag, TagAttr *attrs) : TagDocElem(tag,attrs) {

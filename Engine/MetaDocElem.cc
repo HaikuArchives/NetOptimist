@@ -135,6 +135,8 @@ void LINK_DocElem::RelationSet(HTMLFrame *view) {
 		if (Pref::Default.ShowImages()) {
 			m_iconUrl = new Url(url_attr.Str(), view->m_document.CurrentUrl(), true, false);
 		}
+	} else if (!strcasecmp(favLinkName,"stylesheet")) {
+		// XXX This is currently ignored. We should download it then parse it
 	} else {
 		fprintf(stderr, "Link : %s to %s\n", favLinkName, url_attr.Str());
 		view->m_document.AddLink(&link_name, &url_attr);
@@ -158,4 +160,5 @@ void LINK_DocElem::dynamicGeometry(HTMLFrame *view) {
 		delete m_iconUrl;
 		m_iconUrl = NULL;
 	}
+	super::dynamicGeometry(view);
 }
