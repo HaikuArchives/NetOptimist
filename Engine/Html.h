@@ -45,7 +45,7 @@ public:
 		doc = cur = last = NULL;
 		m_relationAlreadySet = false;
 		m_jsctx = NULL;
-		m_nb_format = 0;
+		m_nb_format = 1;
 	}
 	virtual ~DocFormater();
 	void parse_html(Resource *resource);
