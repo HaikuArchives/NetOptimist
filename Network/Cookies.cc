@@ -38,7 +38,7 @@ void Cookie::SaveToFile(FILE *fp) {
 bool Cookie::hostMatchDomain(const char *hostname, const char *domain) {
 	int dom_len = strlen(domain);
 	int host_len = strlen(hostname);
-	int offset = dom_len - host_len;
+	int offset = host_len - dom_len;
 	if (offset >= 0) {
 #ifdef XXX_strict_cookies_parsing
 		/* Domain must either be prefixed by a dot or exactly match the hostname */
