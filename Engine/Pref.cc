@@ -51,22 +51,29 @@ Pref::Pref() :
 
 	// Connections
 	m_online = true;
-	m_cacheLocation = NULL;
 }
 
-Pref::Pref(const Pref &p) {
+// Copy constructor (mind that strings should be initialized)
+Pref::Pref(const Pref &p) : 
+	m_homePage(NULL), 
+	m_searchPage(NULL),
+	m_downloadDirectory(NULL),
+	m_httpProxyName(NULL),
+	m_ftpProxyName(NULL),
+	m_cacheLocation(NULL) 
+{
 	(*this) = p;
 }
 
 Pref& Pref::operator = (const Pref& p) {
 	// free possibly allocated strings
-/*	FREE(m_homePage);
+	FREE(m_homePage);
 	FREE(m_searchPage);
 	FREE(m_downloadDirectory);
 	FREE(m_httpProxyName);
 	FREE(m_ftpProxyName);
 	FREE(m_cacheLocation);
-*/
+
 	// copy everything		
 	m_homePage = strdup(p.m_homePage); 
 	m_searchPage = strdup(p.m_searchPage);

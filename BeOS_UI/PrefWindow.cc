@@ -258,7 +258,7 @@ DisplayView::DisplayView(BRect rect, Pref *pref) : BView(rect, "display_tab_view
 
 	menu_field = new BMenuField(r1, "prop_mfont_size", "Min. size:", menu);
 	menu_field->SetAlignment(B_ALIGN_RIGHT);
-	menu_field->SetDivider(be_plain_font->StringWidth("Min. size:")/*50*/);
+	menu_field->SetDivider(be_plain_font->StringWidth("Min. size:")+4);
 	AddChild(menu_field);
 
 	r.OffsetBy(0,25);
@@ -334,7 +334,7 @@ DisplayView::DisplayView(BRect rect, Pref *pref) : BView(rect, "display_tab_view
 
 	menu_field = new BMenuField(r1, "fixed_mfont_size", "Min. size:", menu);
 	menu_field->SetAlignment(B_ALIGN_RIGHT);
-	menu_field->SetDivider(be_plain_font->StringWidth("Min. size:")/*50*/);
+	menu_field->SetDivider(be_plain_font->StringWidth("Min. size:")+4);
 	AddChild(menu_field);
 
 	r.OffsetBy(0, 30);

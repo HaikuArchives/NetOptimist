@@ -2,7 +2,7 @@
 #include <Screen.h>
 #include <be/interface/MenuBar.h>
 #include <MenuItem.h>
-#include <be/storage/fs_attr.h>
+#include <be/kernel/fs_attr.h>
 #include <be/storage/Entry.h>
 #include <be/storage/Directory.h>
 #include <be/storage/Entry.h>
