@@ -40,6 +40,7 @@ const char *httpKeywordList[] = {
 	"Etag",
 	"X-Powered-By",
 	"Warning",
+	"Pragma",
 	"P3P",
 	NULL
 };
@@ -66,23 +67,47 @@ enum HttpKeywordIds {
 	HttpHdrEtag,
 	HttpHdrXPoweredBy,
 	HttpHdrWarning,
+	HttpHdrPragma,
 	HttpHdrP3P
 };
+
+static void httpDateStr(time_t *t, char str[], int len) {
+	/* This function should generate RFC 1123 date strings
+	   with 'GMT' as timezone (which is the one recommended
+	   by http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.3.1
+	   I am not sure strftime can be used for such formatting as
+	   strftime is locale dependant
+	*/
+	const char *wkday[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+	const char *month[] = { "Jan", "Feb", "Mar", "Apr" , "May", "Jun", "Jul",
+				"Aug", "Sep", "Oct", "Nov", "Dec" };
+	struct tm tm;
+	*t -= timezone;	// XXX i'm not really happy with this. What is the std way ?
+	if (ISTRACE(DEBUG_HTTP_DATE))
+		printf("TIMEZONE = %ld\n", timezone);
+	gmtime_r(t, &tm);
+	snprintf(str, len-1, "%s, %02d %s %d %02d:%02d:%02d GMT",
+		wkday[tm.tm_wday], tm.tm_mday, month[tm.tm_mon], tm.tm_year+1900, tm.tm_hour, tm.tm_min, tm.tm_sec);
+	str[len]='\0';
+}
 
 static time_t dateStrToNumber(const char *datestr, const char *dateNameForDebug=NULL) {
 	struct tm tm;
 	memset (&tm, 0, sizeof(tm));
 	// XXX not enough : see http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.3.1
+	// XXX should be able to parse : "Wednesday, 19-Apr-66 00:00:00 GMT"
 	if (strptime(datestr, "%a, %d %b %Y %H:%M:%S", &tm)==NULL) {
 		fprintf(stderr, "ERROR: unknown http date format: %s\n", datestr);
 		return 0;
 	} else {
 		time_t age = mktime(&tm);
 		trace(DEBUG_HTTP_DATE) {
+			char redate[100];
+			httpDateStr(&age, redate, 99);
 			if (dateNameForDebug) {
-				char redate[100];
-				asctime_r(&tm, redate);
-				fprintf(stderr, "COMPUTED DATE %s IS %ld, %s", dateNameForDebug, age, redate);
+				fprintf(stderr, "dateStrToNumber : %s, %ld='%s'\n", dateNameForDebug, age, redate);
+			} else {
+				fprintf(stderr, "dateStrToNumber : %ld='%s'\n", age, redate);
 			}
 		}
 		return age;
@@ -97,7 +122,7 @@ const char *HttpServerConnection::MethodStr(ProtocolMethod method) {
 		case METHOD_POST:
 			return "POST";
 		default:
-			fprintf(stderr, "ERROR : HttpServerConnection unknown method : %d\n", method);
+			fprintf(stderr, "ERROR : HttpServerConnection unknown method : %x\n", method);
 			return "GET"; // be nice with the server ;-)
 	}
 }
@@ -105,11 +130,11 @@ const char *HttpServerConnection::MethodStr(ProtocolMethod method) {
 HttpServerConnection::HttpServerConnection(struct sockaddr_in connectTo, bool useProxy) {
 	m_socket = -1;
 	m_error = false;
-	m_isChunked = false;
 	m_isClosed = true;
 	m_serverAddr = connectTo;
 	m_useProxy = useProxy;
 	m_memoryResource = NULL;
+	m_host = NULL;
 }
 
 bool HttpServerConnection::Match(Url *url) const {
@@ -122,8 +147,7 @@ bool HttpServerConnection::Match(Url *url) const {
 
 void HttpServerConnection::OpenConnection(Url *url) {
 	m_stream = NULL;
-	m_dataSize = 0;
-	
+
 	if (!m_isClosed) {
 		// if the connection is still alive, we may reuse it.
 		if (m_useProxy) {
@@ -140,8 +164,14 @@ void HttpServerConnection::OpenConnection(Url *url) {
 	CloseConnection();
 		
 	m_port = url->Port();
-	m_host = url->Host();
+	if (m_host) {
+		free(m_host);
+	}
+	m_host = strdup(url->Host());
 	
+	if (ISTRACE(DEBUG_SOCKET)) {
+		printf("Opening socket\n");
+	}
 	m_socket = ::socket(AF_INET, SOCK_STREAM, 0);
 	if (m_socket<0) {
 		perror( "socket" );
@@ -180,6 +210,9 @@ const char* HttpServerConnection::Host() {
 
 void HttpServerConnection::CloseConnection() {
 	if (m_socket>=0) {
+		if (ISTRACE(DEBUG_SOCKET)) {
+			printf("Closing socket\n");
+		}
 #if defined(__BEOS__) && !defined(BONE_VERSION)
 		closesocket(m_socket);
 #else
@@ -214,7 +247,7 @@ int HttpServerConnection::EncodeUrl(char *dest, const char *input) {
 	return count;
 }
 
-void HttpServerConnection::PrepareHeader(Url *url, bool keepalive) {
+void HttpServerConnection::PrepareHeader(Url *url, time_t ifModifiedSince, bool keepalive) {
 	// XXX We should be able to issue 1.0 queries here.
 	if (m_error) return;
 	ProtocolMethod method = url->Method();
@@ -257,6 +290,11 @@ void HttpServerConnection::PrepareHeader(Url *url, bool keepalive) {
 #ifdef __BEOS__
 	ptr += sprintf(ptr, "User-Agent: %s" HTTP_EOL, HTTP_USER_AGENT);
 #endif
+	if (ifModifiedSince>0) {
+		char datestr[50];
+		httpDateStr(&ifModifiedSince, datestr, 49);
+		ptr += sprintf(ptr, "If-Modified-Since: %s\r\n", datestr);
+	}
 
 	// XXX Accept-___ http header fields are not supported
 	//ptr += sprintf(ptr, "Accept-Charset: %s" HTTP_EOL, );
@@ -265,7 +303,7 @@ void HttpServerConnection::PrepareHeader(Url *url, bool keepalive) {
 
 	strcat(ptr, HTTP_EOL); // end of header
 	trace(DEBUG_HTTP) {
-		fprintf(stderr, "----sending-----\n%s\n", header);
+		fprintf(stderr, "----sending-----\n%s", header);
 	}
 }
 
@@ -317,17 +355,22 @@ int HttpServerConnection::ReadHttpStatus(int * http_result) {
 #ifdef __sun
 	memset(headerLine, 0, sizeof headerLine);
 #endif
-	ptr = headerLine;
 	do {
-		nbrec = recv(m_socket, ptr, 1, 0);
-		ptr++;
-	} while (nbrec==1 && *(ptr-1)!='\n');
-	*ptr = '\0';
-	if (nbrec!=1) {
-		trace(DEBUG_HTTP)
-			fprintf(stderr, "Http Error :could not read status of http response %s\n", headerLine);
-		goto error;
-	}
+		ptr = headerLine;
+		do {
+			nbrec = recv(m_socket, ptr, 1, 0);
+			ptr++;
+		} while (nbrec==1 && *(ptr-1)!='\n');
+		if (ptr>=headerLine+2 && *(ptr-2)=='\r' && *(ptr-1)!='\n') ptr-=2;
+		*ptr = '\0';
+		if (nbrec!=1) {
+			trace(DEBUG_HTTP)
+				fprintf(stderr, "Http Error :could not read status of http response %s\n", headerLine);
+			goto error;
+		}
+		if (headerLine[0]!='H')
+			fprintf(stderr, "Warning : Http Status line is :<%s>\n", headerLine);
+	} while (headerLine[0]=='\n' || headerLine[0]=='\r');
 	int skip;
 	skip = strprefix(headerLine, "HTTP/1.1");
 	if (!skip)
@@ -372,6 +415,9 @@ int HttpServerConnection::ReadHeader(int * http_result) {
 #endif
 	if (!m_memoryResource)
 		m_memoryResource = new MemoryResource;
+
+	m_isChunked = false;
+	m_dataSize = 0;
 
 	int ret = ReadHttpStatus(http_result);
 
@@ -432,8 +478,12 @@ void HttpServerConnection::ParseHeader(const char *keyword, char *value) {
 				m_memoryResource->m_location = strdup(value);
 			break;
 		case HttpHdrConnection:
-			if (strcasecmp(value, "closed")==0) {
+			if (strcasecmp(value, "close")==0) {
 				m_isClosed = true;
+			} else {
+				if (strcasecmp(value, "keep-alive")!=0) {
+					fprintf(stdout, "Warning HttpHdrConnection=%s\n", value);
+				}
 			}
 			break;
 		case HttpHdrContentLength:
@@ -475,6 +525,7 @@ void HttpServerConnection::ParseHeader(const char *keyword, char *value) {
 		case HttpHdrAcceptRanges:
 		case HttpHdrP3P:
 		case HttpHdrKeepAlive:
+		case HttpHdrPragma:
 			// we don't handle these because we don't care at the moment !!!
 			break;
 		case HttpHdrVia:
@@ -509,8 +560,7 @@ MemoryResource *HttpServerConnection::GetData() {
 
 	size_t totalReceived=0;
 	trace(DEBUG_HTTP) {
-		if (m_dataSize==0 && !m_isChunked) 
-			fprintf(stderr, "no data size : reading until connection is closed\n");
+		fprintf(stdout, "Http:GetData : chunked=%s, datasize=%ld\n", m_isChunked?"yes":"no", m_dataSize);
 	}
 
 #ifdef __sun
@@ -542,7 +592,7 @@ readoneline:
 			if (!error && !end && dataUnit[0]=='\0') goto readoneline;
 			chunkSize = strtol(dataUnit, NULL, 16);
 			trace(DEBUG_HTTP_DATA) 
-				fprintf(stderr, "ChunkSize = %ld\n", chunkSize);
+				fprintf(stderr, "ChunkSize = %ld (dataLine='%s')\n", chunkSize, dataUnit);
 			end += chunkSize == 0;
 		} else {
 			if (m_dataSize>0)
@@ -669,7 +719,7 @@ ServerConnection* ConnectionMgr::GetConnection(Url *url) {
 void ConnectionMgr::ReleaseConnection(ServerConnection *connection) {
 	m_nbConnectionPending--;
 	for (int i=0; i<m_maxConnections; i++) {
-		if (m_conns[i]) {
+		if (m_conns[i]==NULL) {
 			m_conns[i]=connection;
 			return;
 		}

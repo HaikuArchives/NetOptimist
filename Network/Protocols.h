@@ -18,7 +18,7 @@ struct Protocol {
 	const char *name;
 	bool hasHost;
 	unsigned defaultPort;
-	int (*protocolGetter)(Url *, Resource **rsc);
+	int (*protocolGetter)(Url *, Resource **rsc, time_t);
 };
 
 extern const Protocol protocol_list[];
@@ -27,7 +27,7 @@ class ServerConnection {
 public:
 	virtual bool Match(Url *) const =0;
 	virtual void OpenConnection(Url *url) =0;
-	virtual void PrepareHeader(Url *url, bool keepalive=true) =0;
+	virtual void PrepareHeader(Url *url, time_t ifModifiedSince, bool keepalive=true) =0;
 	virtual void SendHeader(Url *url) =0;
 	virtual int ReadHeader(int *protocol_specific_result) =0;
 	virtual void CloseConnection() =0;

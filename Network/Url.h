@@ -67,22 +67,23 @@ public:
 };
 
 class Cache {
-        struct cacheLine;
-        cacheLine *cacheLines;
-        int nbLine; // Current number of ressources
-        Cache();
-        ~Cache();
-        ResourceGetter *m_getter;
+	struct cacheLine;
+	cacheLine *cacheLines;
+	int nbLine; // Current number of ressources
+	Cache();
+	~Cache();
+	ResourceGetter *m_getter;
 	cacheLine *FindCacheLine(const char *url);
-	bool AddResource(const char *url, Resource *rsc);
+	cacheLine *FindNextCacheLine(const char *url, cacheLine *current);
+	bool AddResource(const char *url, Resource *rsc, cacheLine *l=NULL);
 public:
-        void Init();
-        static Cache cache;
-        void SetBase(Url *base);
-        void SetResourceGetter(ResourceGetter *getter);
-        Resource *Find(Url *url);
-        Resource *Retrieve(Url *url, bool async, bool reformat);
-        void ClearAll();
+	void Init();
+	static Cache cache;
+	void SetResourceGetter(ResourceGetter *getter);
+	Resource *Find(Url *url);
+	Resource *Retrieve(Url *url, bool async, bool reformat);
+	void ClearAll();
+	void ClearByProtocolAndHost(const char *ProtoAndHost, const char *mimetype = NULL);
 };
 
 #endif

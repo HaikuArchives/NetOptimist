@@ -20,8 +20,8 @@
 #include "Pref.h"
 #include "StrPlus.h"
 
-int httpGetter(Url *url, Resource** rsc);
-int fileGetter(Url *url, Resource **rsc);
+int httpGetter(Url *url, Resource** rsc, time_t);
+int fileGetter(Url *url, Resource **rsc, time_t);
 
 const Protocol protocol_list[] = {
 	{ HttpId, "http:", true, 80, httpGetter },
@@ -68,10 +68,14 @@ struct Cache::cacheLine {
 	StrRef url;
 	int int1; // XXX Currently unused
 	enum {
-		TYPE_NONE, TYPE_PENDING, TYPE_FILEREF, TYPE_MEMORY
+		TYPE_NONE, TYPE_FILEREF, TYPE_MEMORY
 	} m_type;
+	enum {
+		STATE_PENDING, STATE_OK, STATE_VALIDATING
+	} m_state;
 	Resource *resource;
 	bool IsValid();
+	bool NeedValidate();
 	void Remove();
 };
 
@@ -91,10 +95,25 @@ bool Cache::cacheLine::IsValid() {
 	return true;
 }
 
+bool Cache::cacheLine::NeedValidate() {
+	if (!resource) return false;
+	time_t now = time(0);
+	int in_cache = now-resource->m_date;
+	int age_when_downloaded = resource->m_date-resource->m_modified;
+	if (in_cache>60*60/2 && in_cache > age_when_downloaded) {
+		// This resource has been to long in our cache
+		return true;
+	}
+	if ((resource->m_expires>0 && resource->m_expires<now)
+			 || now-resource->m_date>2*60*60) {	// XXX revalidate every 2 hours ?
+		return in_cache>10; // This is the minimum amount of time of validity
+	}
+	return false;
+}
+
 void Cache::cacheLine::Remove() {
 	switch(m_type) {
 		case TYPE_NONE :
-		case TYPE_PENDING :
 			// Nothing
 			break;
 		case TYPE_FILEREF :
@@ -211,6 +230,26 @@ void Cache::SetResourceGetter (ResourceGetter * getter) {
 	m_getter = getter;
 }
 
+void Cache::ClearByProtocolAndHost(const char *protocolAndHost, const char*mimetype) {
+	cacheLine *l = cacheLines;
+	cacheLine *prev = NULL;
+	while (l) {
+		cacheLine *t;
+		t = l;
+		l = l->next;
+		if (strprefix(t->url.Str(), protocolAndHost) != 0 && (mimetype==NULL || strcmp(t->resource->MimeType(),mimetype)==0)) {
+			if (prev)
+				prev->next = l;
+			else
+				cacheLines = l;
+			t->Remove();
+			delete t->resource;
+		} else {
+			prev = t;
+		}
+	}
+}
+
 void Cache::ClearAll() {
 	cacheLine *l = cacheLines;
 	cacheLine *p;
@@ -279,13 +318,12 @@ Cache::~Cache () {
 								l->resource->m_modified, fname, url,
 								l->resource->MimeType(), l->int1,
 								l->resource->Size());
+						} else {
+							fprintf (stderr, "Could not save resource for %s\n", url);
 						}
 						nbRes++;
 					}
 				}
-				break;
-				case cacheLine::TYPE_PENDING:
-					fprintf(stderr, "Cache : url %s still pending\n", l->url.Str());
 				break;
 				case cacheLine::TYPE_NONE:
 					fprintf(stderr, "Cache : url %s has expired\n", l->url.Str());
@@ -306,23 +344,22 @@ Cache::~Cache () {
 
 Resource *Cache::Find (Url * url) {
 	Resource *rsc = NULL;
-	struct stat buf;
 
 	StrRef ref;
 	url->ToStrRef(&ref);
 	const char *urlAbsolute = ref.Str();
 
-	cacheLine *l = cacheLines;
+	cacheLine *l = FindCacheLine(urlAbsolute);
 	while (l && !rsc) {
 		if (!l->resource) {
 			trace (DEBUG_CACHE)
 				fprintf (stderr, "Cache::Find no resource for this entry\n");
 		} else {
-			if (strcmp (l->url.Str(), urlAbsolute)==0) {
 				const char *file;
 				trace (DEBUG_CACHE)
 					fprintf (stderr, "Cache::Find FOUND url %s\n", urlAbsolute);
 				if (l->IsValid()) {
+					struct stat buf;
 					rsc = l->resource;
 					switch (l->m_type) {
 					    case cacheLine::TYPE_FILEREF:
@@ -330,11 +367,10 @@ Resource *Cache::Find (Url * url) {
 						if (stat (file, &buf) >= 0 && (buf.st_mode & S_IFREG) == S_IFREG) {
 							if (rsc->Size() == 0)
 								rsc->SetSize(buf.st_size);
-							trace (DEBUG_CACHE)
-								fprintf (stderr, "Cache: Url %s found in file %s\n", urlAbsolute, file);
 							trace (DEBUG_CACHE) {
+								fprintf (stderr, "Cache: Url %s found in file %s\n", urlAbsolute, file);
 							    if (rsc->m_expires>0)
-								fprintf (stderr, "Cache: Url %s expires in %d\n", urlAbsolute, (int)(rsc->m_expires-time(0)));
+									fprintf (stderr, "Cache: Url %s expires in %d\n", urlAbsolute, (int)(rsc->m_expires-time(0)));
 							}
 						} else {
 							trace (DEBUG_CACHE) {
@@ -348,8 +384,8 @@ Resource *Cache::Find (Url * url) {
 						/* Found url in memory */
 						break;
 					    case cacheLine::TYPE_NONE:
-					    case cacheLine::TYPE_PENDING:
 						rsc = NULL;
+						l = NULL;
 						/* Not ready */
 						break;
 					}
@@ -357,14 +393,25 @@ Resource *Cache::Find (Url * url) {
 					trace (DEBUG_CACHE)
 						fprintf (stderr, "Cache: Url %s has expired\n", urlAbsolute);
 				}
-			}
 		}
-		l = l->next;
+		l = FindNextCacheLine(urlAbsolute, l);
 	}
 
 	return rsc;
 }
 
+Cache::cacheLine *Cache::FindNextCacheLine(const char *url, Cache::cacheLine *current) {
+	cacheLine *l = current ? current->next : NULL;
+	while (l) {
+		if (l->url.Str() && !strcmp(l->url.Str(), url)) {
+			trace (DEBUG_CACHE)
+				printf("FindNextCacheLine : %s has another entry\n", url);
+			break;
+		}
+		l = l->next;
+	}
+	return l;
+}
 
 Cache::cacheLine *Cache::FindCacheLine(const char *url) {
 	cacheLine *l = cacheLines;
@@ -379,14 +426,16 @@ Cache::cacheLine *Cache::FindCacheLine(const char *url) {
 	return l;
 }
 
-bool Cache::AddResource(const char *url, Resource *rsc) {
+bool Cache::AddResource(const char *url, Resource *rsc, cacheLine *l) {
 	//Add this resource in the cache
 
 	bool created = false;
 	bool empty = false;
 
-	cacheLine *l = NULL;
-	l = FindCacheLine(url);
+	if (!l) {
+		// if not cacheLine, find url in cache
+		l = FindCacheLine(url);
+	}
 	if (!l) {
 		// If no matching cache line found, create a new one
 		nbLine++;
@@ -396,14 +445,18 @@ bool Cache::AddResource(const char *url, Resource *rsc) {
 		l->next = NULL;
 		l->url.SetToDup (url);
 		l->resource = NULL;
-		l->m_type = cacheLine::TYPE_PENDING;
+		l->m_type = cacheLine::TYPE_NONE;
+		l->m_state = cacheLine::STATE_PENDING;
 	}
 	if (rsc) {
+		if (l->resource) {
+			l->Remove();
+		}
 		l->m_type = cacheLine::TYPE_MEMORY;
-		if (l->resource) fprintf(stderr, "ERROR : overriding existing data\n");
+		l->m_state = cacheLine::STATE_OK;
 		l->resource = rsc;
 	} else {
-		empty = created || l->m_type == cacheLine::TYPE_NONE;
+		empty = created ;
 	}
 	if (created) {
 		// Chain the newly created cache entry
@@ -416,12 +469,42 @@ bool Cache::AddResource(const char *url, Resource *rsc) {
 
 Resource *Cache::Retrieve (Url * url, bool async, bool reformat) {
 	Resource *rsc = NULL;
+	time_t ifModifiedSince = 0;
+	bool found = false;
+	bool needValidate = false;
 
 	StrRef ref;
 	url->ToStrRef(&ref);
 	const char *urlAbsolute = ref.Str();
 
-	rsc = Find (url);
+	cacheLine *l = FindCacheLine(urlAbsolute);
+	while (!found && l) {
+		if (!l->resource) {
+			trace (DEBUG_CACHE)
+				fprintf (stderr, "Cache::Retrieve cacheLine matches but no resource\n");
+		} else {
+			found = true;
+			rsc = l->resource;
+			trace (DEBUG_CACHE)
+				fprintf (stderr, "Cache::Retrieve FOUND url %s\n", urlAbsolute);
+			needValidate = l->NeedValidate();
+		}
+		if (!found)
+			l = FindNextCacheLine(urlAbsolute, l);
+	}
+
+	if (l && needValidate) {
+		trace (DEBUG_CACHE)
+			fprintf (stderr, "Cache::Retrieve url %s has (old) resource\n", urlAbsolute);
+		if (async && l->m_state == cacheLine::STATE_VALIDATING) {
+			// If this resource is already being re-validated, return.
+			return NULL;
+		} else {
+			l->m_state = cacheLine::STATE_VALIDATING;
+		}
+		ifModifiedSince = rsc->m_modified;
+		rsc = NULL;
+	}
 
 	if (!rsc) {
 		if (!async) {
@@ -432,23 +515,31 @@ Resource *Cache::Retrieve (Url * url, bool async, bool reformat) {
 				if (proto->protocolGetter) {
 					trace (DEBUG_FILE)
 						printf("Cache->%s for url %s ...\n", proto->name, urlAbsolute);
-					int status = proto->protocolGetter(url, &rsc);
+					int status = proto->protocolGetter(url, &rsc, ifModifiedSince);
 					if (status) {
 						fprintf(stderr, "%s error when downloading : %s\n", proto->name, urlAbsolute);
 					}
 				}
 				if (rsc) {
-					//Add this resource in the cache
-					AddResource(urlAbsolute, rsc);
+					//Add this new resource in the cache
+					AddResource(urlAbsolute, rsc, l);
 					if (!strnull(rsc->m_location)) {
 						StrRef r;
 						r.SetToDup(rsc->m_location);
 						url->SetDisplayName(&r);
 					}
+				} else {
+					if (l && l->resource!=NULL) {
+						// The old resource is still ok
+						l->m_state = cacheLine::STATE_OK;
+						rsc = l->resource;
+						rsc->m_date = time(0);
+						fprintf(stderr, "Url %s re-validated\n", urlAbsolute);
+					}
 				}
 			}
 		} else {
-			if (AddResource(urlAbsolute, NULL)) {
+			if (l != NULL || AddResource(urlAbsolute, NULL)) {
 				if (Pref::Default.Online()) {
 					trace (DEBUG_CACHE)
 						printf("Cache::Retreive queueing url %s\n", urlAbsolute);
@@ -598,11 +689,12 @@ void Url::_SetTo(const UrlQuery *urlQuery, const Url *base, bool async, bool ref
 
 	m_urlStrRef.SetToString(str, false);
 
-// XXX he c'est quoi ca ? on download avant d'en avoir besoin ?
+	// As soon as the Url object is created we ask the HTTP getter to
+	// download it. I am not sure this is really good.
 	m_resource = Cache::cache.Retrieve (this, async, reformat);
-		
+
 	if (!m_resource && !async) {
-		fprintf (stderr, "Url %s not found\n", m_urlStrRef.Str());
+		fprintf (stderr, "Synchronous url %s not found\n", m_urlStrRef.Str());
 	}
 }
 
@@ -728,7 +820,7 @@ Resource *Url::GetDataNow() {
 	return m_resource;
 }
 
-int httpGetter(Url *url, Resource** rsc) {
+int httpGetter(Url *url, Resource** rsc, time_t ifModifiedSince) {
 	*rsc = NULL;
 
 	ServerConnection *server =
@@ -737,12 +829,17 @@ int httpGetter(Url *url, Resource** rsc) {
 	if (server) {
 		int protocol_result;
 		server->OpenConnection (url);
-		server->PrepareHeader (url);
+		server->PrepareHeader (url, ifModifiedSince);
 		server->SendHeader (url);
 		server->ReadHeader (&protocol_result);
 
-		if (protocol_result != 204) {
-			// XXX Code 204 => no body but why ?
+		switch (protocol_result)
+		{
+		case 204:
+		case 304:	// not modified
+			// XXX Code 204, 304 => no body but why ?
+			break;
+		default:
 			*rsc = server->GetData ();
 		}
 		StrRef reason;
@@ -754,14 +851,17 @@ int httpGetter(Url *url, Resource** rsc) {
 			}
 		}
 		ConnectionMgr::Default.ReleaseConnection (server);
+		if (*rsc || protocol_result==304)
+			return 0;
+		else 
+			return -1;
 	} else {
 		fprintf (stderr, "Could not get connection to Server\n");
+		return -1;
 	}
-	if (*rsc) return 0;
-	else	  return -1;
 }
 
-int fileGetter(Url *url, Resource **rsc) {
+int fileGetter(Url *url, Resource **rsc, time_t) {
 	* rsc = new FileResource(url->File());
 	if (*rsc) return 0;
 	else	  return -1;

@@ -23,7 +23,7 @@ class BMallocIO;
 extern const char *httpKeywordList[];
 
 class HttpServerConnection : public ServerConnection {
-	const char *m_host;
+	char *m_host;
 	unsigned int m_port;
 	int protocol; // http/https
 	int version;
@@ -53,7 +53,7 @@ public:
 	virtual ~HttpServerConnection() {}
 	const char *MethodStr(ProtocolMethod);
 	void OpenConnection(Url *url);
-	void PrepareHeader(Url *url, bool keepalive=true);
+	void PrepareHeader(Url *url, time_t ifModifiedSince, bool keepalive=true);
 	void SendHeader(Url *url);
 	int ReadHeader(int *http_code);
 	MemoryResource *GetData();

@@ -78,7 +78,7 @@ bool Resource::SaveToFile(const char *filename) {
 
 	data = Data();
 	if (!data) {
-		fprintf(stderr, "Could not save ressource : no data\n");
+		fprintf(stderr, "Resource::SaveToFile : no data\n");
 		return false;
 	}
 
