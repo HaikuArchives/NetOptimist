@@ -11,7 +11,7 @@ Style::Style() :
 		size_(0)
 	 {
 	color = kBlack;
-	bgcolor = kLightGray;
+	bgcolor = kWhite;
 	linkcolor = kLinkColor;
 	isLink = false;
 	isUnderline = false;
