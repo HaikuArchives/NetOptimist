@@ -1,6 +1,7 @@
 #include "HTMLView.h"
 
 #include <Window.h>
+#include <ScrollView.h>
 #include <be/support/UTF8.h>
 #include "NOWindow.h"
 #include "Html.h"
@@ -108,7 +109,7 @@ void HTMLView::Redraw() {
 
 void HTMLView::Refresh() {
 	if (m_format) {
-		m_format->Draw(true);
+		m_format->Draw(Bounds(), true);
 	}
 }
 
@@ -136,7 +137,7 @@ void HTMLView::MouseMoved( BPoint where, uint32 code, const BMessage *a_message)
 
 void HTMLView::MessageReceived(BMessage *message) {
 	if (ISTRACE(DEBUG_MESSAGING))
-		fprintf(stderr, "Message received %4s in HTMLView\n", (char *)&message->what);
+		fprintf(stderr, "Message received %4.4s in HTMLView\n", (char *)&message->what);
 	BView::MessageReceived(message);
 }
 
