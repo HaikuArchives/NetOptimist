@@ -188,14 +188,7 @@ NOWindow::NOWindow(BRect windowfr) : BWindow(windowfr, "NetOptimist", B_DOCUMENT
 #endif
 	AddChild(toolBarView);
 	
-#if 0 // XXX Experimental
-	urlControl = new BTextControl(BRect(30,5,250,20), "url view",NULL, "http://", new BMessage(URL_ENTERED));
-	//urlControl->SetDivider(0);
-	urlControl->SetTarget(this);
-#else
-	// urlControl = new BTextView(BRect(3,5,250,20), "url view",BRect(3,5,250,20), B_FOLLOW_TOP | B_FOLLOW_LEFT, B_WILL_DRAW);
 	urlControl = new UrlText(BRect(30,5,250,20), BRect(0,0,300,30));
-#endif
 	toolBarView->AddChild(urlControl);
 	
 	int const LinkBarHeight = 15;
@@ -398,7 +391,9 @@ void NOWindow::MessageReceived(BMessage *message) {
 			break;
 		}	
 		case bmsgFileNew: {
-			NOWindow *newwin = new NOWindow(Frame()); // XXX move the window
+			BRect newFrame = Frame();
+			newFrame.OffsetBySelf(30,30);
+			NOWindow *newwin = new NOWindow(newFrame);
 			newwin->Show();
 			break;
 		}
