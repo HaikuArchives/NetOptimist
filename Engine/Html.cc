@@ -244,6 +244,7 @@ DocFormater::~DocFormater() {
 		iter=p; 
 	}
 	last = cur = doc = NULL;
+	delete m_jsctx;
 }
 
 void DocFormater::Draw(bool onlyIfChanged) {
@@ -292,7 +293,6 @@ bool DocFormater::Select(int x, int y, Action action, UrlQuery *query) {
 				if (url_text) {
 					const char javascript_prefix[] = "javascript:";
 					if (action == MOUSE_CLICK && strprefix(url_text, javascript_prefix)) {
-						printf("found  code = '%s'\n", url_text);
 						m_jsctx->Execute(url_text+sizeof(javascript_prefix)-1);
 						return false;	// Execution done. Do nothing above.
 					}
@@ -690,9 +690,9 @@ TagDocElem* DocFormater::html_parse_tag() {
 										printf("code font = %d\n", code[0]);
 										while (*code == '\r' || *code == '\n' || *code == ' ' || *code =='\t') code++;
 										if (strprefix(code, "<!--")) code+=4;
-										printf("found '</script> code = %s'\n", code);
-										m_jsctx->Execute(code);
-
+										if (!strnull(code)) {
+											m_jsctx->Execute(code);
+										}
 										trace(DEBUG_TAGPARSE) printf("TAG: end of script tag\n");
 										ptr = buf;
 										end = true;
