@@ -6,6 +6,7 @@
 
 const int MAX_ENTRIES = 30;
 
+#define URL_ENTERED 'EURL'
 
 class UrlListView : public BView {
 	typedef BView super;
@@ -201,7 +202,6 @@ protected:
 				popup->Unlock();
 			}
 #endif
-			printf("XXX 3\n");
 			DisplayMatch();
 		} else {
 			popup->Hide();
