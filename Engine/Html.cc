@@ -622,6 +622,12 @@ TagDocElem* DocFormater::html_parse_tag() {
 			if (ch=='>') {
 				if (thisTag) {
 					if (thisTag && !strcasecmp(thisTag->toString(), "script")) {
+						/* This piece of code will extract the script code and
+						   execute it. I first thought we could do this in
+						   SCRIPT_DocElem::geometry() but some JS methods need to
+						   modify the parser input. So javascript code must be
+						   executed while parsing (not during rendering).
+						*/
 						char ch;
 						bool end = false;
 						m_bufferReader->Commit();
@@ -647,7 +653,7 @@ TagDocElem* DocFormater::html_parse_tag() {
 											}
 										}
 									}
-									while (c<ptr && *c==' ' || *c=='\t' || *c=='\n') { c++; }
+									while (c<ptr && *c==' ' || *c=='\t' || *c=='\n' || *c=='\r') { c++; }
 									if (*p=='\0' && c==ptr) {
 										char *code = ptr;
 										m_bufferReader->Commit();
@@ -659,7 +665,7 @@ TagDocElem* DocFormater::html_parse_tag() {
 										// remove --> a the end of the script
 										code--;
 										while (code > buf && 
-											(*code =='\t' || *code==' ' || *code=='\n')) 
+											(*code =='\t' || *code==' ' || *code=='\n' || *code=='\r')) 
 											code--;
 										if (code-2>=buf && strprefix(code-2,"-->"))
 											*(code-2) = '\0';
@@ -669,7 +675,18 @@ TagDocElem* DocFormater::html_parse_tag() {
 										if (strprefix(code, "<!--")) code+=4;
 
 										if (m_jsctx && !strnull(code)) {
-											m_jsctx->Execute(code);
+											StrRef attr_language;
+											for (TagAttr *iter = attrList; iter!=NULL; iter=iter->Next()) {
+												iter->ReadStrRef("LANGUAGE",&attr_language);
+											}
+											// Language must either be "JavaScript" or "JavaScript1.1" or empty (JS assumed)
+											if (!attr_language.IsFree() &&
+												strcasecmp(attr_language.Str(),"JavaScript")!=0 && strcasecmp(attr_language.Str(),"JavaScript1.1")!=0) {
+												fprintf(stderr, "Warning : Unsupported script type %s\n", attr_language.Str());
+											} else {
+												// evaluate the code
+												m_jsctx->Execute(code);
+											}
 										}
 
 										trace(DEBUG_TAGPARSE) printf("TAG: end of script tag\n");
