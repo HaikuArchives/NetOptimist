@@ -15,15 +15,31 @@ bool MetaDocElem::Action(::Action /*action*/, UrlQuery *href) {
 	return href->Url() != NULL;
 }
 
+
+/*
+NEXUS/TODO: 
+1. Needs rewriting, so every meta element gets read and used/passed to the view.
+2. Content-Type should be passed to view->SetContentType().
+3. If there is no Content-Type specified, the one passed in HTTP response should be used, if still none is there
+it should be assumed to octet-stream for HTTP/FTP protocols and should be read from the NodeInfo if 
+protocol is FILE.
+4. Charset should be passed to view->SetCharset(), so when "Auto-detection" of encoding is enabled
+this value will be used.
+5. Need to handle http-equiv="Set-Cookie".
+6. There are also DESCRIPTION, KEYWORDS and other meta tags...
+ */ 
 void MetaDocElem::geometry(HTMLFrame *view) {
 	StrRef httpEquivRef;
 	StrRef contentRef;
 	TagDocElem::geometry(view);
+	// FIXME: will work for only one http-equiv string, i suppose. 
 	for (TagAttr *iter = list; iter!=NULL; iter=iter->Next()) {
 		iter->ReadStrRef("CONTENT" ,&contentRef);
 		iter->ReadStrRef("HTTP-EQUIV" ,&httpEquivRef);
 	}
 	if (!httpEquivRef.IsFree()) {
+		// FIXME: there is also Time settings which goes before ";url=", the user should be
+		// redirected after this time has passed since this tag read
 		printf("META : %s -> %s\n", httpEquivRef.Str(), contentRef.Str());
 		if (!strcasecmp("refresh", httpEquivRef.Str())) {
 			const char *content = contentRef.Str();
@@ -37,7 +53,24 @@ void MetaDocElem::geometry(HTMLFrame *view) {
 				content++;
 			}
 		}
+
+		// FIXME: Content-Type value is being skipped right now and not being read/saved
+		StrRef ref;
+		if (!strcasecmp("content-type", httpEquivRef.Str())) {
+			const char *content = contentRef.Str();
+			while(content && *content) {
+				int r = strcaseprefix(content, "charset=");
+				if (r>0) {
+					printf("META URL=%s\n", content+r);
+					ref.SetToDup(content+r);
+					break;
+				}
+				content++;
+			}
+			
+		}
 	}
+	// FIXME:
 	if (!m_url.IsFree()) {
 		char *str = new char[strlen(m_url.Str()) + 30];
 	
