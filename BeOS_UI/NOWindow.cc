@@ -41,7 +41,6 @@ NOWindow::NOWindow(BRect windowfr) : BWindow(windowfr, "NetOptimist", B_DOCUMENT
 	// Le menu File
 	submenu = new BMenu("File");
 	submenu->AddItem(menuitem=new BMenuItem("New",new BMessage(bmsgFileNew),'N',B_COMMAND_KEY));
-	menuitem->SetEnabled(false);
 	submenu->AddItem(menuitem=new BMenuItem("Open Location...",new BMessage(bmsgFileOpenLocation),'L',B_COMMAND_KEY));
 	menuitem->SetEnabled(false);
 	submenu->AddItem(menuitem=new BMenuItem("Open File...",new BMessage(bmsgFileOpenFile),'O',B_COMMAND_KEY));
@@ -79,15 +78,14 @@ NOWindow::NOWindow(BRect windowfr) : BWindow(windowfr, "NetOptimist", B_DOCUMENT
 	submenu->AddSeparatorItem();
 	submenu->AddItem(menuitem=new BMenuItem( "Select All",new BMessage(bmsgEditSelectAll),'A',B_COMMAND_KEY));
 	//menuitem->SetEnabled(false);
-*/
 	submenu->AddSeparatorItem();
+*/
 	submenu->AddItem(menuitem=new BMenuItem("Find",new BMessage(bmsgEditFind),'F',B_COMMAND_KEY));
 	menuitem->SetEnabled(false);
 	submenu->AddItem(menuitem=new BMenuItem("Find Again",new BMessage(bmsgEditFindAgain),'G',B_COMMAND_KEY));
 	menuitem->SetEnabled(false);
 	submenu->AddSeparatorItem();
 	submenu->AddItem(menuitem=new BMenuItem("Preferences...",new BMessage(bmsgEditPreferences)));
-//	menuitem->SetEnabled(false);
 	m_menu->AddItem(submenu);
 	// Le menu Go
 	submenu = new BMenu("Go");
@@ -397,6 +395,11 @@ void NOWindow::MessageReceived(BMessage *message) {
 			FullScreen();
 			break;
 		}	
+		case bmsgFileNew: {
+			NOWindow *newwin = new NOWindow(Frame()); // XXX move the window
+			newwin->Show();
+			break;
+		}
 		case bmsgForceTableBorder:
 			if (ISTRACE(DEBUG_FORCETABLEBORDER))
 				enableTrace &= ~DEBUG_FORCETABLEBORDER;
