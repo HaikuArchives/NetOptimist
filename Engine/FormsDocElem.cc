@@ -156,10 +156,11 @@ const char *INPUT_DocElem::Text() const {
 	}
 }
 
-void INPUT_DocElem::dynamicGeometry(HTMLFrame */*view*/) {
+void INPUT_DocElem::dynamicGeometry(HTMLFrame *view) {
 	if (m_type == T_IMAGE) {
 		LoadImage(m_image_url);
 	}
+	super::dynamicGeometry(view);
 }
 
 void INPUT_DocElem::geometry(HTMLFrame *view) { 

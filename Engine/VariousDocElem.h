@@ -71,6 +71,7 @@ public:
 };
 
 class HR_DocElem : public TagDocElem {
+	typedef TagDocElem super;
 public:
 	HR_DocElem(Tag *tag, TagAttr *attrs) : TagDocElem(tag,attrs) {
 	}

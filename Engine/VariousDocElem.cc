@@ -90,7 +90,9 @@ void HR_DocElem::dynamicGeometry(HTMLFrame *view) {
 		iter->ReadDim("WIDTH",&reqW,&dummy,w);
 	}
 	if (reqW>=0) w = reqW;
+	fixedW = w;
 	h = 15;
+	super::dynamicGeometry(view);
 }
 
 void HR_DocElem::draw(HTMLFrame *view, bool /*onlyIfChanged*/) {
