@@ -57,14 +57,14 @@ void DocElem::RelationSet(HTMLFrame * view) {
 			fprintf(stderr, "Warning : no constraint from parent for non-root DocElem id=%d\n", id);
 		}
 		// This is the root DocElem.
-		constraint = new Constraint(this, view->DocWidth()); /* XXX Verify that this is not needed anymore */
+		constraint = new Constraint(this, view->DocWidth()); /* XXX this is still needed for the root document element */
 	}
 	if (!includedConstraint)
 		includedConstraint = constraint;
 	geometry(view);
 }
 
-void DocElem::dynamicGeometry() {
+void DocElem::dynamicGeometry(HTMLFrame *) {
 	if (includedConstraint && includedConstraint != constraint) {
 		fixedW = max(fixedW, includedConstraint->minW);
 	}

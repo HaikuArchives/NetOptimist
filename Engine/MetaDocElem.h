@@ -59,10 +59,13 @@ public:
 };
 
 class LINK_DocElem : public TagDocElem {
+	Url *m_iconUrl;
 public:
 	LINK_DocElem(Tag *tag, TagAttr *attrs) : TagDocElem(tag,attrs) {
+		m_iconUrl = NULL;
 	}
 	virtual void RelationSet(HTMLFrame *view);
+        virtual void dynamicGeometry(HTMLFrame *view);
 };
 
 class MetaDocElem : public TagDocElem {

@@ -15,6 +15,7 @@
 #include "Style.h"
 #include "traces.h"
 
+// XXX we must seriously reduce this and have dynamic values !
 static const int MAXCOL = 40;
 static const int MAXLINES = 700;
 
@@ -49,7 +50,6 @@ class TableDim {
 	int m_tab_req;
 	int line_height[MAXLINES];
 	TableDocElem *table;
-	void fire();
 public:
 	TableDim(TableDocElem * container) {
 		table = container;
@@ -83,14 +83,6 @@ public:
 		trace(DEBUG_TABLE_RENDER) printf("TableDim::infoLine : line %d - prev H : %d / new H %d\n",line,line_height[line],height);
 		if (line_height[line] < height) {
 			line_height[line] = height;
-			return true;
-		}
-		return false;
-	}
-	bool infoLine(int height) {
-		assert(nb_lines<MAXLINES);
-		if (line_height[nb_lines-1] < height) {
-			line_height[nb_lines-1] = height;
 			return true;
 		}
 		return false;
@@ -158,11 +150,6 @@ public:
 	int NbLines() const { return nb_lines; }
 	int NbCols() const { return nb_col; }
 };
-
-void TableDim::fire() {
-	table->Msg(DRAW);
-	table->ProcessAll();
-}
 
 void TableDim::place(int tab_req) {
 	int tab_max;
@@ -419,8 +406,9 @@ void TableDocElem::updateCol(int line, int col, int size) {
 	}
 }
 
-void TableDocElem::updateLine(int line, int lineheight) {
-	if (dims->infoLine(line, lineheight)) {
+void TableDocElem::updateLine(int line, int col, int colheight) {
+	int lineHeight = colheight - dims->cellHeight(line,col) + dims->lineHeight(line);
+	if (dims->infoLine(line, lineHeight)) {
 		dims->place();
 		Msg(DRAW);
 		ProcessAll();
@@ -774,7 +762,7 @@ void TableDocElem::geometry(HTMLFrame *) {
 	}
 }
 
-void TableDocElem::dynamicGeometry() {
+void TableDocElem::dynamicGeometry(HTMLFrame *view) {
 	int minW = borderWidth * 2;
 	for (TR_List *tr_elem=contentList; tr_elem!=NULL; tr_elem=tr_elem->next) {
 		TR_DocElem *nextTR = tr_elem->elem;
@@ -953,7 +941,7 @@ bool TD_DocElem::update(int right, int top, int bottom) {
 		if (h<realH) {
 			trace(DEBUG_TABLE_RENDER)
 				fprintf(stdout, "Update for TD %d H %d was %d\n", id, realH, h);
-			container->updateLine(line,realH);
+			container->updateLine(line,col,realH);
 		}
 		return true;
 	} else {

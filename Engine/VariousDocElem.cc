@@ -86,10 +86,10 @@ void NOSCRIPT_DocElem::RelationSet(HTMLFrame *view) {
 
 
 void HR_DocElem::geometry(HTMLFrame *view) {
-	dynamicGeometry();
+	dynamicGeometry(view);
 }
 
-void HR_DocElem::dynamicGeometry() {
+void HR_DocElem::dynamicGeometry(HTMLFrame *view) {
 	int reqW = 0;
 	bool dummy;
 	w = constraint->Width();
@@ -299,7 +299,7 @@ void IMG_DocElem::GetSize() {
 	fixedW = w;
 }
 
-void IMG_DocElem::dynamicGeometry() {
+void IMG_DocElem::dynamicGeometry(HTMLFrame *view) {
 	for (TagAttr *iter = list; iter!=NULL; iter=iter->Next()) {
 		bool dummy;
 		if (iter->ReadDim("WIDTH",&reqW,&dummy,constraint->Width())) {
@@ -309,7 +309,7 @@ void IMG_DocElem::dynamicGeometry() {
 		//iter->ReadDim("HEIGHT",&reqH,&dummy,h);
 	}
 	GetSize();
-	super::dynamicGeometry();
+	super::dynamicGeometry(view);
 }
 
 IMG_DocElem::~IMG_DocElem() {

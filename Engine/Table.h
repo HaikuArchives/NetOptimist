@@ -37,14 +37,14 @@ public:
 	~TableDocElem();
 	virtual bool update(int , int , int bottom);
 	virtual void geometry(HTMLFrame *view);
-	virtual void dynamicGeometry();
+	virtual void dynamicGeometry(HTMLFrame *view);
 	virtual void place();
 	virtual void draw(HTMLFrame *m_view, bool onlyIfChanged=false);
 	virtual void initPlacement();
 	void RegisterLine(TR_DocElem*);
 	void RegisterCell(TD_DocElem*);
 	virtual void updateCol(int line, int col, int h);
-	virtual void updateLine(int line, int h);
+	virtual void updateLine(int line, int col, int h);
 
 	void Process(int evt);
 };

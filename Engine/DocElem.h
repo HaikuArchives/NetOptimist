@@ -71,7 +71,7 @@ public:
 
 		/* dynamicGeometry is called before evry reformating.
 		   It is called in a depth-first manner */
-	virtual void dynamicGeometry();
+	virtual void dynamicGeometry(HTMLFrame *);
 
 	virtual void initPlacement();
 	virtual void draw(HTMLFrame *, bool onlyIfChanged=false) = 0;

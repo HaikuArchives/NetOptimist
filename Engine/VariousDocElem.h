@@ -80,7 +80,7 @@ public:
 	HR_DocElem(Tag *tag, TagAttr *attrs) : TagDocElem(tag,attrs) {
 	}
 	virtual void draw(HTMLFrame *m_view, bool onlyIfChanged=false);
-	virtual void dynamicGeometry();
+	virtual void dynamicGeometry(HTMLFrame *view);
 	virtual void geometry(HTMLFrame *view);
 };
 
@@ -148,7 +148,7 @@ public:
 	}
 	~IMG_DocElem();
 	virtual void geometry(HTMLFrame *view);
-	virtual void dynamicGeometry();
+	virtual void dynamicGeometry(HTMLFrame *view);
 	virtual void draw(HTMLFrame *m_view, bool onlyIfChanged=false);
 };
 

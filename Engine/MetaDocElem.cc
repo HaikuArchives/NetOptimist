@@ -99,16 +99,7 @@ void LINK_DocElem::RelationSet(HTMLFrame *view) {
 	if (!strcasecmp(favLinkName,"icon")
 	 || !strcasecmp(favLinkName,"shortcut icon")) {
 		if (Pref::Default.ShowImages()) {
-			Url *url = new Url(url_attr.Str(), view->m_document.CurrentUrl());
-			Resource *r = url->GetDataNow();
-			BBitmap *bmp = NULL;
-			if (r && r->CachedFile()) {
-				bmp = BTranslationUtils::GetBitmapFile(r->CachedFile());
-			}
-			if (r && r->Data()) {
-				bmp = BTranslationUtils::GetBitmap(r->Data());
-			}
-			view->m_document.SetIcon(bmp);
+			m_iconUrl = new Url(url_attr.Str(), view->m_document.CurrentUrl(), true, false);
 		}
 	} else {
 		fprintf(stderr, "Link : %s to %s\n", favLinkName, url_attr.Str());
@@ -116,4 +107,21 @@ void LINK_DocElem::RelationSet(HTMLFrame *view) {
 	}
 
 	TagDocElem::RelationSet(view);
-}	
+}
+
+void LINK_DocElem::dynamicGeometry(HTMLFrame *view) {
+	if (m_iconUrl) {
+		Resource *r = m_iconUrl->GetIfAvail();
+		BBitmap *bmp = NULL;
+		if (r && r->CachedFile()) {
+			bmp = BTranslationUtils::GetBitmapFile(r->CachedFile());
+		}
+		if (r && r->Data()) {
+			bmp = BTranslationUtils::GetBitmap(r->Data());
+		}
+		view->m_document.SetIcon(bmp);
+
+		delete m_iconUrl;
+		m_iconUrl = NULL;
+	}
+}
