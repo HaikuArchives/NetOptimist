@@ -9,6 +9,7 @@
 #include <be/storage/Node.h>
 #include <be/storage/Resources.h>
 #include <be/storage/Entry.h>
+#include <be/storage/Path.h>
 #include <be/storage/AppFileInfo.h>
 #include <Alert.h>
 #include <NodeInfo.h>
@@ -21,7 +22,7 @@ public :
 	NetOptimist(const char *url_text = NULL);
 	void MessageReceived(BMessage *message);
 	void RefsReceived(BMessage *message);
-	void ArgvReveived(int32 argc, char ** argv);
+	void ArgvReceived(int32 argc, char ** argv);
 	void ReadyToRun();
 };
 
@@ -54,13 +55,16 @@ void NetOptimist::RefsReceived(BMessage *message) {
 		if (!strcmp(type, "application/x-vnd.Be-bookmark")) {
 			// This is a bookmark file
 			char url[256];		
-			BNode node(&file);
 			if (0 < node.ReadAttr("META:url", B_STRING_TYPE, 0, url, sizeof url-1)) {
 				CreateWindow(url);
 			}
-		} else if (!strcmp(type, "text/html")) {
-			char url[FILENAME_MAX+10];
-			sprintf(url, "file://%s", file.name);
+		} else if ((!strcmp(type, "text/html")) || (!strcmp(type, "text/plain"))) {
+			BEntry entry;
+			entry.SetTo(&file);
+			BPath path;
+			entry.GetPath(&path);
+			char url[strlen(path.Path())];
+			sprintf(url, "file://%s", path.Path());
 			CreateWindow(url);
 		} else {
 			char text[1000];
@@ -71,7 +75,8 @@ void NetOptimist::RefsReceived(BMessage *message) {
 		nb++;
 	}
 }
-void NetOptimist::ArgvReveived(int32 argc, char ** argv) {
+
+void NetOptimist::ArgvReceived(int32 argc, char ** argv) {
 		// XXX Can this happen ?
 		(new BAlert("NetOptimist", "argv recv", "Ok"))->Go();
 }

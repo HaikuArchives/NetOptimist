@@ -10,6 +10,7 @@
 #include <be/storage/Directory.h>
 #include <be/storage/Entry.h>
 #include <be/storage/Path.h>
+#include <be/storage/FilePanel.h>
 #include <TextControl.h>
 #include <Shelf.h>
 #include "NOWindow.h"      
@@ -81,7 +82,7 @@ static void buildBookmarksMenu(BMenu *menu, const char *dirname) {
 }
 
 NOWindow::NOWindow(BRect windowfr) : BWindow(windowfr, "NetOptimist", B_DOCUMENT_WINDOW, /*B_OUTLINE_RESIZE|*/B_ASYNCHRONOUS_CONTROLS),
-		ToolBarViewHeigth(30), m_fullScreen(false)
+		ToolBarViewHeigth(30), m_fullScreen(false), fileOpenPanel_(NULL)
 {
 	// Créer le menu.
 	BRect r = Bounds();
@@ -99,7 +100,6 @@ NOWindow::NOWindow(BRect windowfr) : BWindow(windowfr, "NetOptimist", B_DOCUMENT
 	submenu->AddItem(menuitem=new BMenuItem("Open Location...",new BMessage(bmsgFileOpenLocation),'L',B_COMMAND_KEY));
 	menuitem->SetEnabled(false);
 	submenu->AddItem(menuitem=new BMenuItem("Open File...",new BMessage(bmsgFileOpenFile),'O',B_COMMAND_KEY));
-	menuitem->SetEnabled(false);
 	submenu->AddSeparatorItem();
 	submenu->AddItem(menuitem=new BMenuItem("Save As",new BMessage(bmsgFileSaveAs),'S',B_COMMAND_KEY));
 	menuitem->SetEnabled(false);
@@ -288,6 +288,14 @@ NOWindow::NOWindow(BRect windowfr) : BWindow(windowfr, "NetOptimist", B_DOCUMENT
 	
 	drawArea->SetStatusBarView(m_statusView);
 	UpdateNavControls();
+	
+	fileOpenPanel_ = new BFilePanel;
+}
+
+// do some clean-ups here...
+void NOWindow::Quit() {
+	if (fileOpenPanel_) 	DELETE(fileOpenPanel_);
+	BWindow::Quit();
 }
 
 void NOWindow::IsDownloading(bool set) {
@@ -482,6 +490,7 @@ void NOWindow::MessageReceived(BMessage *message) {
 			FullScreen();
 			break;
 		}	
+
 		case bmsgFileNew: {
 			BRect newFrame = Frame();
 			newFrame.OffsetBySelf(30,30);
@@ -489,6 +498,11 @@ void NOWindow::MessageReceived(BMessage *message) {
 			newwin->Show();
 			break;
 		}
+
+		case bmsgFileOpenFile:
+			fileOpenPanel_->Show();
+			break;
+
 		case bmsgForceTableBorder:
 			if (ISTRACE(DEBUG_FORCETABLEBORDER))
 				enableTrace &= ~DEBUG_FORCETABLEBORDER;
@@ -536,7 +550,7 @@ void NOWindow::FullScreen() {
 }
 
 bool NOWindow::QuitRequested() {
-	if (be_app->CountWindows()<=2) {
+	if (be_app->CountWindows()<=3) { // now, one of them is BFilePanel which I create, what is another one?
 		// This is the last window
 		be_app->PostMessage(B_QUIT_REQUESTED);
 	}

@@ -34,6 +34,7 @@ static inline int min(int a, int b) { return a>b?b:a; }
 
 // Useful macros
 #define FREE(p) if (p) { free(p); p=NULL; }
+#define DELETE(p) if (p) { delete(p); p=NULL; }
 #define STRDUP(p) ((p)?strdup(p):NULL)
 
 #endif

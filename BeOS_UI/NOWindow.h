@@ -1,13 +1,14 @@
 #ifndef NOWindow_H
 #define NOWindow_H
 #include <Window.h>
-
+#include <be/storage/FilePanel.h>
 
 class BTextControl;
 class BTextView;
 class BScrollView;
 class BMenuItem;
 class BMenuBar;
+class BFilePanel;
 
 class LinkBarView;
 class ToolBarView;
@@ -27,7 +28,8 @@ class NOWindow : public BWindow {
 	BScrollView *scrollView;
 	StatusBarView *m_statusView;
 	LinkBarView * m_linkBarView;
-
+	BFilePanel *fileOpenPanel_;
+	
 	BMenuBar *m_menu;
 	
 	BMenuItem *m_debugForceTableBorder;
@@ -37,6 +39,7 @@ public :
 	
 	NOWindow(BRect windowfr); 
 	void SetUrl(const char *url);
+	void Quit();
 	bool QuitRequested();
 	void MessageReceived(BMessage *message);
 	void IsDownloading(bool);
