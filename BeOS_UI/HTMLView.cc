@@ -37,11 +37,13 @@ void HTMLView::SetFrame(int maxX, int maxY) {
 	if (sb) {
 		float w = this->Bounds().Width();
 		if (maxX>w) {
+			sb->Show();
 			sb->SetRange(0, maxX-w);
 			sb->SetSteps(w/10, w);
 			sb->SetProportion(w/maxX);
 		} else {
 			sb->SetRange(0, 0);		// disable scrollBar
+			// FIXME: we need to HIDE scrollers, not just disable them
 		}
 	}
 
@@ -54,6 +56,7 @@ void HTMLView::SetFrame(int maxX, int maxY) {
 			sb->SetSteps(h/10, h);
 		} else {
 			sb->SetRange(0, 0);		// disable scrollBar
+			// FIXME: we need to HIDE scrollers, not just disable them
 		}
 	}
 }
@@ -87,7 +90,7 @@ void HTMLView::Draw(BRect updateRect) {
 
 void HTMLView::FrameResized(float width, float height) {
 	Resize((int)width, (int)height);
-	Refresh();
+	Refresh(); // FIXME: will redraw the whole view == BAD
 }
 
 void HTMLView::Refresh() {
@@ -113,7 +116,9 @@ void HTMLView::NewDocumentLoaded() {
 		title = "NetOptimist";
 	}
 	BWindow *window = Window();
-	if (window) window->SetTitle(title);
+	char *buf = Decode(title);
+	if (window) window->SetTitle(buf);
+	FREE(buf);
 }
 
 void HTMLView::MouseDown(BPoint point) {
@@ -295,3 +300,20 @@ void HTMLView::SetSourceEncoding(uint32 enc) {
 	propFont_.SetSize(Pref::Default.FontSize(displayEncoding_));	
 }
 uint32 HTMLView::SourceEncoding() { return sourceEncoding_; }
+
+// the caller should free up the memory referenced by the pointer returned
+char * HTMLView::Decode(const char * str) {
+	char *destBuf; 
+	int32 destLen = strlen(str);
+	if (0 != sourceEncoding_) {
+		char *srcBuf = strdup(str);
+		int32 srcLen = destLen;
+		destLen = srcLen*4+1;
+		int32 state = 0;
+		destBuf = (char *) malloc(destLen); 
+		memset(destBuf, 0, destLen);
+		convert_to_utf8(sourceEncoding_, srcBuf, &srcLen, destBuf, &destLen, &state);
+		FREE(srcBuf);
+	} else destBuf = strdup(str);
+	return destBuf;
+}

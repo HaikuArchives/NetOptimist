@@ -57,5 +57,8 @@ public :
 
 	uint32 SourceEncoding();
 	void SetSourceEncoding(uint32);
+
+	char * Decode(const char * str); // decodes the string with current source encoding
+
 };
 #endif

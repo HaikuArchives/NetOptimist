@@ -80,6 +80,7 @@ public:
 
 	virtual uint32 SourceEncoding(void) = 0;
 	virtual void SetSourceEncoding(uint32) = 0;
+	virtual char * Decode(const char *) = 0;
 
 };
 
