@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <iostream.h>
 #include "NOWindow.h"
+#include "NOImage.h"
 #include "UIMessages.h"
 #include "Pref.h"
 #include "Url.h"
@@ -12,13 +13,16 @@
 #include <be/storage/Path.h>
 #include <be/storage/AppFileInfo.h>
 #include <Alert.h>
+#ifdef __BEOS__
 #include <NodeInfo.h>
+#endif
 #include <Application.h>
 
 class NetOptimist : public BApplication 
 {
 	void CreateWindow(const char *url_text);
 public :
+	NetOptimist(const char *url_text, const char *filename);
 	NetOptimist(const char *url_text = NULL);
 	void MessageReceived(BMessage *message);
 	void RefsReceived(BMessage *message);
@@ -26,13 +30,21 @@ public :
 	void ReadyToRun();
 };
 
-NetOptimist::NetOptimist(const char *url_text = NULL) : BApplication(app_signature) {
+NetOptimist::NetOptimist(const char *url_text) : BApplication(app_signature) {
 	Pref::Default.Init();
 	Cache::cache.Init();
 
 	if (url_text) {
 		CreateWindow(url_text);
 	}
+}
+
+NetOptimist::NetOptimist(const char *url_text, const char *filename) : BApplication(app_signature) {
+	Pref::Default.Init();
+	Cache::cache.Init();
+
+	new NOImage(url_text, 640, 480);
+	exit(0);
 }
 
 void NetOptimist::CreateWindow(const char *url_text) {
@@ -44,6 +56,7 @@ void NetOptimist::CreateWindow(const char *url_text) {
 	main->SetUrl(url_text);
 }
 
+#ifdef __BEOS__
 void NetOptimist::RefsReceived(BMessage *message) {
 	entry_ref file;
 	int nb = 0;
@@ -75,10 +88,11 @@ void NetOptimist::RefsReceived(BMessage *message) {
 		nb++;
 	}
 }
+#endif
 
 void NetOptimist::ArgvReceived(int32 argc, char ** argv) {
-		// XXX Can this happen ?
-		(new BAlert("NetOptimist", "argv recv", "Ok"))->Go();
+		// XXX Can this happen ? -> YES !
+		//(new BAlert("NetOptimist", "argv recv", "Ok"))->Go();
 }
 
 void NetOptimist::ReadyToRun() {
@@ -121,20 +135,26 @@ void NetOptimist::MessageReceived(BMessage *message) {
 			fprintf(stderr, "about\n");
 			break;
 		default:
-			fprintf(stderr, "Message received %4s in app\n", (char *)&message->what);
+			//fprintf(stderr, "Message received %4.4s in app\n", (char *)&message->what);
 			BApplication::MessageReceived(message);
 	}
 }
 
-
+#ifdef __BEOS__
 int main(int argc, char* argv[]) {
 	const char *url = NULL;
-	if (argc==2)
+	const char *filename = NULL;
+	if (argc>=2)
 		url = argv[1];
+	if (argc==3)
+		filename = argv[2];
 	
-	new NetOptimist(url);
+	if (filename)
+		new NetOptimist(url, filename);
+	else
+		new NetOptimist(url);
 	be_app->Run();
 	delete be_app;
 	return 0;
 }
-
+#endif
