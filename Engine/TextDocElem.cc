@@ -78,37 +78,19 @@ void H6_DocElem::geometry(HTMLFrame *view) {
 void BLOCKQUOTE_DocElem::geometry(HTMLFrame *view) {
         TagDocElem::geometry(view);
         m_includedStyle = m_style->clone(id);
-/*
-#ifndef __BEOS__
-        m_includedStyle->SetFont(be_italic_font);
-#else
-        m_includedStyle->SetFont(be_bold_font);
-#endif
-*/
+       	m_includedStyle->SetFace(B_ITALIC_FACE);
 }
 
 void BIG_DocElem::geometry(HTMLFrame *view) {
         TagDocElem::geometry(view);
         m_includedStyle = m_style->clone(id);
-/*
-#ifndef __BEOS__
-        m_includedStyle->SetFont(be_big_font);
-#else
-        m_includedStyle->SetFont(be_bold_font);
-#endif
-*/
+	m_includedStyle->SetSize(14);
 }
 
 void SMALL_DocElem::geometry(HTMLFrame *view) {
         TagDocElem::geometry(view);
         m_includedStyle = m_style->clone(id);
-/*
-#ifndef __BEOS__
-        m_includedStyle->SetFont(be_small_font);
-#else
-        m_includedStyle->SetFont(be_bold_font);
-#endif
-*/
+	m_includedStyle->SetSize(8);
 }
 
 void FIXED_DocElem::geometry(HTMLFrame *view) {
