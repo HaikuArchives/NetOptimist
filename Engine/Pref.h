@@ -98,10 +98,9 @@ public:
 	Pref(const Pref&);
 	Pref& operator = (const Pref&);
 		
-#ifdef __BEOS__
 	~Pref();
 	void Init();
-#endif
+
 	const char *AppDir();
 	// General
 	void SetHomePage(const char *);
@@ -188,9 +187,6 @@ public:
 	// Misc...
 	void SetOnline(bool online);
 	bool Online() const;
-	
-	// FIXME: we have methods for this now. remove!
-	const char *CacheDir();
 	
 	// Save/load preferences
 	void Save();

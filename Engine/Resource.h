@@ -99,8 +99,8 @@ public:
 			m_absFileName = new char[strlen(m_name) + 1];
 			strcpy(m_absFileName, m_name);
 		} else {
-			m_absFileName = new char[strlen(Pref::Default.CacheDir()) + strlen(m_name) + 1];
-			strcpy(m_absFileName, Pref::Default.CacheDir());
+			m_absFileName = new char[strlen(Pref::Default.CacheLocation()) + strlen(m_name) + 1];
+			strcpy(m_absFileName, Pref::Default.CacheLocation());
 			strcat(m_absFileName, m_name);
 		}
 	}
