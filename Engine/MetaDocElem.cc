@@ -103,7 +103,7 @@ void LINK_DocElem::RelationSet(HTMLFrame *view) {
 			Resource *r = url->GetDataNow();
 			BBitmap *bmp = NULL;
 			if (r && r->CachedFile()) {
-				bmp = BTranslationUtils::GetBitmap(r->CachedFile());
+				bmp = BTranslationUtils::GetBitmapFile(r->CachedFile());
 			}
 			if (r && r->Data()) {
 				bmp = BTranslationUtils::GetBitmap(r->Data());

@@ -192,7 +192,7 @@ void IMG_DocElem::LoadImage() {
 				fprintf(stderr, "ERROR IMG_DocElem::LoadImage: url %s downloaded but no data\n", m_attr_src.Str());
 			} else {
 				if (resource->CachedFile()) {
-					bmp = BTranslationUtils::GetBitmap(resource->CachedFile());
+					bmp = BTranslationUtils::GetBitmapFile(resource->CachedFile());
 				}
 				if (resource->Data()) {
 					bmp = BTranslationUtils::GetBitmap(resource->Data());
