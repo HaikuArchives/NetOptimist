@@ -35,13 +35,9 @@ void ResourceGetter::MessageReceived(BMessage *msg) {
 				if (m_notify) {
 					bool reformat = true;
 					msg->FindBool("reformat", &reformat);
-					if (reformat) {
-						BMessage msgRefresh(REFORMAT);
-						m_notify->PostMessage(&msgRefresh);
-					} else {
-						BMessage msgRedraw(REFRESH);
-						m_notify->PostMessage(&msgRedraw);
-					}
+					BMessage msgNotifyEnd(URL_LOADED);
+					msgNotifyEnd.AddBool("reformat", reformat);
+					m_notify->PostMessage(&msgNotifyEnd);
 				} else {
 					fprintf(stderr, "ResourceGetter: cannot notify download completed\n");
 				}
