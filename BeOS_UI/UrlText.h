@@ -4,12 +4,28 @@
 #include <TextView.h>
 #ifdef __BEOS__
 #include <PopUpMenu.h>
+#include <MessageFilter.h>
 #endif
 #include "StrPlus.h"
 
 const int MAX_ENTRIES = 30;
 
 #define URL_ENTERED 'EURL'
+
+class UrlText;
+
+class NotityWhenWindowMove : public BMessageFilter {
+	UrlText *m_notify;
+	BWindow *m_watch;
+public:
+	NotityWhenWindowMove(BWindow *watch, UrlText *text)
+		: BMessageFilter(B_WINDOW_MOVED)
+	{
+		m_notify = text;
+		m_watch = watch;
+	}
+	virtual filter_result Filter(BMessage *message, BHandler **target);
+};
 
 class UrlListView : public BView {
 	typedef BView super;
@@ -34,7 +50,10 @@ public:
 		m_target = text;
 	}
 	const char * FirstEntry() const {
-		return m_entries[0].Str();
+		if (selected==-1)
+			return NULL;
+		else
+			return m_entries[selected].Str();
 	}
 	virtual int GetChoices(StrRef entries[], int maxEntries, const char *pattern) {
 		char *t[] = {
@@ -55,6 +74,10 @@ public:
 		}
 		return nb;
 	}
+	virtual void MessageReceived(BMessage *message) {
+		//printf("--------- Message in UrlListView %4s\n", &message->what);
+		super::MessageReceived(message);
+	}
 	void Draw(BRect update) {
 		int i = 0;
 		for (int p = 0; p<m_nbEntries && !m_entries[p].IsFree(); p++) {
@@ -70,33 +93,14 @@ public:
 			i++;
 		}
 	}
-	void SetPattern(const char *p) {
-		m_nbEntries = GetChoices(m_entries, MAX_ENTRIES, p);
-	}
-	virtual void KeyDown(const char* bytes, int32 numBytes) {
-		if (numBytes==1) {
-			switch(bytes[0]) {
-			case B_DOWN_ARROW:
-				selected++;
-				Invalidate();
-				break;
-			case B_UP_ARROW:
-				selected--;
-				if (selected<0) selected=0;
-				Invalidate();
-				break;
-			case B_ENTER:
-				if (m_target && selected>=0) m_target->SetText(m_entries[selected].Str());
-				Hide();
-				return;
-			case B_ESCAPE:
-				selected = -1;
-				if (m_target) m_target->MakeFocus();
-				Invalidate();
-				return;
-			}
+	int  SetPattern(const char *p) {
+		if (p==NULL) {
+			m_nbEntries = 0;
+			return 0;
+		} else {
+			m_nbEntries = History::history.Query(m_entries, MAX_ENTRIES, p);
+			return m_nbEntries;
 		}
-		super::KeyDown(bytes, numBytes);
 	}
 	virtual void MakeFocus(bool focused = true) {
 		if (focused) {
@@ -108,32 +112,42 @@ public:
 		super::MakeFocus(focused);
 		Invalidate();
 	}
+	void MoveSelection(int offset) {
+		if (selected == -1) {
+			selected = offset>0 ? 0 : m_nbEntries-1;
+		} else {
+			selected = min(max(selected+offset, 0), m_nbEntries-1);
+		}
+		Invalidate();
+	}
 };
 
 class DropDownListWindow : public BWindow {
 public:
 	DropDownListWindow(BRect frame, const char *name) :
-		BWindow(frame,name,B_BORDERED_WINDOW_LOOK, /*B_NORMAL_WINDOW_FEEL*/B_FLOATING_SUBSET_WINDOW_FEEL,B_AVOID_FOCUS )
+		BWindow(frame,name,B_BORDERED_WINDOW_LOOK, B_FLOATING_SUBSET_WINDOW_FEEL,B_AVOID_FOCUS )
 	{
+	}
+	virtual void MessageReceived(BMessage *message) {
+		//printf("--------- Message in DropDownListWindow %4s\n", &message->what);
+		BWindow::MessageReceived(message);
 	}
 };
 
 class UrlText : public BTextView {
 	typedef BTextView super;
 	char url[1024];
-	DropDownListWindow *popup;
+	DropDownListWindow *popupWindow;
 	UrlListView *listView;
 public:
 	UrlText(BRect r, BRect textr) : BTextView(r, "textview", textr, 0) {
 		url[0]=0;
 		listView = NULL;
-		popup = NULL;
+		popupWindow = NULL;
 	}
 	~UrlText() {
-		printf("XXX ~UrlText() locking\n");
-		if (popup && popup->Lock()) {
-			printf("XXX ~UrlText() quitting\n");
-			popup->Quit();
+		if (popupWindow && popupWindow->Lock()) {
+			popupWindow->Quit();
 		}
 	}
 	bool CanEndLine(int32 offset) { 
@@ -145,39 +159,49 @@ public:
 		Select(len, len);
 	}
 	virtual void AttachedToWindow() {
-		popup = new DropDownListWindow(BRect(10,50,300,150), "popup-url");
-		listView = new UrlListView(popup->Bounds(), "urlListView");
-		popup->AddChild(listView);
+		popupWindow = new DropDownListWindow(BRect(10,50,300,150), "popupWindow-url");
+		listView = new UrlListView(popupWindow->Bounds(), "urlListView");
+		popupWindow->AddChild(listView);
+		NotityWhenWindowMove *n = new NotityWhenWindowMove(popupWindow, this);
+		Window()->AddFilter(n);	
 
 		BWindow *win = Window();
-		if (win && win->Lock()) {
-			if (popup->AddToSubset(win)!=B_OK) {
+		if (popupWindow && win && win->Lock()) {
+			if (popupWindow->AddToSubset(win)!=B_OK) {
 				printf("XXX GLOUPS\n");
 			}
 			win->Unlock();
 
-			popup->Show();
-			popup->Hide();
+			popupWindow->Show();
+			popupWindow->Hide();
 		} else {
-			printf("XXX could not open popup window\n");
+			printf("XXX could not open popupWindow window\n");
 		}
 
-		//popup->SetTarget(this);
-		//Window()->AddChild(popup);
-		//popup->Hide();
 		super::AttachedToWindow();
 	}
 	virtual void MessageReceived(BMessage *message) {
-//		printf("got message\n");
+		//printf("--------- Message in UrlText %4s\n", &message->what);
 		super::MessageReceived(message);
 	}
+	void WindowEvent() {
+		BPoint p = ConvertToScreen(Bounds().LeftBottom());
+		if (popupWindow->Lock()) {
+			popupWindow->MoveTo(p);
+			popupWindow->Unlock();
+		}
+	}
 	virtual void KeyDown(const char* bytes, int32 numBytes) {
+		bool displayMatches = false;
 		if (numBytes==1) {
 			switch (bytes[0]) {
+			case B_UP_ARROW:
 			case B_DOWN_ARROW:
-				printf("got down key\n");
-				//popup->MakeFocus();
-				break;
+				if (popupWindow->Lock()) {
+					listView->MoveSelection(bytes[0]==B_UP_ARROW ? -1 : 1);
+					popupWindow->Unlock();
+				}
+				return;
 			case B_TAB: {
 				const char *text = listView->FirstEntry();
 				if (text) {
@@ -187,18 +211,26 @@ public:
 			}
 			case B_ESCAPE:
 				// XXX TODO Restore original url
-				if (popup->Lock()) {
-					while (!popup->IsHidden()) {
-						popup->Hide();
+				if (popupWindow->Lock()) {
+					while (!popupWindow->IsHidden()) {
+						popupWindow->Hide();
 					}
-					popup->Unlock();
+					popupWindow->Unlock();
 				}
 				return;
 			case B_ENTER: {
-				popup->Hide();
+				if (popupWindow->Lock()) {
+					if (!popupWindow->IsHidden()) {
+						const char *text = listView->FirstEntry();
+						if (text) {
+							SetUrl(text);
+						}
+					}
+					popupWindow->Unlock();
+				}
+				popupWindow->Hide();
 				int len = TextLength();
 				Select(0, len);
-				printf("Action !!!\n");
 				BWindow *win = Window();
 				if (win) {
 					win->PostMessage(URL_ENTERED);
@@ -206,52 +238,41 @@ public:
 				return;
 				}
 			default: {			
-#ifdef __BEOS__ && 0
-				BPopUpMenu *p = new BPopUpMenu("url popup", false, true, B_ITEMS_IN_ROW);
-				p->AddItem(new BMenuItem("essai", new BMessage('truc')));
-				p->Go(BPoint(100,100));
-#endif
-#if 0
-				BPoint p = ConvertToScreen(Bounds().LeftBottom());
-				if (popup->Lock()) {
-					popup->MoveTo(p);
-					while (popup->IsHidden())
-						popup->Show();
-					popup->Unlock();
-				}
-				DisplayMatch();
-#endif
+				displayMatches = true;
 				break;
 				}
 			}
 		}
 		super::KeyDown(bytes, numBytes);
-	}
-protected:
-	void InsertText(const char *text, int32 length, int32 offset, const text_run_array *array) {
-		BTextView::InsertText(text, length, offset, array);
-	}
-	void DeleteText(int32 start, int32 finish) {
-		BTextView::DeleteText(start, finish);
-#if 0 // XXX I must improve this before enabling 
-		if (popup->Lock()) {
-			while (popup->IsHidden())
-				popup->Show();
-			popup->Unlock();
-		}
-#endif
-		DisplayMatch();
+		if (displayMatches)
+				DisplayMatch();
 	}
 private:
 	void DisplayMatch() {
 		GetText(0, sizeof(url)-1, url);
-		printf("value = %s\n", url);
-		if (listView->LockLooper()) {
-			listView->SetPattern(url);
-			listView->Invalidate();
-			listView->UnlockLooper();
+		if (popupWindow->Lock()) {
+			if (listView->SetPattern(url)>0) {
+				listView->Invalidate();
+				BPoint p = ConvertToScreen(Bounds().LeftBottom());
+				if (popupWindow->Lock()) {
+					popupWindow->MoveTo(p);
+					while (popupWindow->IsHidden())
+						popupWindow->Show();
+					popupWindow->Unlock();
+				}
+			} else {
+				while (!popupWindow->IsHidden())
+						popupWindow->Hide();
+			}
+			popupWindow->Unlock();
 		}
 	}
 };
+
+
+filter_result NotityWhenWindowMove::Filter(BMessage *message, BHandler **target) {
+	m_notify->WindowEvent();
+	return B_DISPATCH_MESSAGE;
+}
 
 #endif
