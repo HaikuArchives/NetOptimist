@@ -6,6 +6,7 @@
 #include <ScrollView.h>
 #include <Font.h>
 #include "Frame.h"
+#include "Pref.h"
 
 class Style;
 class StatusBarView;
@@ -17,6 +18,7 @@ class HTMLView : public BView, public HTMLFrame
 	uint32 sourceEncoding_;
 	BFont propFont_;
 	int32 propFontSize_;
+	display_encoding displayEncoding_;
 	
 public :
 	HTMLView(BLooper *container, BRect fr);

@@ -2,11 +2,12 @@
 
 const StyleMgr StyleMgr::DefaultStyleMgr;
 
-Style::Style() {
+Style::Style() : face_(B_REGULAR_FACE) {
 	color = kBlack;
 	bgcolor = kLightGray;
 	linkcolor = kLinkColor;
-	font = NULL;
+	// FIXME: Don't need BFont object in Style at all!
+	font = new BFont();
 	isLink = false;
 	isUnderline = false;
 	ownerId = 0;
@@ -23,6 +24,7 @@ Style::Style(const Style &c) {
 	isUnderline = c.isUnderline;
 	m_indent = c.m_indent;
 	m_nobr = c.m_nobr;
+	face_ = c.face_;
 }
 
 void Style::SetLink() {
@@ -33,6 +35,9 @@ bool Style::IsLink() const {
 	return isLink;
 }
 
+void Style::SetFace(uint16 f) {
+	face_ |= f;
+}
 void Style::SetUnderline() {
 	isUnderline = true;
 }

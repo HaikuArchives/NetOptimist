@@ -1,6 +1,5 @@
 #include "TextDocElem.h"
 
-
 void FONT_DocElem::geometry(HTMLFrame *view) { 
 	rgb_color textColor;
 	TagDocElem::geometry(view);
@@ -18,7 +17,7 @@ void FONT_DocElem::geometry(HTMLFrame *view) {
 void B_DocElem::geometry(HTMLFrame *view) {
         TagDocElem::geometry(view);
         m_includedStyle = m_style->clone(id);
-        m_includedStyle->SetFont(be_bold_font);
+        m_includedStyle->SetFace(B_BOLD_FACE);
 }
 
 void I_DocElem::geometry(HTMLFrame *view) {
@@ -27,7 +26,8 @@ void I_DocElem::geometry(HTMLFrame *view) {
 #ifndef __BEOS__
         m_includedStyle->SetFont(be_italic_font);
 #else
-        m_includedStyle->SetFont(be_bold_font);
+//        m_includedStyle->SetFont(be_bold_font);
+       m_includedStyle->SetFace(B_ITALIC_FACE);
 #endif
 }
 
@@ -35,6 +35,7 @@ void U_DocElem::geometry(HTMLFrame *view) {
         TagDocElem::geometry(view);
         m_includedStyle = m_style->clone(id);
 	m_includedStyle->SetUnderline();
+       m_includedStyle->SetFace(B_UNDERSCORE_FACE);
 }
 
 void H1_DocElem::geometry(HTMLFrame *view) {

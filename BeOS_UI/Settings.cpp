@@ -33,9 +33,10 @@ status_t Settings::Save() {
 	BFile file;
 	
 	status = file.SetTo(path.Path(), B_WRITE_ONLY | B_CREATE_FILE);
-	if (status == B_OK) {
-		status = Flatten(&file);
-	}
+	if (status == B_OK) 
+		if (B_OK == (status = Flatten(&file)))
+			dirty = false;
+	
 	return status;
 }
 

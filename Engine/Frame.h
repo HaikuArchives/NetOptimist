@@ -10,6 +10,7 @@ class ResourceGetter;
 class DocFormater;
 class BLooper;
 #include <string.h>
+#include <be_prim.h>
 #include "User.h"
 #include "Document.h"
 #include "Action.h"
@@ -75,6 +76,10 @@ public:
 	// Use these methods to tell the user that a resource is being downloaded
 	virtual void IncResourceWaiting() = 0;
 	virtual void DecResourceWaiting() = 0;
+
+	virtual uint32 SourceEncoding(void) = 0;
+	virtual void SetSourceEncoding(uint32) = 0;
+
 };
 
 #endif

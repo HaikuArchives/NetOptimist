@@ -2,6 +2,7 @@
 #define NOWindow_H
 #include <Window.h>
 
+
 class BTextControl;
 class BTextView;
 class BScrollView;

@@ -63,6 +63,21 @@ void HTMLView::SetTitle(const char *title) {
 	if (window) window->SetTitle(title);
 }
 
+void HTMLView::IncResourceWaiting() {
+	NOWindow *container = dynamic_cast<NOWindow *>(Window());
+	if (container) {
+		container->IsDownloading(true);
+	}
+}
+
+void HTMLView::DecResourceWaiting() {
+	NOWindow *container = dynamic_cast<NOWindow *>(Window());
+	if (container) {
+		container->IsDownloading(false);
+	}
+}
+
+
 void HTMLView::Draw(BRect updateRect) {
 	if (m_format) {
 		m_format->Msg(EXPOSE);
@@ -101,20 +116,6 @@ void HTMLView::NewDocumentLoaded() {
 	if (window) window->SetTitle(title);
 }
 
-void HTMLView::IncResourceWaiting() {
-	NOWindow *container = dynamic_cast<NOWindow *>(Window());
-	if (container) {
-		container->IsDownloading(true);
-	}
-}
-
-void HTMLView::DecResourceWaiting() {
-	NOWindow *container = dynamic_cast<NOWindow *>(Window());
-	if (container) {
-		container->IsDownloading(false);
-	}
-}
-
 void HTMLView::MouseDown(BPoint point) {
 	BView::MouseDown(point);
 	Select(point.x, point.y, MOUSE_CLICK);
@@ -151,50 +152,49 @@ void HTMLView::TargetedByScrollView(BScrollView *scroller) {
 }
 
 void HTMLView::StringDim(const char* str, const Style *style, int* w, int *h) {
-	const BFont *f = (style && style->Font()) ? style->Font() : &propFont_;
+	BFont *f;
+	if (style) {
+		f = new BFont(style->Font());
+		f->SetFamilyAndStyle(Pref::Default.FontFamily(displayEncoding_), NULL);
+		f->SetSize(Pref::Default.FontSize(displayEncoding_));
+		f->SetFace(((Style *)style)->Face());
+	} else {
+	 	f = new BFont(&propFont_);
+	}
 	*w = (int) f->StringWidth(str);
 	font_height fh;
 	f->GetHeight(&fh);
 	*h = fh.leading + fh.ascent + fh.descent; // XXX TODO : round it up
-	if (style->IsUnderline())
-		(*h)++;
+/*	if (style->IsUnderline())
+		(*h)++;*/
+	delete f;
 }
 
 void HTMLView::DrawString(int x, int y, int w, const char *str, const Style *style) {
-	char *destBuf; 
-	int32 destLen = strlen(str);
-	if (0 != sourceEncoding_) {
-		char *srcBuf = strdup(str);
-		int32 srcLen = destLen;
-		destLen = srcLen*4+1;
-		int32 state = 0;
-		destBuf = (char *) malloc(destLen); // reserve twice of what we got in  
-		memset(destBuf, 0, destLen);
-		convert_to_utf8(sourceEncoding_, srcBuf, &srcLen, destBuf, &destLen, &state);
-		FREE(srcBuf);
-	} else destBuf = strdup(str);
-	
+
+	BFont *f;
 	if (style) {
-		const BFont *f = (style->Font()) ? style->Font() : &propFont_;
-#if __BEOS__  && 0// XXX this is disabled because we don't know the source encoding
-		BFont f2(f);
-		f2.SetEncoding(B_UNICODE_UTF8);
-		SetFont(&f2);
-#else
-		SetFont(f);
-#endif
+		f = new BFont(style->Font());
+		f->SetFamilyAndStyle(Pref::Default.FontFamily(displayEncoding_), NULL);
+		f->SetSize(Pref::Default.FontSize(displayEncoding_));
+		f->SetFace(((Style *)style)->Face());
 		SetHighColor(style->Color());
 		SetLowColor(style->BGColor());
-	}
-	if (style->IsUnderline()) {
-		MovePenTo(x, y-1);
-		BView::DrawString(destBuf, destLen);
-		StrokeLine(BPoint(x,y), BPoint(x+w,y));
-	} else {
+	} else f = new BFont(propFont_);
+//	f->SetEncoding(B_UNICODE_UTF8);
+	SetFont(f);
+	delete f;
+
+// NEXUS/FIXME: B_UNDERSCORE_FACE should do the trick, but doesn't do it for some reason...
+
+/*	if (style->IsUnderline()) {
 		MovePenTo(x, y);
-		BView::DrawString(destBuf, destLen);
-	}
-	FREE(destBuf);
+		BView::DrawString(str);
+		StrokeLine(BPoint(x,y), BPoint(x+w,y));
+	} else {*/
+		MovePenTo(x, y-3);
+		BView::DrawString(str);
+//	}
 }
 
 void HTMLView::FillRect(int x, int y, int w, int h, const Style *style) {
@@ -261,34 +261,34 @@ void HTMLView::Message(const  char *msg, msg_level_t level) {
 
 void HTMLView::SetSourceEncoding(uint32 enc) {
 	sourceEncoding_ = enc;
-	display_encoding de = NO_WESTERN;
+	displayEncoding_ = NO_WESTERN;
 	switch (sourceEncoding_) {
 		case B_ISO5_CONVERSION:
 		case B_KOI8R_CONVERSION:
 		case B_MS_DOS_866_CONVERSION:
 		case B_MS_WINDOWS_1251_CONVERSION:
-			de = NO_CYRILLIC;
+			displayEncoding_ = NO_CYRILLIC;
 			break;
 		case B_ISO2_CONVERSION:
-			de = NO_CENTRAL_EUROPEAN;
+			displayEncoding_ = NO_CENTRAL_EUROPEAN;
 			break;
 		case B_ISO1_CONVERSION:
 		case B_MAC_ROMAN_CONVERSION:
-			de = NO_WESTERN;
+			displayEncoding_ = NO_WESTERN;
 			break;
 		case B_ISO7_CONVERSION:
-			de = NO_GREEK;
+			displayEncoding_ = NO_GREEK;
 			break;
 		case B_UNICODE_CONVERSION:
-			de = NO_UNICODE;
+			displayEncoding_ = NO_UNICODE;
 			break;
 		case B_JIS_CONVERSION:
 		case B_SJIS_CONVERSION:
 		case B_EUC_CONVERSION:
-			de = NO_JAPANESE;
+			displayEncoding_ = NO_JAPANESE;
 			break;
 	}
-	propFont_.SetFamilyAndStyle(Pref::Default.FontFamily(de), NULL);
-	propFont_.SetSize(Pref::Default.FontSize(de));	
+	propFont_.SetFamilyAndStyle(Pref::Default.FontFamily(displayEncoding_), NULL);
+	propFont_.SetSize(Pref::Default.FontSize(displayEncoding_));	
 }
 uint32 HTMLView::SourceEncoding() { return sourceEncoding_; }

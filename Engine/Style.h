@@ -18,7 +18,8 @@ class Style {
 	bool isLink;
 	/* Text attributes */
 	bool isUnderline;
-	const BFont *font;
+	uint16 face_;
+	BFont *font;
 
 	Style(const Style &c);
 public:
@@ -47,7 +48,10 @@ public:
 		return s;
 	}
 	const BFont *Font() const { return font; }
-	void SetFont(const BFont * f) { if (f) font = f; }
+	void SetFont(const BFont * f) { if (f) { if (font) delete font; font = new BFont(f); } }
+	void SetFontFamily(font_family f) { if (font) font->SetFamilyAndStyle(f, NULL); }
+	void SetFace(uint16 f);
+	uint16 Face() { return face_; }	
 	const char *toString() const;
 	void SetLink();
 	bool IsLink() const;
