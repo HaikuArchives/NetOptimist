@@ -192,7 +192,7 @@ printf("InsertText() : %s\n", p);
 				r->m_contentLen = 0;
 			}
 			// Fill this TextRun
-			while (*p && r->m_contentLen<r->m_size) {
+			while (*p && len>0 && r->m_contentLen<r->m_size) {
 				// XXX could we use strncpy here ?
 				*(((char*)r) + sizeof(TextRun) + r->m_contentLen) = *p;
 				r->m_contentLen++;
@@ -412,14 +412,14 @@ void DocFormater::html_ctrlchar_alter(char *wholestr, char *& ptr) {
 		{"#146;",	"&apos;",	"&apos;",	true},	// XXX ?
 		{"eacute;",	"é",	"�",	false},
 		{"egrave;",	"è",	"�",	false},
-		{"agrave;",	"",	"�",	false},
+		{"agrave;",	"à",	"�",	false},
 		{"copy;",	"©",	"�",	false},
-		{"reg;",	"(r)",	"(r)",	false},
-		{"deg;",	"",	"�",	false},
-		{"middot;",	"",	".",	false},	// XXX low dot
+		{"reg;",	"®",	"(r)",	false},
+		{"deg;",	"°",	"�",	false},
+		{"middot;",	"•",	".",	false},	// XXX low dot
 		{"szlig;",	"ß",	"ss",	false},
-		{"iexcl;",	"!",	"!",	false},
-		{"iquest;",	"?",	"?",	false},
+		{"iexcl;",	"¡",	"!",	false},
+		{"iquest;",	"¿",	"?",	false},
 		{"raquo;",	">",	">",	false},	// XXX ?
 		{"mdash;",	"-",	"-",	false}, // XXX ?
 		{"amp;",	"&",	"&",	false},
@@ -428,6 +428,14 @@ void DocFormater::html_ctrlchar_alter(char *wholestr, char *& ptr) {
 		{"gt;",	">",	">",	false},
 		{"quot;",	"\"",	"\"",	false},
 		{"apos;",	"'",	"'",	false},
+		{"aacute;",	"á",	"a",	false},
+		{"iacute;",	"í",	"i",	false},
+		{"oacute;",	"ó",	"o",	false},
+		{"uacute;",	"ú",	"u",	false},
+		{"igrave;",	"ì",	"i",	false},
+		{"ograve;",	"ò",	"o",	false},
+		{"ugrave;",	"ù",	"u",	false},
+		{"ntilde;",	"ñ",	"n",	false},
 #ifdef __BEOS__
 		{"auml;",	"ä",	"XXXX",	false},
 		{"Auml;",	"Ä",	"XXXX",	false},
@@ -435,6 +443,7 @@ void DocFormater::html_ctrlchar_alter(char *wholestr, char *& ptr) {
 		{"Ouml;",	"Ö",	"XXXX",	false},
 		{"uuml;",	"ü",	"XXXX",	false},
 		{"Uuml;",	"Ü",	"XXXX",	false},
+
 #endif		
 		{NULL, "", "", false}
 	};
@@ -592,7 +601,14 @@ TagDocElem* DocFormater::html_parse_tag() {
 			if (!strnull(buf)) {
 				if (thisTag == NULL) {
 					trace(DEBUG_TAGPARSE) printf("TAG: found tag %s\n", buf);
+					bool autoClosing = ptr>buf && *(ptr-1)=='/';
+					if (autoClosing) {
+						*(ptr-1) = '\0';
+					}
 					thisTag = new Tag(buf);
+					if (autoClosing) {
+						// XXX TODO : mark this tag as beeing autoClosing
+					}
 					m_bufferReader->Commit();
 				} else {
 					if (strcmp(buf, "/")) {
