@@ -22,6 +22,10 @@ class HTMLFrame : public User {
 	/* Html view geometry */
 	int m_winw ;
 	int m_winh ;
+	UrlQuery *m_nextQuery;
+	Url *m_nextUrl;	// This is the Url that the user asked for.
+			// Not the current Url. If NULL, no url is
+			// currently downloaded.
 protected:
 	DocFormater *m_format;
 	ResourceGetter *m_getter;
@@ -42,6 +46,7 @@ public:
 	void SetUrl(const char *url_text);
 	void SetUrl(UrlQuery *url_text);
 	bool Select(int viewX, int viewY, Action);
+	void CheckUrl();
 
 
 	/* History */

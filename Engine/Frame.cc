@@ -46,7 +46,7 @@ public:
 HTMLFrame::HTMLFrame(BLooper *container, int w, int h) : m_container(container) {
 	Resize(w,h);
 	m_format = NULL;
-	m_getter = NULL;
+	m_nextUrl = NULL;
 	m_getter = new ResourceGetter(m_container);
 	m_getter->Run();
 }
@@ -54,7 +54,7 @@ HTMLFrame::HTMLFrame(BLooper *container, int w, int h) : m_container(container) 
 HTMLFrame::~HTMLFrame() {
 	m_getter->Lock();
 	m_getter->Quit();
-	if (m_getter) delete m_getter;	// XXX Should we delete that ?
+	//if (m_getter) delete m_getter;	// XXX Should we delete that ?
 	if (m_document.CurrentUrl()) delete m_document.CurrentUrl();
 	if (m_format) delete m_format;
 }
@@ -62,29 +62,31 @@ HTMLFrame::~HTMLFrame() {
 void HTMLFrame::ModifyUrl(Url *newUrl) {
 	Cache::cache.SetResourceGetter(m_getter);
 
-	if (m_document.CurrentUrl()) delete m_document.CurrentUrl();
-	if (m_format) delete m_format;
-
-	m_document.SetUrl(newUrl);
-
-	m_format = new DocFormater(this);
-	ResourceProcessor::Process(newUrl);
 	Resource *rsc = newUrl->GetDataNow();
+	if (rsc) {
+		if (m_document.CurrentUrl()) delete m_document.CurrentUrl();
+		if (m_format) delete m_format;
 
-	m_format->parse_html(rsc);
+		m_document.SetUrl(newUrl);
 
-	Refresh();
+		m_format = new DocFormater(this);
+		ResourceProcessor::Process(newUrl);
+
+		m_format->parse_html(rsc);
+		Refresh();
+
 
 #ifdef __BEOS__
-	// Notify container
-	StrRef ref;
-	newUrl->ToStrRef(&ref);
+		// Notify container
+		StrRef ref;
+		newUrl->ToStrRef(&ref);
 
-	BMessage msg(URL_MODIFIED);
-	msg.AddString("URL", ref.Str());
-	m_container->PostMessage(&msg);
+		BMessage msg(URL_MODIFIED);
+		msg.AddString("URL", ref.Str());
+		m_container->PostMessage(&msg);
 #endif
-	NewDocumentLoaded();
+		NewDocumentLoaded();
+	}
 }
 
 void HTMLFrame::SetToUrl(Url *newUrl) {
@@ -95,18 +97,18 @@ void HTMLFrame::SetToUrl(Url *newUrl) {
 }
 
 bool HTMLFrame::Select(int viewX, int viewY, Action action) {
-	UrlQuery query;
+	UrlQuery *query = new UrlQuery;
 	bool success = false;
 	if (!m_format) return false;
-	success = m_format->Select(viewX, viewY, action, &query);
+	success = m_format->Select(viewX, viewY, action, query);
 
 	switch (action) {
 	case MOUSE_CLICK :
-		if (success && !strnull(query.Url())) {
+		if (success && !strnull(query->Url())) {
 			char buf[80];
-			snprintf(buf, sizeof(buf)-1, "New URL selected : %s (name=%s)", query.Url(), query.m_name?query.m_name:"none");
+			snprintf(buf, sizeof(buf)-1, "New URL selected : %s (name=%s)", query->Url(), query->m_name?query->m_name:"none");
 			Message(buf, LVL_INFO);
-			SetUrl(&query);
+			SetUrl(query);	// Pass ownership of query (ie do not delete it)
 			return true;
 		}
 		break;
@@ -115,29 +117,24 @@ bool HTMLFrame::Select(int viewX, int viewY, Action action) {
 	case ANCHOR_SEARCH :
 		break;
 	}
+	delete query;
 	return success;
 }
 void HTMLFrame::Back() {
-	UrlQuery query;
-
-	// STAS:
 	if (!History::history.HasBack())
 		return;
-	// /STAS
 
+	UrlQuery query;
 	query.SetUrl(History::history.Back());
 	Url *newUrl = new Url(&query, NULL);
 	ModifyUrl(newUrl);
 }
 
 void HTMLFrame::Forward() {
-	UrlQuery query;
-
-	// STAS:
 	if (!History::history.HasForward())
 		return;
-	// /STAS
 
+	UrlQuery query;
 	query.SetUrl(History::history.Forward());
 	Url *newUrl = new Url(&query, NULL);
 	ModifyUrl(newUrl);
@@ -149,41 +146,55 @@ void HTMLFrame::SetUrl(const char *url_text) {
 		Alert("Invalid URL (empty string)");
 		return;
 	}
-	UrlQuery query;
+	UrlQuery *query = new UrlQuery;
 
-	query.SetUrl(url_text);
-	SetUrl(&query);
+	query->SetUrl(url_text);
+	SetUrl(query);
 }
 
 void HTMLFrame::SetUrl(UrlQuery *urlQuery) {
-	Url *newUrl;
-	Url *previousUrl;
+	Cache::cache.SetResourceGetter(m_getter);
+	m_nextQuery = urlQuery;
+	m_nextUrl = new Url(m_nextQuery, m_document.CurrentUrl(), true, true);
+	CheckUrl();
+}
+
+void HTMLFrame::CheckUrl() {
 	Resource *rsc;
 
-	newUrl = new Url(urlQuery, m_document.CurrentUrl());
-	rsc = newUrl->GetDataNow();
+	if (m_nextUrl==NULL) {
+		printf("HTMLFrame::CheckUrl() not waiting\n");
+		return; // Nothing to do.
+	}
 
-	while ((rsc && rsc->Size()==0) && urlQuery->m_maxHop>0 && newUrl) {
-		urlQuery->m_maxHop--;
-		previousUrl = newUrl;
+	rsc = m_nextUrl->GetIfAvail();
 
-		if (rsc->m_location && strcmp(rsc->m_location, urlQuery->Url())) {
+	while ((rsc && rsc->Size()==0) && m_nextQuery->m_maxHop>0 && m_nextUrl) {
+		Url *previousUrl;
+		previousUrl = m_nextUrl;
+		m_nextQuery->m_maxHop--;
+
+		if (rsc->m_location && strcmp(rsc->m_location, m_nextQuery->Url())) {
 			// Try this new location
-			printf("HTMLFrame::SetUrl trying new location : %s\n", rsc->m_location);
-			urlQuery->SetUrl(rsc->m_location);
+			printf("HTMLFrame::CheckUrl() trying new location : %s\n", rsc->m_location);
+			m_nextQuery->SetUrl(rsc->m_location);
 		} else {
-			printf("HTMLFrame::SetUrl url empty but and no new location \n");
+			printf("HTMLFrame::CheckUrl() url empty but and no new location \n");
 		}
-		newUrl = new Url(urlQuery, previousUrl);
-		rsc = newUrl->GetDataNow();
+		m_nextUrl = new Url(m_nextQuery, previousUrl, true, true);
+		rsc = m_nextUrl->GetIfAvail();
 
 		delete previousUrl;
 	}
 
 	if (rsc && rsc->Size()>0) {
-		SetToUrl(newUrl);
+		// Success for this url
+		printf("HTMLFrame::CheckUrl() success\n");
+		SetToUrl(m_nextUrl);
+		m_nextUrl = NULL;
+		delete m_nextQuery;
 	} else {
-		printf("HTMLFrame::SetUrl no data\n");
+		printf("HTMLFrame::CheckUrl() waiting but not avail\n");
 	}
 }
 
