@@ -5,26 +5,26 @@
 #include "StrPlus.h"
 
 class History {
-        	struct HistLine {
-                	HistLine *prev;
-                	HistLine *next;
-                	StrRef url;
-                	StrRef title;
-                	time_t lastVisited;
-           	int nbVisits;
-        	};
-        	HistLine *last;
-        	HistLine *cur;
-        	History();
-        	~History();
+	struct HistLine {
+		HistLine *prev;
+		HistLine *next;
+		StrRef url;
+		StrRef title;
+		time_t lastVisited;
+		int nbVisits;
+	};
+	HistLine *last;
+	HistLine *cur;
+	History();
+	~History();
 public:
-        	static History history;
-        	StrRef *Back();
+	static History history;
+	StrRef *Back();
 	StrRef *Forward();
 	bool HasBack();
 	bool HasForward();
-        	void Add(const StrRef *);
-        	void Query(const char *pattern);
+	void Add(const StrRef *);
+	void Query(const char *pattern);
 };
 
 #endif
