@@ -655,7 +655,8 @@ readoneline:
 
 bool HttpServerConnection::Status(StrRef *reason) {
 	if (m_error) {
-		reason->SetToRef(&m_reason);
+		if (reason)
+			reason->SetToRef(&m_reason);
 		return false;
 	}
 	return true;
@@ -722,11 +723,13 @@ ServerConnection* ConnectionMgr::GetConnection(Url *url) {
 
 
 void ConnectionMgr::ReleaseConnection(ServerConnection *connection) {
-	m_nbConnectionPending--;
-	for (int i=0; i<m_maxConnections; i++) {
-		if (m_conns[i]==NULL) {
-			m_conns[i]=connection;
-			return;
+	if (connection->Status(NULL)) {
+		m_nbConnectionPending--;
+		for (int i=0; i<m_maxConnections; i++) {
+			if (m_conns[i]==NULL) {
+				m_conns[i]=connection;
+				return;
+			}
 		}
 	}
 	connection->CloseConnection();
