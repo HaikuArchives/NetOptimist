@@ -305,44 +305,49 @@ Resource *Cache::Find (Url * url) {
 
 	cacheLine *l = cacheLines;
 	while (l && !rsc) {
-		if (l->resource && !strcmp (l->url.Str(), urlAbsolute)) {
-			const char *file;
+		if (!l->resource) {
 			trace (DEBUG_CACHE)
-				fprintf (stderr, "Cache::Find FOUND url %s\n", urlAbsolute);
-			if (l->IsValid()) {
-				rsc = l->resource;
-				switch (l->m_type) {
-				    case cacheLine::TYPE_FILEREF:
-					file = rsc->CachedFile();
-					if (stat (file, &buf) >= 0 && (buf.st_mode & S_IFREG) == S_IFREG) {
-						if (rsc->Size() == 0)
-							rsc->SetSize(buf.st_size);
-						trace (DEBUG_CACHE)
-							fprintf (stderr, "Cache: Url %s found in file %s\n", urlAbsolute, file);
-						trace (DEBUG_CACHE) {
-						    if (rsc->m_expires>0)
-							fprintf (stderr, "Cache: Url %s expires in %d\n", urlAbsolute, (int)(rsc->m_expires-time(0)));
-						}
-					} else {
-						trace (DEBUG_CACHE) {
-							printf("Cache:Find cannot stat file %s\n", file);
-						}
-						l->Remove();
-						rsc = NULL;
-					}
-					break;
-				    case cacheLine::TYPE_MEMORY:
-					/* Found url in memory */
-					break;
-				    case cacheLine::TYPE_NONE:
-				    case cacheLine::TYPE_PENDING:
-					rsc = NULL;
-					/* Not ready */
-					break;
-				}
-			} else {
+				fprintf (stderr, "Cache::Find no resource for this entry\n");
+		} else {
+			if (strcmp (l->url.Str(), urlAbsolute)==0) {
+				const char *file;
 				trace (DEBUG_CACHE)
-					fprintf (stderr, "Cache: Url %s has expired\n", urlAbsolute);
+					fprintf (stderr, "Cache::Find FOUND url %s\n", urlAbsolute);
+				if (l->IsValid()) {
+					rsc = l->resource;
+					switch (l->m_type) {
+					    case cacheLine::TYPE_FILEREF:
+						file = rsc->CachedFile();
+						if (stat (file, &buf) >= 0 && (buf.st_mode & S_IFREG) == S_IFREG) {
+							if (rsc->Size() == 0)
+								rsc->SetSize(buf.st_size);
+							trace (DEBUG_CACHE)
+								fprintf (stderr, "Cache: Url %s found in file %s\n", urlAbsolute, file);
+							trace (DEBUG_CACHE) {
+							    if (rsc->m_expires>0)
+								fprintf (stderr, "Cache: Url %s expires in %d\n", urlAbsolute, (int)(rsc->m_expires-time(0)));
+							}
+						} else {
+							trace (DEBUG_CACHE) {
+								printf("Cache:Find cannot stat file %s\n", file);
+							}
+							l->Remove();
+							rsc = NULL;
+						}
+						break;
+					    case cacheLine::TYPE_MEMORY:
+						/* Found url in memory */
+						break;
+					    case cacheLine::TYPE_NONE:
+					    case cacheLine::TYPE_PENDING:
+						rsc = NULL;
+						/* Not ready */
+						break;
+					}
+				} else {
+					trace (DEBUG_CACHE)
+						fprintf (stderr, "Cache: Url %s has expired\n", urlAbsolute);
+				}
 			}
 		}
 		l = l->next;
@@ -411,21 +416,8 @@ Resource *Cache::Retrieve (Url * url, bool async, bool reformat) {
 
 	if (!rsc && url->Protocol()->id == HttpId) {
 		// http:// protocol
-		if (!async) {
-			if (Pref::Default.Online()) {
-
-
-// FIXME: This part is blocking
-/*
-	SF -> STAS
-	No : this part is not really blocking. In fact it only blocks if
-	the async param is false. And async is false if you use GetDataNow
-	instead of GetDataIfAvail (or something).
-	So if you don't want to be blocked, don't call GetDataNow !
-	The problem is that we should almost never call GetDataNow
-	(except in the downloader thread).
-*/
-
+		if (Pref::Default.Online()) {
+			if (!async) {
 				// Here we try to get the resource via http
 				ServerConnection *server =
 					ConnectionMgr::Default.GetConnection (url);
@@ -465,18 +457,18 @@ Resource *Cache::Retrieve (Url * url, bool async, bool reformat) {
 						url->SetDisplayName(&r);
 					}
 				}
-			}
-		} else {
-			if (AddResource(urlAbsolute, NULL)) {
-				trace (DEBUG_CACHE)
-					printf("Cache::Retreive queueing url %s\n", urlAbsolute);
-				BMessage msg (GET_IMAGE);
-				msg.AddString ("url", urlAbsolute);
-				msg.AddBool ("reformat", reformat);
-				m_getter->PostMessage (&msg);
 			} else {
-				trace (DEBUG_CACHE)
-					printf("Cache::Retreive: Not http'ing %s -- download pending...\n", urlAbsolute);
+				if (AddResource(urlAbsolute, NULL)) {
+					trace (DEBUG_CACHE)
+						printf("Cache::Retreive queueing url %s\n", urlAbsolute);
+					BMessage msg (GET_IMAGE);
+					msg.AddString ("url", urlAbsolute);
+					msg.AddBool ("reformat", reformat);
+					m_getter->PostMessage (&msg);
+				} else {
+					trace (DEBUG_CACHE)
+						printf("Cache::Retreive: Not http'ing %s -- download pending...\n", urlAbsolute);
+				}
 			}
 		}
 	}
