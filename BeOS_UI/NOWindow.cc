@@ -447,7 +447,10 @@ void NOWindow::FullScreen() {
 }
 
 bool NOWindow::QuitRequested() {
-	be_app->PostMessage(B_QUIT_REQUESTED);
+	if (be_app->CountWindows()==1) {
+		// This is the last window
+		be_app->PostMessage(B_QUIT_REQUESTED);
+	}
 	return(true);
 }
 
