@@ -5,7 +5,9 @@
 #include <ctype.h>
 #include <errno.h>
 
-#include "Be.h"
+// Hey Stephane why are you putting this include back again and again - it doesn't compile here!
+// #include "Be.h"
+
 #include "platform.h"
 #include "Frame.h"
 #include "Html.h"

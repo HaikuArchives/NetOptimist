@@ -168,16 +168,13 @@ DisplayView::DisplayView(BRect rect, Pref *pref) : BView(rect, "display_tab_view
 
 	BPopUpMenu *menu = new BPopUpMenu("encoding_menu");
 	BMenuItem *menu_item;
-	menu->AddItem(menu_item = new BMenuItem("Western", new BMessage(bmsgPrefDispEncWestern)));
-
-	// FIXME: 	
-	menu_item->SetMarked(true);
-
-	menu->AddItem(menu_item = new BMenuItem("Unicode", new BMessage(bmsgPrefDispEncUnicode)));
-	menu->AddItem(menu_item = new BMenuItem("Japanese", new BMessage(bmsgPrefDispEncJapanese)));
-	menu->AddItem(menu_item = new BMenuItem("Greek", new BMessage(bmsgPrefDispEncGreek)));
-	menu->AddItem(menu_item = new BMenuItem("Cyrillic", new BMessage(bmsgPrefDispEncCyrillic)));
 	menu->AddItem(menu_item = new BMenuItem("Central European", new BMessage(bmsgPrefDispEncCE)));
+	menu_item->SetMarked(true);
+	menu->AddItem(menu_item = new BMenuItem("Cyrillic", new BMessage(bmsgPrefDispEncCyrillic)));
+	menu->AddItem(menu_item = new BMenuItem("Greek", new BMessage(bmsgPrefDispEncGreek)));
+	menu->AddItem(menu_item = new BMenuItem("Japanese", new BMessage(bmsgPrefDispEncJapanese)));
+	menu->AddItem(menu_item = new BMenuItem("Unicode", new BMessage(bmsgPrefDispEncUnicode)));
+	menu->AddItem(menu_item = new BMenuItem("Western", new BMessage(bmsgPrefDispEncWestern)));
 	
 	BMenuField *menu_field = new BMenuField(r, "for_encoding", "For the encoding:", menu);
 	menu_field->SetAlignment(B_ALIGN_RIGHT);
@@ -189,6 +186,7 @@ DisplayView::DisplayView(BRect rect, Pref *pref) : BView(rect, "display_tab_view
 	menu = new BPopUpMenu("proportional_menu");
 	BMessage *msg;
 
+	// NOTE: We select font settings for Central European, cause it is just a first item in a list
 	int32 numFamilies = count_font_families();
 	for ( int32 i = 0; i < numFamilies; i++ ) {
 		font_family family;
@@ -197,8 +195,9 @@ DisplayView::DisplayView(BRect rect, Pref *pref) : BView(rect, "display_tab_view
 			menu->AddItem(menu_item = new BMenuItem(family, msg = new BMessage(bmsgPrefDispPropFont)));
 			msg->AddString("family", family);
 
-			// FIXME: select correct one, now first is selected
-			if (0 ==i)
+			if (0 ==i) menu_item->SetMarked(true); // select first one just in case there is no one set yet
+			if (NULL != pref->FontFamily(NO_CENTRAL_EUROPEAN) &&
+				0 == strcmp(family, pref->FontFamily(NO_CENTRAL_EUROPEAN)))
 				menu_item->SetMarked(true);
 		}
 	}
@@ -213,22 +212,32 @@ DisplayView::DisplayView(BRect rect, Pref *pref) : BView(rect, "display_tab_view
 	menu = new BPopUpMenu("prop_size_menu");
 	menu->AddItem(menu_item = new BMenuItem("7", msg = new BMessage(bmsgPrefDispPropSize)));
 	msg->AddInt8("size", 7);
-
-	// FIXME: 	
-	menu_item->SetMarked(true);
-
+	if (7 == pref->FontSize(NO_CENTRAL_EUROPEAN))
+		menu_item->SetMarked(true);
 	menu->AddItem(menu_item = new BMenuItem("9", msg = new BMessage(bmsgPrefDispPropSize)));
 	msg->AddInt8("size", 9);
+	if (9 == pref->FontSize(NO_CENTRAL_EUROPEAN))
+		menu_item->SetMarked(true);
 	menu->AddItem(menu_item = new BMenuItem("10", msg = new BMessage(bmsgPrefDispPropSize)));
 	msg->AddInt8("size", 10);
+	if (10 == pref->FontSize(NO_CENTRAL_EUROPEAN))
+		menu_item->SetMarked(true);
 	menu->AddItem(menu_item = new BMenuItem("12", msg = new BMessage(bmsgPrefDispPropSize)));
 	msg->AddInt8("size", 12);
+	if (12 == pref->FontSize(NO_CENTRAL_EUROPEAN))
+		menu_item->SetMarked(true);
 	menu->AddItem(menu_item = new BMenuItem("14", msg = new BMessage(bmsgPrefDispPropSize)));
 	msg->AddInt8("size", 14);
+	if (14 == pref->FontSize(NO_CENTRAL_EUROPEAN))
+		menu_item->SetMarked(true);
 	menu->AddItem(menu_item = new BMenuItem("18", msg = new BMessage(bmsgPrefDispPropSize)));
 	msg->AddInt8("size", 18);
+	if (18 == pref->FontSize(NO_CENTRAL_EUROPEAN))
+		menu_item->SetMarked(true);
 	menu->AddItem(menu_item = new BMenuItem("24", msg = new BMessage(bmsgPrefDispPropSize)));
 	msg->AddInt8("size", 24);
+	if (24 == pref->FontSize(NO_CENTRAL_EUROPEAN))
+		menu_item->SetMarked(true);
 
 	menu_field = new BMenuField(r1, "prop_font_size", "Size:", menu);
 	menu_field->SetAlignment(B_ALIGN_RIGHT);
@@ -239,22 +248,32 @@ DisplayView::DisplayView(BRect rect, Pref *pref) : BView(rect, "display_tab_view
 	menu = new BPopUpMenu("prop_msize_menu");
 	menu->AddItem(menu_item = new BMenuItem("7", msg = new BMessage(bmsgPrefDispPropMinSize)));
 	msg->AddInt8("size", 7);
-
-	// FIXME: 	
-	menu_item->SetMarked(true);
-
+	if (7 == pref->FontMinSize(NO_CENTRAL_EUROPEAN))
+		menu_item->SetMarked(true);
 	menu->AddItem(menu_item = new BMenuItem("9", msg = new BMessage(bmsgPrefDispPropMinSize)));
 	msg->AddInt8("size", 9);
+	if (9 == pref->FontMinSize(NO_CENTRAL_EUROPEAN))
+		menu_item->SetMarked(true);
 	menu->AddItem(menu_item = new BMenuItem("10", msg = new BMessage(bmsgPrefDispPropMinSize)));
 	msg->AddInt8("size", 10);
+	if (10 == pref->FontMinSize(NO_CENTRAL_EUROPEAN))
+		menu_item->SetMarked(true);
 	menu->AddItem(menu_item = new BMenuItem("12", msg = new BMessage(bmsgPrefDispPropMinSize)));
 	msg->AddInt8("size", 12);
+	if (12 == pref->FontMinSize(NO_CENTRAL_EUROPEAN))
+		menu_item->SetMarked(true);
 	menu->AddItem(menu_item = new BMenuItem("14", msg = new BMessage(bmsgPrefDispPropMinSize)));
 	msg->AddInt8("size", 14);
+	if (14 == pref->FontMinSize(NO_CENTRAL_EUROPEAN))
+		menu_item->SetMarked(true);
 	menu->AddItem(menu_item = new BMenuItem("18", msg = new BMessage(bmsgPrefDispPropMinSize)));
 	msg->AddInt8("size", 18);
+	if (18 == pref->FontMinSize(NO_CENTRAL_EUROPEAN))
+		menu_item->SetMarked(true);
 	menu->AddItem(menu_item = new BMenuItem("24", msg = new BMessage(bmsgPrefDispPropMinSize)));
 	msg->AddInt8("size", 24);
+	if (24 == pref->FontMinSize(NO_CENTRAL_EUROPEAN))
+		menu_item->SetMarked(true);
 
 	menu_field = new BMenuField(r1, "prop_mfont_size", "Min. size:", menu);
 	menu_field->SetAlignment(B_ALIGN_RIGHT);
@@ -271,9 +290,9 @@ DisplayView::DisplayView(BRect rect, Pref *pref) : BView(rect, "display_tab_view
 		if ( get_font_family(i, &family, &flags) == B_OK ) {
 			menu->AddItem(menu_item = new BMenuItem(family, msg = new BMessage(bmsgPrefDispFixedFont)));
 			msg->AddString("family", family);
-
-			// FIXME: select correct one, now first is selected
-			if (0 ==i)
+			if (0 ==i) menu_item->SetMarked(true); // select first one just in case there is no one set yet
+			if (NULL != pref->FixedFontFamily(NO_CENTRAL_EUROPEAN) &&
+				0 == strcmp(family, pref->FixedFontFamily(NO_CENTRAL_EUROPEAN)))
 				menu_item->SetMarked(true);
 		}
 	}
@@ -289,22 +308,32 @@ DisplayView::DisplayView(BRect rect, Pref *pref) : BView(rect, "display_tab_view
 	menu = new BPopUpMenu("fixed_size_menu");
 	menu->AddItem(menu_item = new BMenuItem("7", msg = new BMessage(bmsgPrefDispFixedSize)));
 	msg->AddInt8("size", 7);
-
-	// FIXME: 	
-	menu_item->SetMarked(true);
-
+	if (7 == pref->FixedFontSize(NO_CENTRAL_EUROPEAN))
+		menu_item->SetMarked(true);
 	menu->AddItem(menu_item = new BMenuItem("9", msg = new BMessage(bmsgPrefDispFixedSize)));
 	msg->AddInt8("size", 9);
+	if (9 == pref->FixedFontSize(NO_CENTRAL_EUROPEAN))
+		menu_item->SetMarked(true);
 	menu->AddItem(menu_item = new BMenuItem("10", msg = new BMessage(bmsgPrefDispFixedSize)));
 	msg->AddInt8("size", 10);
+	if (10 == pref->FixedFontSize(NO_CENTRAL_EUROPEAN))
+		menu_item->SetMarked(true);
 	menu->AddItem(menu_item = new BMenuItem("12", msg = new BMessage(bmsgPrefDispFixedSize)));
 	msg->AddInt8("size", 12);
+	if (12 == pref->FixedFontSize(NO_CENTRAL_EUROPEAN))
+		menu_item->SetMarked(true);
 	menu->AddItem(menu_item = new BMenuItem("14", msg = new BMessage(bmsgPrefDispFixedSize)));
 	msg->AddInt8("size", 14);
+	if (14 == pref->FixedFontSize(NO_CENTRAL_EUROPEAN))
+		menu_item->SetMarked(true);
 	menu->AddItem(menu_item = new BMenuItem("18", msg = new BMessage(bmsgPrefDispFixedSize)));
 	msg->AddInt8("size", 18);
+	if (18 == pref->FixedFontSize(NO_CENTRAL_EUROPEAN))
+		menu_item->SetMarked(true);
 	menu->AddItem(menu_item = new BMenuItem("24", msg = new BMessage(bmsgPrefDispFixedSize)));
 	msg->AddInt8("size", 24);
+	if (24 == pref->FixedFontSize(NO_CENTRAL_EUROPEAN))
+		menu_item->SetMarked(true);
 
 	menu_field = new BMenuField(r1, "fixed_font_size", "Size:", menu);
 	menu_field->SetAlignment(B_ALIGN_RIGHT);
@@ -315,22 +344,32 @@ DisplayView::DisplayView(BRect rect, Pref *pref) : BView(rect, "display_tab_view
 	menu = new BPopUpMenu("fixed_msize_menu");
 	menu->AddItem(menu_item = new BMenuItem("7", msg = new BMessage(bmsgPrefDispFixedMinSize)));
 	msg->AddInt8("size", 7);
-
-	// FIXME: 	
-	menu_item->SetMarked(true);
-
+	if (7 == pref->FixedFontMinSize(NO_CENTRAL_EUROPEAN))
+		menu_item->SetMarked(true);
 	menu->AddItem(menu_item = new BMenuItem("9", msg = new BMessage(bmsgPrefDispFixedMinSize)));
 	msg->AddInt8("size", 9);
+	if (9 == pref->FixedFontMinSize(NO_CENTRAL_EUROPEAN))
+		menu_item->SetMarked(true);
 	menu->AddItem(menu_item = new BMenuItem("10", msg = new BMessage(bmsgPrefDispFixedMinSize)));
 	msg->AddInt8("size", 10);
+	if (10 == pref->FixedFontMinSize(NO_CENTRAL_EUROPEAN))
+		menu_item->SetMarked(true);
 	menu->AddItem(menu_item = new BMenuItem("12", msg = new BMessage(bmsgPrefDispFixedMinSize)));
 	msg->AddInt8("size", 12);
+	if (12 == pref->FixedFontMinSize(NO_CENTRAL_EUROPEAN))
+		menu_item->SetMarked(true);
 	menu->AddItem(menu_item = new BMenuItem("14", msg = new BMessage(bmsgPrefDispFixedMinSize)));
 	msg->AddInt8("size", 14);
+	if (14 == pref->FixedFontMinSize(NO_CENTRAL_EUROPEAN))
+		menu_item->SetMarked(true);
 	menu->AddItem(menu_item = new BMenuItem("18", msg = new BMessage(bmsgPrefDispFixedMinSize)));
 	msg->AddInt8("size", 18);
+	if (18 == pref->FixedFontMinSize(NO_CENTRAL_EUROPEAN))
+		menu_item->SetMarked(true);
 	menu->AddItem(menu_item = new BMenuItem("24", msg = new BMessage(bmsgPrefDispFixedMinSize)));
 	msg->AddInt8("size", 24);
+	if (24 == pref->FixedFontMinSize(NO_CENTRAL_EUROPEAN))
+		menu_item->SetMarked(true);
 
 	menu_field = new BMenuField(r1, "fixed_mfont_size", "Min. size:", menu);
 	menu_field->SetAlignment(B_ALIGN_RIGHT);

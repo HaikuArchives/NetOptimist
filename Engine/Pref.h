@@ -15,14 +15,17 @@ enum cookie_action {
 	NO_ASK_COOKIE
 };
 
+
+#define MAX_DISPLAY_ENCODINGS 6
 enum display_encoding {
-	NO_WESTERN = 0x40,
-	NO_UNICODE,
-	NO_JAPANESE,
-	NO_GREEK,
+	NO_CENTRAL_EUROPEAN = 0x40,
 	NO_CYRILLIC,
-	NO_CENTRAL_EUROPEAN
+	NO_GREEK,
+	NO_JAPANESE,
+	NO_UNICODE,
+	NO_WESTERN
 };
+
 
 enum refresh_cache {
 	NO_REFRESH_EVERY_TIME = 0x60,
@@ -50,8 +53,12 @@ class Pref {
 	int m_daysInGo; // days to keep files in Go menu
 	
 	// Display
-
-	// FIXME: Fonts/encodings
+	char *m_fontFamily[MAX_DISPLAY_ENCODINGS];
+	int m_fontSize[MAX_DISPLAY_ENCODINGS];
+	int m_fontMinSize[MAX_DISPLAY_ENCODINGS];
+	char *m_fixedFontFamily[MAX_DISPLAY_ENCODINGS];
+	int m_fixedFontSize[MAX_DISPLAY_ENCODINGS];
+	int m_fixedFontMinSize[MAX_DISPLAY_ENCODINGS];
 	bool m_showImages;
 	bool m_showBgImages;
 	bool m_showAnimations;
@@ -113,6 +120,18 @@ public:
 	const int DaysInGo();
 	
 	// Display
+	const char *FontFamily(display_encoding);
+	void SetFontFamily(display_encoding, const char*);
+	const int FontSize(display_encoding);
+	void SetFontSize(display_encoding, const int);
+	const int FontMinSize(display_encoding);
+	void SetFontMinSize(display_encoding, const int);
+	const char *FixedFontFamily(display_encoding);
+	void SetFixedFontFamily(display_encoding, const char*);
+	const int FixedFontSize(display_encoding);
+	void SetFixedFontSize(display_encoding, const int);
+	const int FixedFontMinSize(display_encoding);
+	void SetFixedFontMinSize(display_encoding, const int);
 	const bool ShowImages();
 	void SetShowImages(const bool);
 	const bool ShowBgImages();

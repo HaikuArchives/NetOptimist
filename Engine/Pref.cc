@@ -43,12 +43,19 @@ Pref::Pref() :
 	m_unsecureFormWarning(NO_WARN_ALWAYS),
 	m_warnEnterSecureSite(true),
 	m_warnLeaveSecureSite(true)
-
 {
 #ifdef __BEOS__
 	appDir = NULL;
 #endif
-
+	for (int i=0; i<MAX_DISPLAY_ENCODINGS; i++) {
+		m_fontFamily[i] = NULL;
+		m_fontSize[i] = 12;
+		m_fontMinSize[i]= 9;
+		m_fixedFontFamily[i] = NULL;
+		m_fixedFontSize[i] = 12;
+		m_fixedFontMinSize[i]= 9;
+	}
+		
 	// Connections
 	m_online = true;
 }
@@ -62,6 +69,10 @@ Pref::Pref(const Pref &p) :
 	m_ftpProxyName(NULL),
 	m_cacheLocation(NULL) 
 {
+	for (int i=0; i<MAX_DISPLAY_ENCODINGS; i++) {
+		m_fontFamily[i] = NULL;
+		m_fixedFontFamily[i] = NULL;
+	}
 	(*this) = p;
 }
 
@@ -73,7 +84,10 @@ Pref& Pref::operator = (const Pref& p) {
 	FREE(m_httpProxyName);
 	FREE(m_ftpProxyName);
 	FREE(m_cacheLocation);
-
+	for (int i=0; i<MAX_DISPLAY_ENCODINGS; i++) {
+		FREE(m_fontFamily[i]);
+		FREE(m_fixedFontFamily[i]);
+	}
 	// copy everything		
 	m_homePage = strdup(p.m_homePage); 
 	m_searchPage = strdup(p.m_searchPage);
@@ -82,6 +96,14 @@ Pref& Pref::operator = (const Pref& p) {
 	m_cookieAction = p.m_cookieAction;
 	m_launchDownloaded = p.m_launchDownloaded;
 	m_daysInGo = p.m_daysInGo;
+	for (int i=0; i<MAX_DISPLAY_ENCODINGS; i++) {
+		if (NULL != p.m_fontFamily[i]) m_fontFamily[i] = strdup(p.m_fontFamily[i]);
+		m_fontSize[i] = p.m_fontSize[i];
+		m_fontMinSize[i] = p.m_fontMinSize[i];
+		if (NULL != p.m_fixedFontFamily[i]) m_fixedFontFamily[i] = strdup(p.m_fixedFontFamily[i]);
+		m_fixedFontSize[i] = p.m_fixedFontSize[i];
+		m_fixedFontMinSize[i] = p.m_fixedFontMinSize[i];
+	}
 	m_showImages = p.m_showImages;
 	m_showBgImages = p.m_showBgImages;
 	m_showAnimations = p.m_showAnimations;
@@ -132,6 +154,10 @@ Pref::~Pref() {
 	FREE(m_downloadDirectory);
 	FREE(m_httpProxyName);
 	FREE(m_ftpProxyName);	
+	for (int i=0; i<MAX_DISPLAY_ENCODINGS; i++) {
+		FREE(m_fontFamily[i]);
+		FREE(m_fixedFontFamily[i]);
+	}
 }
 
 const char* Pref::AppDir() {
@@ -207,6 +233,30 @@ void Pref::SetDaysInGo(const int days) { m_daysInGo = days; }
 const int Pref::DaysInGo() { return m_daysInGo; }
 
 // Display page
+const char *Pref::FontFamily(display_encoding de) { return m_fontFamily[de]; }
+void Pref::SetFontFamily(display_encoding de, const char* s) { 
+	FREE(m_fontFamily[de]);
+	m_fontFamily[de] = strdup(s);
+}
+
+const int Pref::FontSize(display_encoding de) { return m_fontSize[de]; }
+void Pref::SetFontSize(display_encoding de, const int n) { m_fontSize[de] = n; }
+
+const int Pref::FontMinSize(display_encoding de) { return m_fontMinSize[de]; }
+void Pref::SetFontMinSize(display_encoding de, const int n) { m_fontMinSize[de] = n; }
+
+const char *Pref::FixedFontFamily(display_encoding de) { return m_fixedFontFamily[de]; }
+void Pref::SetFixedFontFamily(display_encoding de, const char* s) { 
+	FREE(m_fixedFontFamily[de]);
+	m_fixedFontFamily[de] = strdup(s);
+}
+
+const int Pref::FixedFontSize(display_encoding de) { return m_fixedFontSize[de]; }
+void Pref::SetFixedFontSize(display_encoding de, const int n) { m_fixedFontSize[de] = n; }
+
+const int Pref::FixedFontMinSize(display_encoding de) { return m_fixedFontMinSize[de]; }
+void Pref::SetFixedFontMinSize(display_encoding de, const int n) { m_fixedFontMinSize[de] = n; }
+
 const bool Pref::ShowImages() { return m_showImages; }
 void Pref::SetShowImages(const bool b) { m_showImages = b; }
 
