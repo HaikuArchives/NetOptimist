@@ -2,9 +2,6 @@
 #include "Url.h"
 #include "UrlQuery.h"
 #include "Resource.h"
-#ifdef __BEOS__
- #include <OS.h>
-#endif
 #include <be/app/Message.h>
 #include <stdio.h>
 
@@ -14,34 +11,45 @@ ResourceGetter::ResourceGetter(BLooper *notify) : BLooper("Http worker") {
 }
 
 void ResourceGetter::MessageReceived(BMessage *msg) {
-	const char *urlStr;
+	const char *urlStr = NULL;
+	Url *url = NULL;
+	void *ptr;
 	switch(msg->what) {
 		case GET_IMAGE:
 			msg->FindString("url", &urlStr);
-			fprintf(stderr, "ResourceGetter: got work : url %s\n", urlStr);
-			if (urlStr) {
+			msg->FindPointer("urlObject", &ptr);
+			url = static_cast<Url*>(ptr);
+			if (url) {
+				if (urlStr) {
+					fprintf(stderr, "ResourceGetter: got work : url %s\n", urlStr);
+				}
 				Resource *rsc;
-				UrlQuery query;	 // XXX Should not create new UrlQuery. Reuse existing one instead.
-				query.m_method = METHOD_NORMAL;
-				query.SetUrl(urlStr);
-				query.m_name = NULL;
-				query.m_nbFields = 0; // XXX Should have a ctor
-				Url url(&query, NULL); // XXX verify that this url is absolute
-				rsc = url.GetDataNow(); // This call MUST be synchronous !!!
+				rsc = url->GetDataNow(); // This call MUST be synchronous !!!
 				if (rsc) {
 					if (!rsc->Data() && !rsc->CachedFile()) {
 						fprintf(stderr, "ERROR ResourceGetter: url %s downloaded but no data\n", urlStr);
 					}
+				} else {
+					fprintf(stderr, "ResourceGetter: failed for url %s\n", urlStr);
 				}
-				if (m_notify) {
+				BLooper *notify = NULL;
+				if (msg->FindPointer("notify", &ptr)==B_OK) {
+					notify = static_cast<BLooper*>(ptr);
+				}
+				if (!notify)
+					notify = m_notify;
+				if (notify) {
 					bool reformat = true;
 					msg->FindBool("reformat", &reformat);
 					BMessage msgNotifyEnd(URL_LOADED);
 					msgNotifyEnd.AddBool("reformat", reformat);
-					m_notify->PostMessage(&msgNotifyEnd);
+					notify->PostMessage(&msgNotifyEnd);
 				} else {
 					fprintf(stderr, "ResourceGetter: cannot notify download completed\n");
 				}
+			} else {
+				fprintf(stderr, "ResourceGetter: no url to download\n");
+				abort();
 			}
 			break;
 		default:
