@@ -9,6 +9,7 @@ typedef int status_t;
 
 const int true = (0==0);
 const int false = !true;
+#define B_FILE_NAME_LENGTH FILENAME_MAX
 #define ASSERT assert
 static inline void create_directory(const char *, int) {}
 #endif
@@ -23,9 +24,6 @@ static inline void create_directory(const char *, int) {}
 #ifdef __BEOS__
 static inline int max(int a, int b) { return a>b?a:b; }
 static inline int min(int a, int b) { return a>b?b:a; }
-#ifndef FILENAME_MAX // Hey why is this not defined ?
-#define FILENAME_MAX 256
-#endif
 #endif
 
 #define app_signature "application/x-vnd.NetOptimist"
