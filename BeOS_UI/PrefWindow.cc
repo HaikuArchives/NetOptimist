@@ -8,6 +8,7 @@
 #include <CheckBox.h>
 #include <Button.h>
 #include <Font.h>
+#include <Roster.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -1169,9 +1170,13 @@ void PrefWindow::MessageReceived(BMessage *msg) {
 		case B_OK:
 			Pref::Default = (*m_pref);
 			Pref::Default.Save();
-		case B_CANCEL:
+		case B_CANCEL: {
+			int32 count = be_app->CountWindows();
+			for (int i=0; i<count; i++) 
+				(be_app->WindowAt(i))->PostMessage(bmsgFontsChanged);
 			Quit();
 			break;
+		}
 		default:
 			BWindow::MessageReceived(msg);
 	}

@@ -45,6 +45,8 @@ private:
 	void UrlChanged(const char *);
 	void UpdateNavControls();
 	void FullScreen();
+	uint32 SetEncoding(uint32 encoding);
 };
+
 
 #endif

@@ -37,19 +37,7 @@
 
 // View/Encodings
 #define bmsgViewEncAuto		'veau'
-#define bmsgViewEncISO88591		'vei1'
-#define bmsgViewEncISO88592		'vei2'
-#define bmsgViewEncISO88595		'vei5'
-#define bmsgViewEncISO88597		'vei7'
-#define bmsgViewEncKOI8R		'vek8'
-#define bmsgViewEncMSDOS866		've86'
-#define bmsgViewEncWin1251		'vems'
-#define bmsgViewEncJAuto		'veja'
-#define bmsgViewEncJIS			'veji'
-#define bmsgViewEncEUC			'veeu'
-#define bmsgViewEncUnicode		'veun'
-#define bmsgViewEncUTF8		'veu8'
-#define bmsgViewEncMac			'vema'
+#define bmsgViewSetEncoding		'vese'
 
 // Preferences/General
 #define bmsgPrefGenHomePage		'pghp'
@@ -66,14 +54,6 @@
 
 // Preferences/Display
 #define bmsgPrefDispEncoding		'pden'
-/*
-#define bmsgPrefDispEncWestern	'pdew'
-#define bmsgPrefDispEncUnicode	'pdeu'
-#define bmsgPrefDispEncJapanese	'pdej'
-#define bmsgPrefDispEncGreek		'pdeg'
-#define bmsgPrefDispEncCyrillic		'pdec'
-#define bmsgPrefDispEncCE		'pdee'
-*/
 #define bmsgPrefDispPropFont		'pdpf'
 #define bmsgPrefDispPropSize		'pdps'
 #define bmsgPrefDispPropMinSize	'pdpm'
@@ -117,3 +97,6 @@
 #define bmsgButtonHOME		'Bhom'
 #define bmsgButtonRELOAD		'Brel'
 #define bmsgButtonSAVE			'Bsav'
+
+// Window
+#define bmsgFontsChanged		'FoCh'

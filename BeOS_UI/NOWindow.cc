@@ -1,7 +1,9 @@
 #include <Application.h>
+#include <Roster.h>
 #include <Screen.h>
 #include <be/interface/MenuBar.h>
 #include <MenuItem.h>
+#include <UTF8.h>
 #ifdef __BEOS__
 #include <be/kernel/fs_attr.h>
 #endif
@@ -27,12 +29,18 @@
 #define bmsgExportToFwt 'EFWT'
 #define bmsgNoBackground 'NBGC'
 
+
+// FIXME: should be changed to our own folders later
+#define NO_BOOKMARKS_PATH	"/boot/home/config/settings/NetPositive/Bookmarks"
+#define NO_HISTORY_PATH "/boot/home/config/settings/NetPositive/History"
+
+
 static void buildBookmarksMenu(BMenu *menu, const char *dirname) {
 	// Read bookmarks
 	BDirectory dir(dirname);
 	int32 count = dir.CountEntries();
 	BEntry entry;
-	
+	bool anyDirectories = false;	
 	for(int32 i=0; i<count; i++) {
 		if(B_ENTRY_NOT_FOUND == dir.GetNextEntry(&entry, true))
 			break;
@@ -46,14 +54,25 @@ static void buildBookmarksMenu(BMenu *menu, const char *dirname) {
 			msg->AddString("url", url);
 			menu->AddItem(new BMenuItem(name, msg));
 		}
-		if (node.IsDirectory()) {
-			char name[B_FILE_NAME_LENGTH];
-			BPath path; 
-			entry.GetPath(&path);
-			entry.GetName(name);
-			BMenu *submenu = new BMenu(name);
-			buildBookmarksMenu(submenu, path.Path());
-			menu->AddItem(submenu);
+		if (node.IsDirectory())
+			anyDirectories = true;
+	}
+	if (anyDirectories) {
+		dir.Rewind();
+		menu->AddSeparatorItem();
+		for(int32 i=0; i<count; i++) {
+			if(B_ENTRY_NOT_FOUND == dir.GetNextEntry(&entry, true))
+				break;
+			BNode node(&entry);
+			if (node.IsDirectory()) {
+				char name[B_FILE_NAME_LENGTH];
+				BPath path; 
+				entry.GetPath(&path);
+				entry.GetName(name);
+				BMenu *submenu = new BMenu(name);
+				buildBookmarksMenu(submenu, path.Path());
+				menu->AddItem(submenu);
+			}
 		}
 	}
 }
@@ -128,7 +147,7 @@ NOWindow::NOWindow(BRect windowfr) : BWindow(windowfr, "NetOptimist", B_DOCUMENT
 	submenu->AddItem(menuitem=new BMenuItem("Home",new BMessage(bmsgButtonHOME),'H',B_COMMAND_KEY));
 	submenu->AddItem(menuitem=new BMenuItem("Search",new BMessage(bmsgGoSearch),'S',B_SHIFT_KEY|B_COMMAND_KEY));
 	submenu->AddSeparatorItem();
-	buildBookmarksMenu(submenu, "/boot/home/config/settings/NetPositive/History");
+	buildBookmarksMenu(submenu, NO_HISTORY_PATH);
 	m_menu->AddItem(submenu);
 
 	// Le menu Bookmarks
@@ -136,16 +155,13 @@ NOWindow::NOWindow(BRect windowfr) : BWindow(windowfr, "NetOptimist", B_DOCUMENT
 	m_bookmarks->AddItem(menuitem=new BMenuItem("Add to Bookmarks",new BMessage(bmsgBookmarksAdd),'B',B_COMMAND_KEY));
 	menuitem->SetEnabled(false);
 	m_bookmarks->AddItem(menuitem=new BMenuItem("Show Bookmarks",new BMessage(bmsgBookmarksShow)));
-	menuitem->SetEnabled(false);
 	m_bookmarks->AddSeparatorItem();
-	buildBookmarksMenu(m_bookmarks, "/boot/home/config/settings/NetPositive/Bookmarks");
-	m_bookmarks->AddSeparatorItem();
+	buildBookmarksMenu(m_bookmarks, NO_BOOKMARKS_PATH);
 	// Add Bookmarks submenu
 	m_menu->AddItem(m_bookmarks);
 	
 	// Le menu View
 	submenu = new BMenu("View");
-//	submenu->SetEnabled(false);
 	submenu->AddItem(menuitem=new BMenuItem( "Full Screen",new BMessage(bmsgViewFullscreen)));
 	submenu->AddSeparatorItem();
 	submenu->AddItem(menuitem=new BMenuItem( "Download Window",new BMessage(bmsgViewDownload),'D',B_SHIFT_KEY|B_COMMAND_KEY));
@@ -158,23 +174,36 @@ NOWindow::NOWindow(BRect windowfr) : BWindow(windowfr, "NetOptimist", B_DOCUMENT
 	// Add "Document Encodings" submenu
 	submenu->AddSeparatorItem();
 	BMenu *submenu1 = new BMenu("Document Encoding");
-	submenu1->SetEnabled(false);
 	submenu1->AddItem(menuitem=new BMenuItem("Auto Detect", new BMessage(bmsgViewEncAuto)));
+	menuitem->SetEnabled(false);
 	submenu1->AddSeparatorItem();
-	submenu1->AddItem(menuitem=new BMenuItem("Central European (ISO 8859-2)", new BMessage(bmsgViewEncISO88592)));
-	submenu1->AddItem(menuitem=new BMenuItem("Cyrillic (ISO 8859-5)", new BMessage(bmsgViewEncISO88595)));
-	submenu1->AddItem(menuitem=new BMenuItem("Cyrillic (KOI8-R)", new BMessage(bmsgViewEncKOI8R)));
-	submenu1->AddItem(menuitem=new BMenuItem("Cyrillic (MS-DOS 866)", new BMessage(bmsgViewEncMSDOS866)));
-	submenu1->AddItem(menuitem=new BMenuItem("Cyrillic (Windows 1251)", new BMessage(bmsgViewEncWin1251)));
-	submenu1->AddItem(menuitem=new BMenuItem("Greek (ISO 8859-7)", new BMessage(bmsgViewEncISO88597)));
-	submenu1->AddItem(menuitem=new BMenuItem("Japanese (Auto Detect)", new BMessage(bmsgViewEncJAuto)));
-	submenu1->AddItem(menuitem=new BMenuItem("Japanese (Shift-JIS)", new BMessage(bmsgViewEncJIS)));
-	submenu1->AddItem(menuitem=new BMenuItem("Japanese (EUC)", new BMessage(bmsgViewEncEUC)));
-	submenu1->AddItem(menuitem=new BMenuItem("Unicode", new BMessage(bmsgViewEncUnicode)));
-	submenu1->AddItem(menuitem=new BMenuItem("Unicode (UTF-8)", new BMessage(bmsgViewEncUTF8)));
-	submenu1->AddItem(menuitem=new BMenuItem("Western (ISO 8859-1)", new BMessage(bmsgViewEncISO88591)));
-	submenu1->AddItem(menuitem=new BMenuItem("Western (Mac Roman)", new BMessage(bmsgViewEncMac)));
-	
+	BMessage *msg;
+	submenu1->AddItem(menuitem=new BMenuItem("Central European (ISO 8859-2)", msg = new BMessage(bmsgViewSetEncoding)));
+	msg->AddInt32("encoding", B_ISO2_CONVERSION);
+	submenu1->AddItem(menuitem=new BMenuItem("Cyrillic (ISO 8859-5)", msg = new BMessage(bmsgViewSetEncoding)));
+	msg->AddInt32("encoding", B_ISO5_CONVERSION);
+	submenu1->AddItem(menuitem=new BMenuItem("Cyrillic (KOI8-R)", msg = new BMessage(bmsgViewSetEncoding)));
+	msg->AddInt32("encoding", B_KOI8R_CONVERSION);
+	submenu1->AddItem(menuitem=new BMenuItem("Cyrillic (MS-DOS 866)", msg = new BMessage(bmsgViewSetEncoding)));
+	msg->AddInt32("encoding", B_MS_DOS_866_CONVERSION);
+	submenu1->AddItem(menuitem=new BMenuItem("Cyrillic (Windows 1251)", msg = new BMessage(bmsgViewSetEncoding)));
+	msg->AddInt32("encoding", B_MS_WINDOWS_1251_CONVERSION);
+	submenu1->AddItem(menuitem=new BMenuItem("Greek (ISO 8859-7)", msg = new BMessage(bmsgViewSetEncoding)));
+	msg->AddInt32("encoding", B_ISO7_CONVERSION);
+	submenu1->AddItem(menuitem=new BMenuItem("Japanese (Auto Detect)", msg = new BMessage(bmsgViewSetEncoding)));
+	msg->AddInt32("encoding", B_JIS_CONVERSION); // FIXME: NEXUS: I'm certainly NOT SURE about this one
+	submenu1->AddItem(menuitem=new BMenuItem("Japanese (Shift-JIS)", msg = new BMessage(bmsgViewSetEncoding)));
+	msg->AddInt32("encoding", B_SJIS_CONVERSION);
+	submenu1->AddItem(menuitem=new BMenuItem("Japanese (EUC)", msg = new BMessage(bmsgViewSetEncoding)));
+	msg->AddInt32("encoding", B_EUC_CONVERSION);
+	submenu1->AddItem(menuitem=new BMenuItem("Unicode", msg = new BMessage(bmsgViewSetEncoding)));
+	msg->AddInt32("encoding", B_UNICODE_CONVERSION);
+	submenu1->AddItem(menuitem=new BMenuItem("Unicode (UTF-8)", msg = new BMessage(bmsgViewSetEncoding)));
+	msg->AddInt32("encoding", B_ISO1_CONVERSION); // FIXME ??
+	submenu1->AddItem(menuitem=new BMenuItem("Western (ISO 8859-1)", msg = new BMessage(bmsgViewSetEncoding)));
+	msg->AddInt32("encoding", B_ISO1_CONVERSION);
+	submenu1->AddItem(menuitem=new BMenuItem("Western (Mac Roman)", msg = new BMessage(bmsgViewSetEncoding)));
+	msg->AddInt32("encoding", B_MAC_ROMAN_CONVERSION);
 	submenu->AddItem(submenu1);
 	
 	m_menu->AddItem(submenu);
@@ -379,9 +408,7 @@ void NOWindow::MessageReceived(BMessage *message) {
 			break;
 		case bmsgBookmarkSelected: {
 			char *url = new char[256];
-			fprintf(stdout, "*** Got BookmarkSelected message\n");
 			if (B_OK == message->FindString("url", (const char **)&url)) {
-				fprintf(stdout, "*** URL is %s\n", url);
 				SetUrl(url);
 				UpdateNavControls();
 			}
@@ -400,6 +427,34 @@ void NOWindow::MessageReceived(BMessage *message) {
 			wnd->Show();
 			break;
 		}
+		case bmsgBookmarksShow: {
+			char *str = strdup(NO_BOOKMARKS_PATH);
+			be_roster->Launch("application/x-vnd.Be-TRAK", 
+				1,  &str);
+			FREE(str);
+			break;
+		}
+		
+		case bmsgViewSetEncoding: {
+			int32 encoding = 0;
+			if (B_OK == message->FindInt32("encoding", &encoding))
+				encoding = SetEncoding(encoding);
+			BMenuItem *item;
+			if ((B_OK == message->FindPointer("source", (void **)&item)) && item) {
+				BMenuItem *prevItem = item->Menu()->FindMarked();
+				if (prevItem) prevItem->SetMarked(false);
+				item->SetMarked(true);
+			}
+			
+			break;
+		}
+		
+		case bmsgFontsChanged: {
+			drawArea->SetSourceEncoding(drawArea->SourceEncoding()); // need to reload the fonts!
+			SetUrl(this->urlControl->Text());
+			break;
+		}
+			
 #endif
 		case bmsgViewFullscreen: {
 			FullScreen();
@@ -466,3 +521,12 @@ bool NOWindow::QuitRequested() {
 	return(true);
 }
 
+uint32 NOWindow::SetEncoding(uint32 enc) {
+	uint32 prev = 0;
+	if (drawArea) {
+		prev = drawArea->SourceEncoding();
+		drawArea->SetSourceEncoding(enc);
+		SetUrl(this->urlControl->Text());
+	}
+	return prev;
+}

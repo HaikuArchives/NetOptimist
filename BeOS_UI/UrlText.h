@@ -164,7 +164,8 @@ public:
 		super::AttachedToWindow();
 	}
 	virtual void MessageReceived(BMessage *message) {
-		printf("got message\n");
+// NEXUS: was quite annoying, so i commented it
+//		printf("got message\n");
 		super::MessageReceived(message);
 	}
 	virtual void KeyDown(const char* bytes, int32 numBytes) {

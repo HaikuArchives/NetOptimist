@@ -396,6 +396,10 @@ enum{ /* THESE MUST BE BIT-WISE EXCLUSIVE */
 
 # define HTML_RAW (HTML_COMMENT)
 
+
+// FIXME: this would probably be easier to do via sort of HashMap
+// containing html symbol name and symbol itself...
+
 /* substitues &seq;-style charactes in string */
 void DocFormater::html_ctrlchar_alter(char *wholestr, char *& ptr) {
 	int pos = ptr - wholestr;

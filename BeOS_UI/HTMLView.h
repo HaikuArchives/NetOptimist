@@ -13,6 +13,10 @@ class HTMLView : public BView, public HTMLFrame
 {
 	BScrollView *scrollView;
 	StatusBarView *m_statusBar;
+	uint32 sourceEncoding_;
+	BFont propFont_;
+	int32 propFontSize_;
+	
 public :
 	HTMLView(BLooper *container, BRect fr);
 	
@@ -43,5 +47,8 @@ public :
 	virtual void NewDocumentLoaded(void);
 	void Refresh();
 	void Redraw();
+
+	uint32 SourceEncoding();
+	void SetSourceEncoding(uint32);
 };
 #endif
