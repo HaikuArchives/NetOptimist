@@ -4,6 +4,7 @@
 #include "Url.h"
 #include "Resource.h"
 #include <Bitmap.h>
+#include <be/translation/TranslationUtils.h>
 
 bool MetaDocElem::IsActive() {
 	return !strnull(m_url.Str());

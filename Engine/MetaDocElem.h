@@ -5,11 +5,6 @@
    the document meta data : <TITLE>, <LINK>, ...
 */
 
-#ifdef __BEOS__
-#include <be/translation/TranslationUtils.h>
-#include <Point.h>
-#endif
-
 #include "TagDocElem.h"
 #include "StrDocElem.h"
 #include "DocWalker.h"
