@@ -48,8 +48,14 @@ public:
 			m_nbLinks++;
 		}
 	}
-	const StrRef *GetLinkAt(int position) const {
-		return position < m_nbLinks ? &m_linkNameTab[position] : NULL;
+	bool GetLinkAt(int position, StrRef *name, StrRef *url) const {
+		if (position < m_nbLinks && !m_linkNameTab[position].IsFree()) {
+			name->SetToRef(&m_linkNameTab[position]);
+			url->SetToRef(&m_linkUrlTab[position]);
+			return true;
+		} else {
+			return false;
+		}
 	}
 };
 
