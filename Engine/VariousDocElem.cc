@@ -39,7 +39,7 @@ bool A_DocElem::Action(::Action action, UrlQuery *href) {
 	if (action == ANCHOR_SEARCH) {
 		return (!m_attr_name.IsFree() && !strcasecmp(href->m_name, m_attr_name.Str()));
 	} else {
-		if (Pref::Default.UseJavaScript() && (action == MOUSE_CLICK)) {
+		if (Pref::Default.UseJavaScript() && (action == MOUSE_CLICK) && !m_attr_onclick.IsFree()) {
 			href->SetUrl(&m_attr_onclick);
 		} else {
 			href->SetUrl(&attr_href);
