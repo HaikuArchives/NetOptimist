@@ -2,10 +2,7 @@
 #define URLTEXT_H
 
 #include <TextView.h>
-#ifdef __BEOS__
-#include <PopUpMenu.h>
 #include <MessageFilter.h>
-#endif
 #include "StrPlus.h"
 
 const int MAX_ENTRIES = 30;
