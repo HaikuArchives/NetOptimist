@@ -2,7 +2,6 @@
 #define __Settings_h
 
 #include <Message.h>
-#include <String.h>
 
 class BPath;
 
@@ -25,7 +24,7 @@ public:
 	status_t SetRect(const char *name, BRect r);
 	status_t SetMessage(const char *name, const BMessage *message);
 	status_t SetFlat(const char *name, const BFlattenable *obj);
-	BString GetPath();	
+	const char *GetPath() const;
 private:
 	BPath 	path;
 	status_t status;
@@ -36,7 +35,7 @@ inline status_t Settings::InitCheck(void) {
 	return status;
 }
 
-inline BString Settings::GetPath() {
+inline const char * Settings::GetPath() const {
 	return path.Path();
 }
 
