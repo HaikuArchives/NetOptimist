@@ -71,10 +71,41 @@
 #define bmsgPrefDispEncGreek		'pdeg'
 #define bmsgPrefDispEncCyrillic		'pdec'
 #define bmsgPrefDispEncCE		'pdee'
+#define bmsgPrefDispPropFont		'pdpf'
 #define bmsgPrefDispPropSize		'pdps'
 #define bmsgPrefDispPropMinSize	'pdpm'
+#define bmsgPrefDispFixedFont		'pdff'
 #define bmsgPrefDispFixedSize		'pdfs'
 #define bmsgPrefDispFixedMinSize	'pdfm'
+#define bmsgPrefDispShowImages	'pdsi'
+#define bmsgPrefDispShowBgImages	'pdsb'
+#define bmsgPrefDispShowAnimations	'pdsa'
+#define bmsgPrefDispUnderlineLinks	'pdul'
+#define bmsgPrefDispHaikuErrors	'pdhe'
+#define bmsgPrefDispUseFonts		'pduf'
+#define bmsgPrefDispUseBgColors	'pdbc'
+#define bmsgPrefDispUseFgColors	'pdfc'
+#define bmsgPrefDispPlaySounds	'pdso'
+#define bmsgPrefDispFlickerFree	'pdff'
+
+// Preferences/Connections
+#define bmsgPrefConEnableProxies	'pcep'
+#define bmsgPrefConHttpUrl		'pchu'
+#define bmsgPrefConHttpPort		'pchp'
+#define bmsgPrefConFtpUrl		'pcfu'
+#define bmsgPrefConFtpPort		'pcfp'
+#define bmsgPrefConMaxConnections	'pcmc'
+
+// Preferences/Cache
+#define bmsgPrefCacheLocation	'pclo'
+#define bmsgPrefCacheRefresh		'pcre'
+#define bmsgPrefCacheSize		'pcsz'
+#define bmsgPrefCacheClearNow	'pccn'
+
+// Preferences/Security
+#define bmsgPrefSecWarnOnSend	'psws'
+#define bmsgPrefSecEnterSite		'pses'
+#define bmsgPrefSecLeaveSite		'psls'
 
 // Toolbar
 #define bmsgButtonSTOP			'Bsto'
