@@ -12,6 +12,11 @@ class StrDocElem : public DocElem {
 public:
 	char *str;
 	StrDocElem(const char *text) : DocElem() { str = strdup(text); }
+	StrDocElem(const char *text, int len) : DocElem() {
+		str = (char*)malloc(len+1);
+		memcpy(str, text, len);
+		str[len] = '\0';
+	}
 	virtual ~StrDocElem() { free(str); }
 	virtual void draw(HTMLFrame *m_view, bool onlyIfChanged=false);
 	virtual void geometry(HTMLFrame *view);
