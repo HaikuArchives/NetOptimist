@@ -24,7 +24,6 @@ Style::Style(const Style &c) {
 	color = c.color;
 	bgcolor = c.bgcolor;
 	linkcolor = c.linkcolor;
-//	font = c.font;
 	isLink = c.isLink;
 	isUnderline = c.isUnderline;
 	m_indent = c.m_indent;
@@ -82,7 +81,7 @@ const rgb_color kDarkRed = {128,0,0,0};
 const rgb_color kGreen = {0,0x80,0,0}; 
 
 const rgb_color kBlue = {0,0,255,0}; 
-const rgb_color kLightBlue =  { 0xFF, 0xa0, 0xFF, 0 };
+const rgb_color kLightBlue =  { 0xa0, 0xa0, 0xFF, 0 };
 
 const rgb_color kYellow = {255,255,0,0}; 
 const rgb_color kMagenta = {255,0,255,0}; 
