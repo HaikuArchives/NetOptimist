@@ -64,6 +64,7 @@ class BufferReader {
 		free(t);
 	}
 	void Dump() {
+		/* This is a debug-only method */
 		TextRun* data;
 		printf("- insert : \n");
 		for (data=m_insert; data; data = data->m_next) {
@@ -255,7 +256,7 @@ void DocFormater::Draw(BRect r, bool onlyIfChanged) {
 		onlyIfChanged = false;
 	}	
 	DocElem *iter;
-	//printf("DocFormater::Draw : top %d, bottom %d\n", (int)r.top, (int)r.bottom);
+	printf("DocFormater::Draw : top %d, bottom %d\n", (int)r.top, (int)r.bottom);
 	DocWalker walk(doc);
 	while ((iter = walk.Next())) {
 		if (iter->y<=r.bottom || iter->y+iter->h>=r.top) {
@@ -335,10 +336,8 @@ void DocFormater::format() {
 			walk.Feed(iter);
 		}
 	
-		if (!m_relationAlreadySet) {
-			fprintf(stderr, "Error RelationSet not called\n");
-		}
-	
+		doc->constraint->Init(0,0, m_frame->DocWidth());
+
 		for (iter=last; iter!=NULL; iter=iter->Last()) {
 			// XXX Testing for iter->constraint is the only way i have
 			// XXX found to know if this tag is hidden
@@ -346,7 +345,6 @@ void DocFormater::format() {
 				iter->dynamicGeometry(m_frame);
 		}
 
-		doc->constraint->Init(0,0, m_frame->DocWidth());
 		DocWalker walk2(doc);
 		while ((iter = walk2.Next())) {
 			iter->place();
@@ -530,6 +528,7 @@ TagDocElem* DocFormater::html_parse_tag() {
 				break;
 			}
 			if (ptr-buf>=2 && *(ptr-2)=='=') {
+				char *valuestr = ptr;
 				/* HACK I saw this on /. (note that the number of " doesn't match) :
 				 * HACK <INPUT TYPE="HIDDEN" NAME="op" VALUE="userlogin" %]">
 				 * HACK This is why there is such a test above, let's see if
@@ -538,6 +537,7 @@ TagDocElem* DocFormater::html_parse_tag() {
 
 				/* This seems to be a string of type `href="' */
 				while((ch=m_bufferReader->Next())!=-1 && ch!='\"') {
+					html_ctrlchar_alter(valuestr,ptr);
 					*(ptr++)=ch;
 				}
 				m_bufferReader->Commit("attr='...'");
@@ -765,6 +765,26 @@ void DocFormater::AddTagDocElem(TagDocElem *elem) {
 	AddDocElem(elem);
 }
 
+void DocFormater::AddString(const char *string) {
+	if (m_parseMode & HTML_PRE) {
+		DocElem *newStrElem  = new StrDocElem(string);
+		AddDocElem(newStrElem);
+	} else {
+		// Tokenize the string
+		const char * ptr = string;
+		const char *next = string;
+		while (*next) {
+			// find next sep
+				next += strcspn(next, " \t");
+			// add extra chars
+			next += strspn(next, " \t:;.,!?'\")>$%-");
+			DocElem *newStrElem  = new StrDocElem(ptr, next-ptr);
+			AddDocElem(newStrElem);
+			ptr = next;
+		}
+	}
+}
+
 enum TagClass {
 	TG_SIMPLE = 0,
 	TG_CELL = 1,
@@ -789,7 +809,6 @@ void DocFormater::parse_html(Resource *resource) {
 	int ch;
 	char *ptr;
 	char *curStr;
-	char *prevStr;
 	char normal_text[10000] ;
 
 #ifdef MALLOC_INFO // We don't have mallinfo on beos ?
@@ -822,42 +841,29 @@ void DocFormater::parse_html(Resource *resource) {
 	curStr = normal_text;
 	curStr[0]='\0';
 	ptr = curStr;
-	prevStr = NULL;
 	if (found) while((ch=m_bufferReader->Next())!=-1) 
 	{
 		switch(ch) {
-		case ' ':
-			if (m_parseMode & HTML_NOBR) {
-				// spaces are treated as normal chars
-				break;
-			}
-			// FALL THROUGH
-		case '\t':
-			if (m_parseMode & HTML_PRE) {
-				// spaces are treated as normal chars
-				break;
-			}
-			// FALL THROUGH
 		case '<':
-		case '\n':
-		case '\r':
 			if (curStr[0]!='\0') {
 				*ptr = '\0';
 				trace(DEBUG_PARSER)
 					printf("<STR(%ld) '%s'>%c",strlen(curStr),curStr,ch!=' '?'\n':' ');
-				DocElem *newStrElem  = new StrDocElem(curStr);
-				AddDocElem(newStrElem);
+				AddString(curStr);
 				curStr[0]='\0';
 				ptr = curStr;
-				m_bufferReader->Commit();
 			}
+			m_bufferReader->Commit();
 		}
 		switch(ch) {
 		case ' ':
 			if (m_parseMode & HTML_NOBR) {
 				*(ptr++)=ch;
-				break;
 			}
+			else if (ptr==curStr || *(ptr-1)!=' ') {
+				*(ptr++)=ch;
+			}
+			break;
 		case '\t':
 			if (m_parseMode & HTML_PRE) {
 				*(ptr++)=ch;
@@ -868,6 +874,9 @@ void DocFormater::parse_html(Resource *resource) {
 			if (m_parseMode & HTML_PRE) {
 				TagDocElem *newTagElem  = new TagDocElem(new Tag("BR"));
 				AddTagDocElem(newTagElem);
+			}
+			else if (ptr>curStr && *(ptr-1)!=' ') {
+				*(ptr++)=' ';	// Simple separator...
 			}
 			break;
 		case '<':
@@ -1101,8 +1110,24 @@ void DocFormater::parse_html(Resource *resource) {
 			break;
 		}
 	}
+	if (curStr[0]!='\0') {
+		*ptr = '\0';
+		AddString(curStr);
+	}
+#ifndef DONT_CLOSE_AT_END
+	while(m_openedTags->height()>0) {
+		trace(DEBUG_CORRECT) {
+			fprintf(stdout, " ... closing %s\n", m_openedTags->head()->toString());
+		}
+		ForceCloseHead();
+	}
+#endif
 	m_openedTags->dump();
 	delete m_openedTags;
+	m_openedTags = NULL;
+
+	delete m_bufferReader;
+	m_bufferReader = NULL;
 
 	if (found) resource->Close();
 
@@ -1112,6 +1137,72 @@ void DocFormater::parse_html(Resource *resource) {
 	fprintf(stderr, "new ordinary blocks : %d\n", alloc_info_end.ordblks - alloc_info_start.ordblks);
 	fprintf(stderr, "new small blocks : %d\n", alloc_info_end.smblks - alloc_info_start.smblks);
 #endif
+}
+
+void DocFormater::parse_text(Resource *resource) {
+	char curStr[10000] ;
+	int ch;
+
+	m_parseMode = HTML_PRE;
+	m_openedTags = new TagStack;
+
+	m_jsctx = NULL;
+
+	m_relationAlreadySet = false;
+
+	bool found = resource && resource->Open();
+	
+	if (!found) {
+		strcpy(curStr, "Url not found ! Check the host name in the URL.");
+		DocElem *newStrElem  = new StrDocElem(curStr);
+		AddDocElem(newStrElem);
+	}
+
+	m_bufferReader = new BufferReader(resource);
+
+	curStr[0]='\0';
+	char *ptr = curStr;
+	if (found) while((ch=m_bufferReader->Next())!=-1) 
+	{
+		switch(ch) {
+		case '\n':
+		case '\r':
+			m_bufferReader->Commit();
+
+			*ptr = '\0';
+			AddString(curStr);
+			curStr[0]='\0';
+			ptr = curStr;
+			AddTagDocElem(new TagDocElem(new Tag("BR")));
+			break;
+		default:
+			*ptr = ch;
+			ptr++;
+			break;
+		}
+	}
+
+	if (curStr[0]!='\0') {
+		*ptr = '\0';
+		AddString(curStr);
+	}
+#ifndef DONT_CLOSE_AT_END
+	while(m_openedTags->height()>0) {
+		trace(DEBUG_CORRECT) {
+			fprintf(stdout, " ... closing %s\n", m_openedTags->head()->toString());
+		}
+		ForceCloseHead();
+	}
+#endif
+	m_openedTags->dump();
+	delete m_openedTags;
+	m_openedTags = NULL;
+
+	delete m_bufferReader;
+	m_bufferReader = NULL;
+
+	if (found) resource->Close();
+
 }
 
 void DocFormater::AttachToWindow(HTMLWindow *win) {

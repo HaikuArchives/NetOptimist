@@ -34,6 +34,7 @@ private:
 
 	TagDocElem* html_parse_tag();
 	void html_ctrlchar_alter(char *wholestr, char *& ptr);
+	void AddString(const char *string);
 	void AddDocElem(DocElem *elem);
 	void AddTagDocElem(TagDocElem *elem);
 	void CloseDocElem(const Tag *elem);
@@ -49,6 +50,7 @@ public:
 	}
 	virtual ~DocFormater();
 	void parse_html(Resource *resource);
+	void parse_text(Resource *resource);
 	void AttachToFrame(HTMLFrame *frame);
 	void AttachToWindow(HTMLWindow *window);
 	void Draw(BRect r, bool onlyIfChanged = false);

@@ -22,7 +22,7 @@ static const char *known_mime_types[] = {
 
 class ResourceProcessor {
 public:
-	static void Process(Url *url) {
+	static void Process(DocFormater *format, Url *url) {
 		Resource *rsc = url->GetIfAvail();
 		if (!rsc) return;
 
@@ -36,8 +36,15 @@ public:
 				break;
 			}
 		}
-		if (i==NB_ELEM(known_mime_types)) {
-			fprintf(stderr, "mimetype = %s is unknown\n", mimetype);
+		switch(i) {
+			case 0:
+				format->parse_html(rsc);
+				break;
+			case 1:
+				format->parse_text(rsc);
+				break;
+			default:
+				printf("Error : don't know how to parse mimetype %s\n", mimetype);
 		}
 	}
 
@@ -71,10 +78,9 @@ void HTMLFrame::ModifyUrl(Url *newUrl) {
 		m_document.SetUrl(newUrl);
 
 		m_format = new DocFormater();
-		ResourceProcessor::Process(newUrl);
 
 		m_format->AttachToWindow(GetHTMLWindow());
-		m_format->parse_html(rsc);
+		ResourceProcessor::Process(m_format, newUrl);
 		m_format->AttachToFrame(this);
 		Redraw();
 
