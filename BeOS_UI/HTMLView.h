@@ -49,13 +49,14 @@ public :
 	void SetFrameColor(const Style *style);
 	void SetFrame(int maxX, int maxY);
 	void SetTitle(const char *title);
+	HTMLWindow *GetHTMLWindow();
 	virtual void IncResourceWaiting();
 	virtual void DecResourceWaiting();
 	virtual void NewDocumentLoaded(void);
 	void Refresh();
 	void Redraw();
 
-	uint32 SourceEncoding();
+	uint32 SourceEncoding() const;
 	void SetSourceEncoding(uint32);
 
 	char * Decode(const char * str); // decodes the string with current source encoding

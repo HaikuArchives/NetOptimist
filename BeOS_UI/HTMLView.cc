@@ -61,6 +61,11 @@ void HTMLView::SetFrame(int maxX, int maxY) {
 	}
 }
 
+HTMLWindow *HTMLView::GetHTMLWindow() {
+	NOWindow *win = dynamic_cast<NOWindow *>( Window() );
+	return win;
+}
+
 void HTMLView::SetTitle(const char *title) {
 	BWindow *window = Window();
 	if (window) window->SetTitle(title);
@@ -89,8 +94,9 @@ void HTMLView::Draw(BRect updateRect) {
 }
 
 void HTMLView::FrameResized(float width, float height) {
-	Resize((int)width, (int)height);
-	Refresh(); // FIXME: will redraw the whole view == BAD
+	if (Resize((int)width, (int)height)) {
+		Refresh(); // FIXME: will redraw the whole view == BAD
+	}
 }
 
 void HTMLView::Refresh() {
@@ -102,7 +108,6 @@ void HTMLView::Refresh() {
 }
 
 void HTMLView::Redraw() {
-	//Draw(Bounds());
 	if (m_format) {
 		m_format->Msg(EXPOSE_IF_CHANGED);
 		m_format->ProcessAll();
@@ -189,7 +194,6 @@ void HTMLView::DrawString(int x, int y, int w, const char *str, const Style *sty
 		SetLowColor(style->BGColor());
 	} else font_ = propFont_;
 	font_.SetEncoding(B_UNICODE_UTF8);
-	fprintf(stdout, "%s, style(0x%X)\n", str, style->Face());
 	BView::SetFont(&font_);
 
 // NEXUS/FIXME: B_UNDERSCORE_FACE should do the trick, but doesn't do it for some reason...
@@ -199,7 +203,7 @@ void HTMLView::DrawString(int x, int y, int w, const char *str, const Style *sty
 		BView::DrawString(str);
 		StrokeLine(BPoint(x,y), BPoint(x+w,y));
 	} else {*/
-		MovePenTo(x, y-3);
+		MovePenTo(x, y);
 	BView::DrawString(str);
 
 //	}
@@ -299,7 +303,8 @@ void HTMLView::SetSourceEncoding(uint32 enc) {
 	propFont_.SetFamilyAndStyle(Pref::Default.FontFamily(displayEncoding_), NULL);
 	propFont_.SetSize(Pref::Default.FontSize(displayEncoding_));	
 }
-uint32 HTMLView::SourceEncoding() { return sourceEncoding_; }
+
+uint32 HTMLView::SourceEncoding() const { return sourceEncoding_; }
 
 // the caller should free up the memory referenced by the pointer returned
 char * HTMLView::Decode(const char * str) {
