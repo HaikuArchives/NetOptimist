@@ -2,8 +2,9 @@
 #include <Screen.h>
 #include <be/interface/MenuBar.h>
 #include <MenuItem.h>
+#ifdef __BEOS__
 #include <be/kernel/fs_attr.h>
-#include <be/storage/Entry.h>
+#endif
 #include <be/storage/Directory.h>
 #include <be/storage/Entry.h>
 #include <TextControl.h>
@@ -19,6 +20,7 @@
 #include "UIMessages.h"
 #include "Url.h"
 #include "History.h"
+#include "UrlText.h"
 
 #define bmsgForceTableBorder 'NOTB'
 #define bmsgExportToFwt 'EFWT'
@@ -186,16 +188,15 @@ NOWindow::NOWindow(BRect windowfr) : BWindow(windowfr, "NetOptimist", B_DOCUMENT
 #endif
 	AddChild(toolBarView);
 	
-#ifdef __BEOS__
-#if 1
+#if 0 // XXX Experimental
 	urlControl = new BTextControl(BRect(30,5,250,20), "url view",NULL, "http://", new BMessage(URL_ENTERED));
 	//urlControl->SetDivider(0);
 	urlControl->SetTarget(this);
 #else
-	urlControl = new BTextView(BRect(3,5,250,20), "url view",BRect(3,5,250,20), B_FOLLOW_TOP | B_FOLLOW_LEFT, B_WILL_DRAW);
+	// urlControl = new BTextView(BRect(3,5,250,20), "url view",BRect(3,5,250,20), B_FOLLOW_TOP | B_FOLLOW_LEFT, B_WILL_DRAW);
+	urlControl = new UrlText(BRect(30,5,250,20), BRect(0,0,300,30));
 #endif
 	toolBarView->AddChild(urlControl);
-#endif
 	
 	int const LinkBarHeight = 15;
 	
@@ -341,6 +342,7 @@ void NOWindow::MessageReceived(BMessage *message) {
 			trace(DEBUG_MESSAGING)
 				fprintf(stdout, "######## Message REFORMAT received in NO Window\n");
 			{
+				drawArea->CheckUrl();
 				bool reformat = false;
 				message->FindBool("reformat", &reformat);
 				if (reformat)
@@ -447,7 +449,7 @@ void NOWindow::FullScreen() {
 }
 
 bool NOWindow::QuitRequested() {
-	if (be_app->CountWindows()==1) {
+	if (be_app->CountWindows()<=2) {
 		// This is the last window
 		be_app->PostMessage(B_QUIT_REQUESTED);
 	}

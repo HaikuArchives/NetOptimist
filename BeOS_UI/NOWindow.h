@@ -6,6 +6,7 @@
 #include "ToolBarView.h"
 
 class BTextControl;
+class BTextView;
 class BMenu;
 class BMenuItem;
 class BMenuBar;
@@ -19,7 +20,7 @@ class NOWindow : public BWindow {
 		
 	DocFormater *format;
 	ToolBarView *toolBarView;
-	BTextControl	*urlControl;
+	BTextView	*urlControl;
 	HTMLView *drawArea;
 	BScrollView *scrollView;
 	StatusBarView *m_statusView;
