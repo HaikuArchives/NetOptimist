@@ -56,6 +56,7 @@ public:
 	void SendHeader(Url *url);
 	int ReadHeader(int *http_code);
 	MemoryResource *GetData();
+	bool IsClosed() const;
 	bool Status(StrRef *reason);
 	void CloseConnection();
 };

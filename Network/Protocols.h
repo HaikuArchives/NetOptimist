@@ -33,6 +33,7 @@ public:
 	virtual void CloseConnection() =0;
 	virtual MemoryResource *GetData() =0;
 	virtual bool Status(StrRef *reason) = 0;
+	virtual bool IsClosed() const = 0;
 };
 
 class FileServerConnection : ServerConnection {
@@ -40,7 +41,7 @@ class FileServerConnection : ServerConnection {
 public:
 	virtual bool Match(Url *url) const;
 	void OpenConnection(Url *url);
-	void PrepareHeader(Url *url, bool keepalive=true);
+	void PrepareHeader(Url *url, time_t ifModifiedSince, bool keepalive=true);
 	void SendHeader(Url *url);
 	int ReadHeader(int * /*unused*/);
 };

@@ -154,7 +154,7 @@ void HttpServerConnection::OpenConnection(Url *url) {
 			// We assume that the proxy can handle all urls
 			return;
 		} else {
-			// No proxy is use. So this is a direct connection.
+			// No proxy in use. So this is a direct connection.
 			// Verfify that host and port match
 			if (m_port ==  url->Port())
 				return;
@@ -296,10 +296,13 @@ void HttpServerConnection::PrepareHeader(Url *url, time_t ifModifiedSince, bool 
 		ptr += sprintf(ptr, "If-Modified-Since: %s\r\n", datestr);
 	}
 
-	// XXX Accept-___ http header fields are not supported
+	ptr += sprintf(ptr, "Accept: text/xml, application/xml, application/xhtml+xml, text/html;q=0.9, image/png, image/jpeg, image/gif;q=0.5, text/plain;q=0.8, text/css, text/*;q=0.2, image/*;q=0.2, */*;q=0.1" HTTP_EOL);
+
+		/* XXX not sure what the charset list we support */
 	//ptr += sprintf(ptr, "Accept-Charset: %s" HTTP_EOL, );
-	//ptr += sprintf(ptr, "Accept-Language: %s" HTTP_EOL, );
-	//ptr += sprintf(ptr, "Accept-Encoding: x-gzip; q=1.0, x-deflate, gzip; q=1.0, deflate, identity\r\n"
+	ptr += sprintf(ptr, "Accept-Language: %s" HTTP_EOL, "en");	/* XXX Need a pref setting here */
+	// XXX Accept-___ http header fields are not supported
+	//ptr += sprintf(ptr, "Accept-Encoding: x-deflate, deflate, identity" HTTP_EOL);
 
 	strcat(ptr, HTTP_EOL); // end of header
 	trace(DEBUG_HTTP) {
@@ -309,6 +312,8 @@ void HttpServerConnection::PrepareHeader(Url *url, time_t ifModifiedSince, bool 
 
 void HttpServerConnection::SendHeader(Url *url) {
 	int len, nbsent;
+	Cookie *clist = NULL;
+	Cookie *cur;
 
 	if (m_error) return;
 
@@ -316,28 +321,33 @@ void HttpServerConnection::SendHeader(Url *url) {
 	nbsent = send(m_socket, header, len, 0);
 	if (len != nbsent) {
 		perror("could not send header");
+		m_reason.SetToConst("Could not send request to server");
+		m_error = true;
+		goto end;
 	}
 	// send cookies
 
-	Cookie *clist = CookiesMgr::Default.CookiesList();
+	clist = CookiesMgr::Default.CookiesList();
 
-	for (Cookie *cur = clist; cur != NULL; cur = cur->Next()) {
+	for (cur = clist; cur != NULL; cur = cur->Next()) {
 		char buf[4096];
 		if (cur->match(url->Host(), url->File(), buf, sizeof(buf)-10)) {
 			fprintf(stderr, "1 matches %s\n", buf);
 			strcat(buf, HTTP_EOL);
 			send(m_socket, buf, strlen(buf),0);
+			// XXX Check send !
 		}
 	}
 
 
 	// End of header = empty line
-	int nbSent = send(m_socket, HTTP_EOL, strlen(HTTP_EOL),0);
-	if (nbSent != (int)strlen(HTTP_EOL)) {
+	nbsent = send(m_socket, HTTP_EOL, strlen(HTTP_EOL),0);
+	if (nbsent != (int)strlen(HTTP_EOL)) {
 		m_reason.SetToConst("Could not send request to server");
 		m_error = true;
 	}
 
+end:
 	trace(DEBUG_HTTP) if (m_error) printf("-- SendHeader error = %d\n", m_error);
 }
 
@@ -361,20 +371,22 @@ int HttpServerConnection::ReadHttpStatus(int * http_result) {
 			nbrec = recv(m_socket, ptr, 1, 0);
 			ptr++;
 		} while (nbrec==1 && *(ptr-1)!='\n');
-		if (ptr>=headerLine+2 && *(ptr-2)=='\r' && *(ptr-1)!='\n') ptr-=2;
+		if (ptr>=headerLine+2 && *(ptr-2)=='\r' && *(ptr-1)=='\n') ptr-=2;
 		*ptr = '\0';
 		if (nbrec!=1) {
 			trace(DEBUG_HTTP)
-				fprintf(stderr, "Http Error :could not read status of http response %s\n", headerLine);
+				fprintf(stderr, "Http Error :could not read status of http response : %s\n", strerror(errno));
 			goto error;
 		}
 		if (headerLine[0]!='H')
 			fprintf(stderr, "Warning : Http Status line is :<%s>\n", headerLine);
-	} while (headerLine[0]=='\n' || headerLine[0]=='\r');
+	} while (strnull(headerLine));
 	int skip;
 	skip = strprefix(headerLine, "HTTP/1.1");
-	if (!skip)
+	if (!skip) {
 		skip = strprefix(headerLine, "HTTP/1.0");
+		m_isClosed = true;
+	}
 	if (!skip) {
 		trace(DEBUG_HTTP)
 			fprintf(stderr, "Http Error :incorrect http response : <%s>\n", headerLine);
@@ -389,7 +401,11 @@ int HttpServerConnection::ReadHttpStatus(int * http_result) {
 	}
 	while (ptr[0]!='\0' && ptr[0]!=' ' && ptr[0]!='\t') ptr++;
 	// ptr now points to an http string representing status
-	trace(DEBUG_HTTP) printf("-- ReadHttpStatus error = %d - %s\n", *http_result, ptr);
+	if (ISTRACE(DEBUG_HTTP))
+		if (!ISTRACE(DEBUG_HTTP_DUMP_HEADER))
+			printf("-- ReadHttpStatus error = %d - %s\n", *http_result, ptr);
+		else
+			printf("HTTP> %s\n", headerLine);
 	return 0;
 error:
 	m_reason.SetToConst("Invalid HTTP header from server");
@@ -488,7 +504,8 @@ void HttpServerConnection::ParseHeader(const char *keyword, char *value) {
 			break;
 		case HttpHdrContentLength:
 			m_dataSize = atoi(value);
-			trace(DEBUG_HTTP) fprintf(stdout, "Content-Length=%ld\n", m_dataSize);
+			if (ISTRACE(DEBUG_HTTP) && !ISTRACE(DEBUG_HTTP_DUMP_HEADER))
+				fprintf(stdout, "Content-Length=%ld\n", m_dataSize);
 			break;
 		case HttpHdrContentType:
 			if (m_memoryResource) {
@@ -547,7 +564,7 @@ void HttpServerConnection::ParseHeader(const char *keyword, char *value) {
 				fprintf(stderr, "HTTP WARNING : unknown header: %s VALUE %s\n", keyword, value?value:"(null)");
 	}
 	trace(DEBUG_HTTP_DUMP_HEADER) 
-		fprintf(stdout, "Info http header %s='%s'\n", keyword, value?value:"(null)");
+		fprintf(stdout, "HTTP> %s='%s'\n", keyword, value?value:"(null)");
 }
 
 
@@ -616,8 +633,10 @@ readoneline:
 				totalReceived += nbrec;
 				m_stream->Write(dataUnit, nbrec);
 			}
-			if (nbrec < 0)
+			if (nbrec<0 || (nbrec==0 && totalReceived!=m_dataSize)) {
 				fprintf(stderr, "HttpServerConnection::GetData recv %ld bytes errno 0x%x %s\n", nbrec, errno, strerror(errno));
+				fprintf(stderr, "HttpServerConnection::GetData data=%.50s\n", dataUnit);
+			}
 			end += nbrec==0;
 			error = nbrec<0;
 		}
@@ -652,6 +671,9 @@ readoneline:
 	return m_memoryResource;
 }
 
+bool HttpServerConnection::IsClosed() const {
+	return m_isClosed;
+}
 
 bool HttpServerConnection::Status(StrRef *reason) {
 	if (m_error) {
@@ -723,8 +745,8 @@ ServerConnection* ConnectionMgr::GetConnection(Url *url) {
 
 
 void ConnectionMgr::ReleaseConnection(ServerConnection *connection) {
-	if (connection->Status(NULL)) {
-		m_nbConnectionPending--;
+	m_nbConnectionPending--;
+	if (!connection->IsClosed() && connection->Status(NULL)) {
 		for (int i=0; i<m_maxConnections; i++) {
 			if (m_conns[i]==NULL) {
 				m_conns[i]=connection;

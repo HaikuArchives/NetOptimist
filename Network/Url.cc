@@ -81,6 +81,7 @@ struct Cache::cacheLine {
 
 bool Cache::cacheLine::IsValid() {
 	if (!resource) return false;
+	if (!Pref::Default.Online()) return true; 
 	time_t now = time(0);
 	int in_cache = now-resource->m_date;
 	int age_when_downloaded = resource->m_modified>0 ? resource->m_date-resource->m_modified : 0;
@@ -94,6 +95,7 @@ bool Cache::cacheLine::IsValid() {
 }
 
 bool Cache::cacheLine::NeedValidate() {
+	if (!Pref::Default.Online()) return false; 
 	time_t now = time(0);
 	int in_cache = now-resource->m_date;
 	int age_when_downloaded = resource->m_modified>0 ? resource->m_date-resource->m_modified : 0;
@@ -502,12 +504,14 @@ Resource *Cache::Retrieve (Url * url, bool async, bool reformat) {
 		rsc = NULL;
 	}
 
-	if (!rsc) {
+	const Protocol *proto = !rsc ? url->Protocol() : NULL;
+
+	if (!rsc && (!proto->hasHost || Pref::Default.Online())) {
+		// The resource is not in our cache, we need to call 'getter' method
+		// this protocol. This is only possible if we are online OR this
+		// is a 'local' protocol such as 'file:'
+
 		if (!async) {
-			const Protocol *proto = url->Protocol();
-				// If the protocol has host in url, we need to be online to connect
-				// Otherwise, protocol getter is allowed
-			if (!proto->hasHost || Pref::Default.Online()) {
 				if (proto->protocolGetter) {
 					trace (DEBUG_FILE)
 						printf("Cache->%s for url %s ...\n", proto->name, urlAbsolute);
@@ -539,7 +543,6 @@ Resource *Cache::Retrieve (Url * url, bool async, bool reformat) {
 						fprintf(stderr, "Url %s re-validated\n", urlAbsolute);
 					}
 				}
-			}
 		} else {
 			if (l != NULL || AddResource(urlAbsolute, NULL)) {
 				if (Pref::Default.Online()) {
@@ -578,13 +581,13 @@ Url::Url (const UrlQuery *urlQuery, const Url *base, bool async, bool reformat) 
 }
 
 void Url::_SetTo(const UrlQuery *urlQuery, const Url *base, bool async, bool reformat) {
+	const struct Protocol *proto;
 	const char *urlName = urlQuery->Url();
 	m_host[0] = '\0';
 	m_port = 0;
 	m_protocol = NULL;
 	m_resource = NULL;
 	m_error = false;
-
 	trace (DEBUG_URL) {
 		StrRef ref;
 		if (base)
@@ -601,7 +604,7 @@ void Url::_SetTo(const UrlQuery *urlQuery, const Url *base, bool async, bool ref
 	*/
 
 	// Extracting protocol
-	for (const struct Protocol *proto = protocol_list; proto->name!=NULL; proto++) {
+	for (proto = protocol_list; proto->name!=NULL; proto++) {
 		int len;
 		if ((len=strprefix(urlName, proto->name))>0) {
 			m_protocol = proto;
@@ -615,7 +618,7 @@ void Url::_SetTo(const UrlQuery *urlQuery, const Url *base, bool async, bool ref
 	}
 	if (m_protocol==NULL) {
 		/* By default, we set file:// protocol */
-		for (const struct Protocol *proto = protocol_list; proto->name!=NULL; proto++) {
+		for (proto = protocol_list; proto->name!=NULL; proto++) {
 			if (!strcmp(proto->name, "file:")) {
 				m_protocol = proto;
 				break;
