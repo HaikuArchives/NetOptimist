@@ -210,7 +210,6 @@ void IMG_DocElem::LoadImage() {
 					badImage = true;
 				}
 			}
-			if (!bmp) printf("Image has no bitmap (yet)\n");
 			if (bmp && !bmp->IsValid()) printf("Image bitmap is invalid\n");
 			if (bmp != NULL && !bmp->IsValid()) {
 				delete bmp;
@@ -221,7 +220,6 @@ void IMG_DocElem::LoadImage() {
 		}
 	}
 	GetSize();
-	if (badImage) printf("Image is bad\n");
 }
 
 void IMG_DocElem::draw(HTMLFrame *view, bool onlyIfChanged) {

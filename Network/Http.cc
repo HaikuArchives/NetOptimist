@@ -428,7 +428,6 @@ void HttpServerConnection::ParseHeader(const char *keyword, char *value) {
 			break;
 		case HttpHdrLocation:
 		case HttpHdrContentLocation:
-printf("now location in header : %s\n", value); // XXX debug, remove
 			if (m_memoryResource && !strnull(value) && strnull(m_memoryResource->m_location))
 				m_memoryResource->m_location = strdup(value);
 			break;
