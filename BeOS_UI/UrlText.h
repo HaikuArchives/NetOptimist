@@ -2,6 +2,9 @@
 #define URLTEXT_H
 
 #include <TextView.h>
+#ifdef __BEOS__
+#include <PopUpMenu.h>
+#endif
 #include "StrPlus.h"
 
 const int MAX_ENTRIES = 30;
@@ -85,11 +88,12 @@ public:
 			case B_ENTER:
 				if (m_target && selected>=0) m_target->SetText(m_entries[selected].Str());
 				Hide();
-				break;
+				return;
 			case B_ESCAPE:
 				selected = -1;
 				if (m_target) m_target->MakeFocus();
 				Invalidate();
+				return;
 			}
 		}
 		super::KeyDown(bytes, numBytes);
@@ -164,56 +168,68 @@ public:
 		super::AttachedToWindow();
 	}
 	virtual void MessageReceived(BMessage *message) {
-// NEXUS: was quite annoying, so i commented it
 //		printf("got message\n");
 		super::MessageReceived(message);
 	}
 	virtual void KeyDown(const char* bytes, int32 numBytes) {
-		if (numBytes==1 && bytes[0]==B_DOWN_ARROW) {
-			printf("got down key\n");
-			//popup->MakeFocus();
-		} else if (numBytes==1 && bytes[0]==B_TAB) {
-			const char *text = listView->FirstEntry();
-			if (text) {
-				SetUrl(text);
+		if (numBytes==1) {
+			switch (bytes[0]) {
+			case B_DOWN_ARROW:
+				printf("got down key\n");
+				//popup->MakeFocus();
+				break;
+			case B_TAB: {
+				const char *text = listView->FirstEntry();
+				if (text) {
+					SetUrl(text);
+				}
+				return;
 			}
-		} else {
-			super::KeyDown(bytes, numBytes);
+			case B_ESCAPE:
+				// XXX TODO Restore original url
+				if (popup->Lock()) {
+					while (!popup->IsHidden()) {
+						popup->Hide();
+					}
+					popup->Unlock();
+				}
+				return;
+			case B_ENTER: {
+				popup->Hide();
+				int len = TextLength();
+				Select(0, len);
+				printf("Action !!!\n");
+				BWindow *win = Window();
+				if (win) {
+					win->PostMessage(URL_ENTERED);
+				}
+				return;
+				}
+			default: {			
+#ifdef __BEOS__ && 0
+				BPopUpMenu *p = new BPopUpMenu("url popup", false, true, B_ITEMS_IN_ROW);
+				p->AddItem(new BMenuItem("essai", new BMessage('truc')));
+				p->Go(BPoint(100,100));
+#endif
+#if 0
+				BPoint p = ConvertToScreen(Bounds().LeftBottom());
+				if (popup->Lock()) {
+					popup->MoveTo(p);
+					while (popup->IsHidden())
+						popup->Show();
+					popup->Unlock();
+				}
+				DisplayMatch();
+#endif
+				break;
+				}
+			}
 		}
+		super::KeyDown(bytes, numBytes);
 	}
 protected:
 	void InsertText(const char *text, int32 length, int32 offset, const text_run_array *array) {
-		if (text[0]=='\033') {
-			// XXX TODO Restore original url
-			if (popup->Lock()) {
-				while (!popup->IsHidden()) {
-					popup->Hide();
-				}
-				popup->Unlock();
-			}
-		} else if (text[0]!='\n') {
-			printf("inserting %s (%d)\n", text, text[0]);
-			BTextView::InsertText(text, length, offset, array);
-#if 0 // XXX I must improve this before enabling 
-			BPoint p = ConvertToScreen(Bounds().LeftBottom());
-			if (popup->Lock()) {
-				popup->MoveTo(p);
-				while (popup->IsHidden())
-					popup->Show();
-				popup->Unlock();
-			}
-#endif
-			DisplayMatch();
-		} else {
-			popup->Hide();
-			int len = TextLength();
-			Select(0, len);
-			printf("Action !!!\n");
-			BWindow *win = Window();
-			if (win && length==1) {
-				win->PostMessage(URL_ENTERED);
-			}
-		}
+		BTextView::InsertText(text, length, offset, array);
 	}
 	void DeleteText(int32 start, int32 finish) {
 		BTextView::DeleteText(start, finish);
