@@ -68,7 +68,13 @@ public:
 			Draw();
 			break;
 		case EXPOSE_IF_CHANGED:
-			Draw(true);
+			if (m_nb_format) {
+				format();
+				m_nb_format = 0;
+				Draw();
+			} else {
+				Draw(true);
+			}
 			break;
 		case FORMAT:
 			m_nb_format++;
