@@ -1,7 +1,6 @@
 #ifndef DocElem_H
 #define DocElem_H
 
-#include <stdio.h>
 #include <stdlib.h>
 
 #include "platform.h"
@@ -18,7 +17,6 @@ class UrlQuery;
 class DocElem {
 	static int idGen;
 	friend class DocFormater;
-	friend void html_parse(FILE *);
 protected: /* XXX BAD */
 	DocElem *m_next;
 private:
