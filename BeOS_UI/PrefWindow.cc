@@ -171,18 +171,18 @@ DisplayView::DisplayView(BRect rect, Pref *pref) : BView(rect, "display_tab_view
 	BMessage *msg;
 	
 	menu->AddItem(menu_item = new BMenuItem("Central European", msg = new BMessage(bmsgPrefDispEncoding)));
-	msg->AddInt8("encoding", NO_CENTRAL_EUROPEAN);
+	msg->AddInt32("encoding", NO_CENTRAL_EUROPEAN);
 	menu_item->SetMarked(true);
 	menu->AddItem(menu_item = new BMenuItem("Cyrillic", msg = new BMessage(bmsgPrefDispEncoding)));
-	msg->AddInt8("encoding", NO_CYRILLIC);
+	msg->AddInt32("encoding", NO_CYRILLIC);
 	menu->AddItem(menu_item = new BMenuItem("Greek", msg = new BMessage(bmsgPrefDispEncoding)));
-	msg->AddInt8("encoding", NO_GREEK);
+	msg->AddInt32("encoding", NO_GREEK);
 	menu->AddItem(menu_item = new BMenuItem("Japanese", msg = new BMessage(bmsgPrefDispEncoding)));
-	msg->AddInt8("encoding", NO_JAPANESE);
+	msg->AddInt32("encoding", NO_JAPANESE);
 	menu->AddItem(menu_item = new BMenuItem("Unicode", msg = new BMessage(bmsgPrefDispEncoding)));
-	msg->AddInt8("encoding", NO_UNICODE);
+	msg->AddInt32("encoding", NO_UNICODE);
 	menu->AddItem(menu_item = new BMenuItem("Western", msg = new BMessage(bmsgPrefDispEncoding)));
-	msg->AddInt8("encoding", NO_WESTERN);
+	msg->AddInt32("encoding", NO_WESTERN);
 	
 	BMenuField *menu_field = new BMenuField(r, "for_encoding", "For the encoding:", menu);
 	menu_field->SetAlignment(B_ALIGN_RIGHT);
@@ -882,34 +882,177 @@ void PrefWindow::MessageReceived(BMessage *msg) {
 			break;
 		case bmsgPrefDispEncoding: {
 			display_encoding de;
-			if (B_OK != msg->FindInt8("encoding", (int8 *) &de))
+			if (B_OK != msg->FindInt32("encoding", (int32 *) &de))
 				break;
-			// FIXME:
-			// 1. get prop font family name
-			// 2. scan the menu and select one
-			// 3. get prop font sizes
-			// 4. scan the menus and select
-			// do the same for fixed font
+			BMenuField *field = (BMenuField*) FindView("proportional_font");
+			if (NULL == field) break;
+			BPopUpMenu	 *menu = (BPopUpMenu*)field->Menu();
+
+			if (NULL == menu) break; // strange at least
+			BMenuItem *item = NULL;
+			const char *family = m_pref->FontFamily(de);
+			if (NULL != family) {
+				item = menu->FindItem(family);
+				if (NULL != item) item->SetMarked(true); // shouldn't break here, cause font may just has been deleted
+			}
+
+			field = (BMenuField*) FindView("prop_font_size");
+			if (NULL == field) break;
+			menu = (BPopUpMenu*)field->Menu();
+			if (NULL != menu) {
+				char s[3];
+				sprintf(s, "%d", m_pref->FontSize(de));
+				item = menu->FindItem(s);
+				if (NULL != item) item->SetMarked(true);
+			}
+
+			field = (BMenuField*) FindView("prop_font_msize");
+			if (NULL == field) break;
+			menu = (BPopUpMenu*)field->Menu();
+			if (NULL != menu) {
+				char s[3];
+				sprintf(s, "%d", m_pref->FontMinSize(de));
+				item = menu->FindItem(s);
+				if (NULL != item) item->SetMarked(true);
+			}
+
+			field = (BMenuField*) FindView("fixed_font");
+			if (NULL == field) break;
+			menu = (BPopUpMenu*)field->Menu();
+
+			if (NULL == menu) break; // strange at least
+			item = NULL;
+			family = m_pref->FixedFontFamily(de);
+			if (NULL != family) {
+				item = menu->FindItem(family);
+				if (NULL != item) item->SetMarked(true); // shouldn't break here, cause font may just has been deleted
+			}
+
+			field = (BMenuField*) FindView("fixed_font_size");
+			if (NULL == field) break;
+			menu = (BPopUpMenu*)field->Menu();
+			if (NULL != menu) {
+				char s[3];
+				sprintf(s, "%d", m_pref->FixedFontSize(de));
+				item = menu->FindItem(s);
+				if (NULL != item) item->SetMarked(true);
+			}
+
+			field = (BMenuField*) FindView("fixed_font_msize");
+			if (NULL == field) break;
+			menu = (BPopUpMenu*)field->Menu();
+			if (NULL != menu) {
+				char s[3];
+				sprintf(s, "%d", m_pref->FixedFontMinSize(de));
+				item = menu->FindItem(s);
+				if (NULL != item) item->SetMarked(true);
+			}
 			break;
 		}
-		// FIXME:
-		case bmsgPrefDispPropFont:
-			int8 size;
-			if (B_OK != msg->FindInt8("size", (int8) &size))
+	
+		case bmsgPrefDispPropFont: {
+			const char *str = NULL;
+			display_encoding de;
+			if (B_OK != msg->FindString("family", &str))
 				break;
-			
+			BMenuField *field = (BMenuField*) FindView("for_encoding");
+			if (NULL == field) break;
+			BPopUpMenu	 *menu = (BPopUpMenu*)field->Menu();
+			if (NULL == menu) break;
+			BMenuItem *item = menu->FindMarked();
+			if (NULL == item) break;
+			BMessage *item_msg = item->Message();
+			if (NULL == item_msg) break;
+			if (B_OK != item_msg->FindInt32("encoding", (int32 *) &de)) break;
+			m_pref->SetFontFamily(de, str);
 			break;
-		case bmsgPrefDispPropSize:
+		}
+		case bmsgPrefDispPropSize: {
+			int8 size;
+			display_encoding de;
+			if (B_OK != msg->FindInt8("size", (int8 *) &size))
+				break;
+			BMenuField *field = (BMenuField*) FindView("for_encoding");
+			if (NULL == field) break;
+			BPopUpMenu	 *menu = (BPopUpMenu*)field->Menu();
+			if (NULL == menu) break;
+			BMenuItem *item = menu->FindMarked();
+			if (NULL == item) break;
+			BMessage *item_msg = item->Message();
+			if (NULL == item_msg) break;
+			if (B_OK != item_msg->FindInt32("encoding", (int32 *) &de)) break;
+			m_pref->SetFontSize(de, size);
 			break;
-		case bmsgPrefDispPropMinSize:
-			break;
-		case bmsgPrefDispFixedFont:
-			break;
-		case bmsgPrefDispFixedSize:
-			break;
-		case bmsgPrefDispFixedMinSize:
-			break;
+		}
+		case bmsgPrefDispPropMinSize: {
+			int8 size;
+			display_encoding de;
+			if (B_OK != msg->FindInt8("size", (int8 *) &size))
+				break;
+			BMenuField *field = (BMenuField*) FindView("for_encoding");
+			if (NULL == field) break;
+			BPopUpMenu	 *menu = (BPopUpMenu*)field->Menu();
 
+			if (NULL == menu) break;
+			BMenuItem *item = menu->FindMarked();
+			if (NULL == item) break;
+			BMessage *item_msg = item->Message();
+			if (NULL == item_msg) break;
+			if (B_OK != item_msg->FindInt8("encoding", (int8 *) &de)) break;
+			m_pref->SetFontMinSize(de, size);
+			break;
+		}
+		case bmsgPrefDispFixedFont: {
+			const char *str = NULL;
+			display_encoding de;
+			if (B_OK != msg->FindString("family", &str))
+				break;
+			BMenuField *field = (BMenuField*) FindView("for_encoding");
+			if (NULL == field) break;
+			BPopUpMenu	 *menu = (BPopUpMenu*)field->Menu();
+			if (NULL == menu) break;
+			BMenuItem *item = menu->FindMarked();
+			if (NULL == item) break;
+			BMessage *item_msg = item->Message();
+			if (NULL == item_msg) break;
+			if (B_OK != item_msg->FindInt32("encoding", (int32 *) &de)) break;
+			m_pref->SetFixedFontFamily(de, str);
+			break;
+		}
+		case bmsgPrefDispFixedSize: {
+			int8 size;
+			display_encoding de;
+			if (B_OK != msg->FindInt8("size", (int8 *) &size))
+				break;
+			BMenuField *field = (BMenuField*) FindView("for_encoding");
+			if (NULL == field) break;
+			BPopUpMenu	 *menu = (BPopUpMenu*)field->Menu();
+			if (NULL == menu) break;
+			BMenuItem *item = menu->FindMarked();
+			if (NULL == item) break;
+			BMessage *item_msg = item->Message();
+			if (NULL == item_msg) break;
+			if (B_OK != item_msg->FindInt32("encoding", (int32 *) &de)) break;
+			m_pref->SetFixedFontSize(de, size);
+			break;
+		}
+		case bmsgPrefDispFixedMinSize: {
+			int8 size;
+			display_encoding de;
+			if (B_OK != msg->FindInt8("size", (int8 *) &size))
+				break;
+			BMenuField *field = (BMenuField*) FindView("for_encoding");
+			if (NULL == field) break;
+			BPopUpMenu	 *menu = (BPopUpMenu*)field->Menu();
+			if (NULL == menu) break;
+			BMenuItem *item = menu->FindMarked();
+			if (NULL == item) break;
+			BMessage *item_msg = item->Message();
+			if (NULL == item_msg) break;
+			if (B_OK != item_msg->FindInt32("encoding", (int32 *) &de)) break;
+			m_pref->SetFixedFontMinSize(de, size);
+			break;
+		}
 		case bmsgPrefDispShowImages:
 			if (B_OK == msg->FindPointer("source", (void **) &chkbox))
 				m_pref->SetShowImages((bool)chkbox->Value());
