@@ -7,6 +7,7 @@
 #include <MenuItem.h>
 #include <CheckBox.h>
 #include <Button.h>
+#include <Font.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -150,20 +151,33 @@ DisplayView::DisplayView(BRect rect) : BView(rect, "display_tab_view", B_FOLLOW_
 	menu_field->SetDivider(divider+2);
 	AddChild(menu_field);
 
-	r.OffsetBy(0,27);
+	r.OffsetBy(0,25);
 	
 	menu = new BPopUpMenu("proportional_menu");
-	// FIXME: populate menu here
+	BMessage *msg;
+
+	int32 numFamilies = count_font_families();
+	for ( int32 i = 0; i < numFamilies; i++ ) {
+		font_family family;
+		uint32 flags;
+		if ( get_font_family(i, &family, &flags) == B_OK ) {
+			menu->AddItem(menu_item = new BMenuItem(family, msg = new BMessage(bmsgPrefDispPropFont)));
+			msg->AddString("family", family);
+
+			// FIXME: select correct one, now first is selected
+			if (0 ==i)
+				menu_item->SetMarked(true);
+		}
+	}
 	menu_field = new BMenuField(r, "proportional_font", "Proportional font:", menu);
 	menu_field->SetAlignment(B_ALIGN_RIGHT);
 	menu_field->SetDivider(divider+2);
 	AddChild(menu_field);
 
 	BRect r1 = r;
-	r1.OffsetBy(220,0);
-	r1.right = r1.left+40;
+	r1.OffsetBy(200,0);
+	r1.right = r1.left+80;
 	menu = new BPopUpMenu("prop_size_menu");
-	BMessage *msg;
 	menu->AddItem(menu_item = new BMenuItem("7", msg = new BMessage(bmsgPrefDispPropSize)));
 	msg->AddInt8("size", 7);
 
@@ -185,10 +199,10 @@ DisplayView::DisplayView(BRect rect) : BView(rect, "display_tab_view", B_FOLLOW_
 
 	menu_field = new BMenuField(r1, "prop_font_size", "Size:", menu);
 	menu_field->SetAlignment(B_ALIGN_RIGHT);
-	menu_field->SetDivider(20);
+	menu_field->SetDivider(34);
 	AddChild(menu_field);
 	
-	r1.OffsetBy(80,0);
+	r1.OffsetBy(81,0);
 	menu = new BPopUpMenu("prop_msize_menu");
 	menu->AddItem(menu_item = new BMenuItem("7", msg = new BMessage(bmsgPrefDispPropMinSize)));
 	msg->AddInt8("size", 7);
@@ -211,17 +225,129 @@ DisplayView::DisplayView(BRect rect) : BView(rect, "display_tab_view", B_FOLLOW_
 
 	menu_field = new BMenuField(r1, "prop_mfont_size", "Min. size:", menu);
 	menu_field->SetAlignment(B_ALIGN_RIGHT);
-	menu_field->SetDivider(20);
+	menu_field->SetDivider(be_plain_font->StringWidth("Min. size:")/*50*/);
 	AddChild(menu_field);
 
-	r.OffsetBy(0,27);
+	r.OffsetBy(0,25);
 	
 	menu = new BPopUpMenu("fixed_menu");
-	// FIXME: populate menu here
+
+	for ( int32 i = 0; i < numFamilies; i++ ) {
+		font_family family;
+		uint32 flags;
+		if ( get_font_family(i, &family, &flags) == B_OK ) {
+			menu->AddItem(menu_item = new BMenuItem(family, msg = new BMessage(bmsgPrefDispFixedFont)));
+			msg->AddString("family", family);
+
+			// FIXME: select correct one, now first is selected
+			if (0 ==i)
+				menu_item->SetMarked(true);
+		}
+	}
+
 	menu_field = new BMenuField(r, "fixed_font", "Fixed font:", menu);
 	menu_field->SetAlignment(B_ALIGN_RIGHT);
 	menu_field->SetDivider(divider+2);
 	AddChild(menu_field);
+
+	r1 = r;
+	r1.OffsetBy(200,0);
+	r1.right = r1.left+80;
+	menu = new BPopUpMenu("fixed_size_menu");
+	menu->AddItem(menu_item = new BMenuItem("7", msg = new BMessage(bmsgPrefDispFixedSize)));
+	msg->AddInt8("size", 7);
+
+	// FIXME: 	
+	menu_item->SetMarked(true);
+
+	menu->AddItem(menu_item = new BMenuItem("9", msg = new BMessage(bmsgPrefDispFixedSize)));
+	msg->AddInt8("size", 9);
+	menu->AddItem(menu_item = new BMenuItem("10", msg = new BMessage(bmsgPrefDispFixedSize)));
+	msg->AddInt8("size", 10);
+	menu->AddItem(menu_item = new BMenuItem("12", msg = new BMessage(bmsgPrefDispFixedSize)));
+	msg->AddInt8("size", 12);
+	menu->AddItem(menu_item = new BMenuItem("14", msg = new BMessage(bmsgPrefDispFixedSize)));
+	msg->AddInt8("size", 14);
+	menu->AddItem(menu_item = new BMenuItem("18", msg = new BMessage(bmsgPrefDispFixedSize)));
+	msg->AddInt8("size", 18);
+	menu->AddItem(menu_item = new BMenuItem("24", msg = new BMessage(bmsgPrefDispFixedSize)));
+	msg->AddInt8("size", 24);
+
+	menu_field = new BMenuField(r1, "fixed_font_size", "Size:", menu);
+	menu_field->SetAlignment(B_ALIGN_RIGHT);
+	menu_field->SetDivider(34);
+	AddChild(menu_field);
+	
+	r1.OffsetBy(81,0);
+	menu = new BPopUpMenu("fixed_msize_menu");
+	menu->AddItem(menu_item = new BMenuItem("7", msg = new BMessage(bmsgPrefDispFixedMinSize)));
+	msg->AddInt8("size", 7);
+
+	// FIXME: 	
+	menu_item->SetMarked(true);
+
+	menu->AddItem(menu_item = new BMenuItem("9", msg = new BMessage(bmsgPrefDispFixedMinSize)));
+	msg->AddInt8("size", 9);
+	menu->AddItem(menu_item = new BMenuItem("10", msg = new BMessage(bmsgPrefDispFixedMinSize)));
+	msg->AddInt8("size", 10);
+	menu->AddItem(menu_item = new BMenuItem("12", msg = new BMessage(bmsgPrefDispFixedMinSize)));
+	msg->AddInt8("size", 12);
+	menu->AddItem(menu_item = new BMenuItem("14", msg = new BMessage(bmsgPrefDispFixedMinSize)));
+	msg->AddInt8("size", 14);
+	menu->AddItem(menu_item = new BMenuItem("18", msg = new BMessage(bmsgPrefDispFixedMinSize)));
+	msg->AddInt8("size", 18);
+	menu->AddItem(menu_item = new BMenuItem("24", msg = new BMessage(bmsgPrefDispFixedMinSize)));
+	msg->AddInt8("size", 24);
+
+	menu_field = new BMenuField(r1, "fixed_mfont_size", "Min. size:", menu);
+	menu_field->SetAlignment(B_ALIGN_RIGHT);
+	menu_field->SetDivider(be_plain_font->StringWidth("Min. size:")/*50*/);
+	AddChild(menu_field);
+
+	r.OffsetBy(0, 30);
+	r.bottom = r.top+1;
+	BBox *box = new BBox(r);
+	AddChild(box);
+	
+	r.OffsetBy(0,25);
+	BCheckBox *chkbox = new BCheckBox(r, 
+		"show_images", 
+		"Show images", 
+		new BMessage(bmsgPrefDispShowImages));
+	chkbox->SetValue((int)Pref::Default.ShowImages());
+	AddChild(chkbox);
+
+	r.OffsetBy(0,25);
+	chkbox = new BCheckBox(r, 
+		"show_bgimages", 
+		"Show background images", 
+		new BMessage(bmsgPrefDispShowBgImages));
+	chkbox->SetValue((int)Pref::Default.ShowBgImages());
+	AddChild(chkbox);
+
+	r.OffsetBy(0,25);
+	chkbox = new BCheckBox(r, 
+		"show_animations", 
+		"Show animations", 
+		new BMessage(bmsgPrefDispShowAnimations));
+	chkbox->SetValue((int)Pref::Default.ShowAnimations());
+	AddChild(chkbox);
+
+	r.OffsetBy(0,25);
+	chkbox = new BCheckBox(r, 
+		"underline_links", 
+		"Underline links", 
+		new BMessage(bmsgPrefDispUnderlineLinks));
+	chkbox->SetValue((int)Pref::Default.UnderlineLinks());
+	AddChild(chkbox);
+
+	r.OffsetBy(0,25);
+	chkbox = new BCheckBox(r, 
+		"haiku_errors", 
+		"Haiku error messages", 
+		new BMessage(bmsgPrefDispHaikuErrors));
+	chkbox->SetValue((int)Pref::Default.HaikuErrors());
+	AddChild(chkbox);
 }
 
 
