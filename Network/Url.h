@@ -76,6 +76,7 @@ class Cache {
 	cacheLine *FindCacheLine(const char *url);
 	bool AddResource(const char *url, Resource *rsc);
 public:
+        void Init();
         static Cache cache;
         void SetBase(Url *base);
         void SetResourceGetter(ResourceGetter *getter);
