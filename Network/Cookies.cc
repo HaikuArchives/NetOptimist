@@ -39,8 +39,20 @@ bool Cookie::hostMatchDomain(const char *hostname, const char *domain) {
 	int dom_len = strlen(domain);
 	int host_len = strlen(hostname);
 	int offset = dom_len - host_len;
-	if (offset > 0) {
-		return strcasecmp(hostname, domain + offset)==0;
+	if (offset >= 0) {
+#ifdef XXX_strict_cookies_parsing
+		/* Domain must either be prefixed by a dot or exactly match the hostname */
+		/* XXX We should verify that host prefix doesn't contain `.'
+			in regard to domain.
+			eg domain .abc.com is ok for host x.abc.com
+			but not for host y.z.abc.com (domain should be z.abc.com)
+			This is not in the original Netscape specification but
+			is in rfc 2965
+		*/
+		return (offset==0||domain[0]=='.') && strcasecmp(hostname + offset, domain)==0;
+#else
+		return strcasecmp(hostname + offset, domain)==0;
+#endif
 	}
 	return false;
 }
@@ -147,13 +159,6 @@ bool Cookie::parseCookieFromHttp(const char *headerLine, const char *host) {
 				name, value, domain?domain:"(nil)", host);
 			return false;
 		}
-		/* XXX We should verify that host prefix doesn't contain `.'
-			in regard to domain.
-			eg domain .abc.com is ok for host x.abc.com
-			but not for host y.z.abc.com (domain should be z.abc.com)
-			This is not in the original Netscape specification but
-			is in rfc 2965
-		*/
 	}
 
 	printf("COOKIE:: %s=%s ;domain=%s;path=%s;secure=%s\n", name, value, domain?domain:"(nil)", path?path:"(nil)", secure?"true":"false");
