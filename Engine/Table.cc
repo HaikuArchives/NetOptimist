@@ -482,7 +482,7 @@ void TableDocElem::place() {
 						while ((iter_data = walk.Next())) {
 							const Tag *te = NULL;
 							int iterW = iter_data->fixedW;
-#define USE_HACK 2
+#define USE_HACK 1
 #if (USE_HACK==0)
 							if (iter_data->fixedW == 0
 								|| (!dynamic_cast<TableDocElem*>(iter_data)
@@ -493,7 +493,7 @@ void TableDocElem::place() {
 								|| dynamic_cast<TD_DocElem*>(iter_data))
 								iterW = 0;
 							walk.Feed(iter_data);
-#elif (USE_HACK==2)
+#elif (USE_HACK==2)	/* NO HACK */
 							walk.Feed(iter_data);
 #endif
 							TagDocElem *brTag = dynamic_cast<TagDocElem*>(iter_data);
@@ -783,6 +783,7 @@ void TableDocElem::dynamicGeometry(HTMLFrame *view) {
 		}
 	}
 	constraint->RegisterWidth(minW);
+	// NOTICE : do not call super::dynamicGeometry !
 }
 
 void TableDocElem::draw(HTMLFrame *view, bool onlyIfChanged) {
