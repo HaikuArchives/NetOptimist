@@ -15,93 +15,57 @@
 
 class NetOptimist : public BApplication 
 {
-
-private:
-	NOWindow *main;
+	void CreateWindow(const char *url_text);
 public :
 	NetOptimist(const char *url_text = NULL);
 	void MessageReceived(BMessage *message);
 	void RefsReceived(BMessage *message);
 	void ArgvReveived(int32 argc, char ** argv);
+	void ReadyToRun();
 };
 
 NetOptimist::NetOptimist(const char *url_text = NULL) : BApplication(app_signature) {
-	BMessage msg((uint32)0); 
-	
-	// Register this app as able to handle N+ bookmarks
-	app_info appInfo; 
-	BFile file; 
-	BAppFileInfo appFileInfo; 
-	
 	Pref::Default.Init();
-	
-/*
-	be_app->GetAppInfo(&appInfo); 
-	file.SetTo(&appInfo.ref, B_READ_WRITE); 
-	appFileInfo.SetTo(&file);
-	assert(appFileInfo.InitCheck()==B_OK);
-	 
-	const char *ptr;
-	uint32 i=0;
-	if (appFileInfo.GetSupportedTypes(&msg) == B_OK) {
-		while (msg.FindString("types", i++, &ptr) == B_OK) 
-			fprintf(stderr, "Supported Type: %s\n", ptr); 
-	} else {
-		BMessage msg2;
-		const char BOOKMARK_SIG[] = "application/x-vnd.Be-bookmark";
-		fprintf(stderr, "no supported types\n");
-		if (msg2.AddString("types", BOOKMARK_SIG) != B_OK) {
-			(new BAlert("Error", "The message is corrupted", "Ok"))->Go();
-		}
-		status_t ret = appFileInfo.SetSupportedTypes(&msg);
-		if (ret != B_OK) {
-			fprintf(stderr, "ret  = %ld 0x%lx\n", ret, ret);
-			(new BAlert("Error", "Cannot register as supporting bookmarks", "Ok"))->Go();
-		}
+	if (url_text) {
+		CreateWindow(url_text);
 	}
-*/
-	// Create main window
+}
+
+void NetOptimist::CreateWindow(const char *url_text) {
 	int WinW = 600;
-	int WinH = 400; // STAS: was 700
+	int WinH = 400;
 	BRect windowfr(10, 30, WinW+10, WinH+30);
-	main = new NOWindow(windowfr);
-
+	NOWindow *main = new NOWindow(windowfr);
 	main->Show();
-
-	if (url_text)
-		main->SetUrl(url_text);
+	main->SetUrl(url_text);
 }
 
 void NetOptimist::RefsReceived(BMessage *message) {
-	(new BAlert("NetOptimist", "ref recv", "Ok"))->Go();
-	if (message->what == B_REFS_RECEIVED) {
-#if B_BEOS_VERSION >= 0x0510
-				const char *name; // BMessage::GetInfo changed in Dano : it now requires a const
-#else
-				char *name;
-#endif
-				uint32 t;
-				int32 count;
-
-		for ( int32 i = 0;
-			  message->GetInfo(B_ANY_TYPE, i, &name, &t, &count) == B_OK;
-			  i++ ) {
-			  fprintf(stderr, "Data message : %s type %x\n", name, (int)t);
-		}
-		entry_ref file;
-		int nb = 0;
-		while(message->FindRef("refs", nb, &file) == B_OK) {
-			char type[256];
-			char text[1000];
+	entry_ref file;
+	int nb = 0;
+	while(message->FindRef("refs", nb, &file) == B_OK) {
+		char type[256];
+		BNode node(&file);
+		BNodeInfo info(&node);
+		info.GetType(type);
+		if (!strcmp(type, "application/x-vnd.Be-bookmark")) {
+			// This is a bookmark file
+			char url[256];		
 			BNode node(&file);
-			BNodeInfo info(&node);
-			info.GetType(type);
-			
-			sprintf(text, "refs in app : %s type %s\n", file.name, type);
+			if (0 < node.ReadAttr("META:url", B_STRING_TYPE, 0, url, sizeof url-1)) {
+				CreateWindow(url);
+			}
+		} else if (!strcmp(type, "text/html")) {
+			char url[FILENAME_MAX+10];
+			sprintf(url, "file://%s", file.name);
+			CreateWindow(url);
+		} else {
+			char text[1000];
+			sprintf(text, "NetOptimist was unable to handle '%s' (unknown type)", file.name);
 			(new BAlert("NetOptimist", text, "Ok"))->Go();
-			// XXX Open windows...
-			nb++;
 		}
+
+		nb++;
 	}
 }
 void NetOptimist::ArgvReveived(int32 argc, char ** argv) {
@@ -109,16 +73,21 @@ void NetOptimist::ArgvReveived(int32 argc, char ** argv) {
 		(new BAlert("NetOptimist", "argv recv", "Ok"))->Go();
 }
 
+void NetOptimist::ReadyToRun() {
+	if (CountWindows()==0) {
+		CreateWindow(Pref::Default.HomePage()); 
+	}
+}
+
 void NetOptimist::MessageReceived(BMessage *message) {
 	switch (message->what) {
 	
+/* XXX ouais ben ca ce n'est pas bon du tout :
+	il faut trouver un moyen de designer la target
+	du bouton. Le probleme est que les boutons sont
+	des replicants et que donc un ptr sur la HTMLView
+	n'est pas suffisant.
 		case bmsgButtonBACK:
-			/* XXX ouais ben ca ce n'est pas bon du tout :
-					il faut trouver un moyen de designer la target
-					du bouton. Le probleme est que les boutons sont
-					des replicants et que donc un ptr sur la HTMLView
-					n'est pas suffisant.
-			*/
 			main->PostMessage(message);
 			break;
 		case bmsgButtonNEXT:
@@ -136,6 +105,7 @@ void NetOptimist::MessageReceived(BMessage *message) {
 		case bmsgButtonSAVE:
 			cout <<"SAVE\n";
 			break;				
+*/
 		case B_CLOSE_REQUESTED:
 			fprintf(stderr, "B_CLOSE_REQUESTED\n");
 			break;
@@ -150,12 +120,11 @@ void NetOptimist::MessageReceived(BMessage *message) {
 
 
 int main(int argc, char* argv[]) {
-	static const char *progname;
-	progname = argv[0];
-	if (argc<2)
-		new NetOptimist(Pref::Default.HomePage()); 
-	else 
-		new NetOptimist(argv[1]);
+	const char *url = NULL;
+	if (argc==2)
+		url = argv[1];
+	
+	new NetOptimist(url);
 	be_app->Run();
 	delete be_app;
 	return 0;
