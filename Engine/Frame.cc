@@ -44,6 +44,7 @@ public:
 };
 
 HTMLFrame::HTMLFrame(BLooper *container, int w, int h) : m_container(container) {
+	m_winh = m_winw = 0;
 	Resize(w,h);
 	m_format = NULL;
 	m_nextUrl = NULL;
@@ -72,12 +73,10 @@ void HTMLFrame::ModifyUrl(Url *newUrl) {
 		m_format = new DocFormater();
 		ResourceProcessor::Process(newUrl);
 
-		printf("HTMLFrame::ModifyUrl() : parse_html\n");
+		m_format->AttachToWindow(GetHTMLWindow());
 		m_format->parse_html(rsc);
 		m_format->AttachToFrame(this);
-		printf("HTMLFrame::ModifyUrl() : Refresh\n");
 		Refresh();
-
 
 		// Notify container
 		StrRef ref;
@@ -205,7 +204,12 @@ void HTMLFrame::CheckUrl() {
 	}
 }
 
-void HTMLFrame::Resize(int w, int h) {
-	m_winw = w;
-	m_winh = h;
+bool HTMLFrame::Resize(int w, int h) {
+	if (m_winw != w || m_winh !=h) {
+		m_winw = w;
+		m_winh = h;
+		return true;
+	} else {
+		return false;
+	}
 }

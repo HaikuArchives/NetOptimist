@@ -9,9 +9,11 @@ class UrlQuery;
 class ResourceGetter;
 class DocFormater;
 class BLooper;
+class HTMLWindow;
 #include <string.h>
+#ifdef __BEOS__
 #include <be/support/SupportDefs.h>
-//#include <be_prim.h>
+#endif
 #include "User.h"
 #include "Document.h"
 #include "Action.h"
@@ -42,7 +44,7 @@ public:
 
 	int DocWidth() {  return m_winw; }
 	int DocHeight() { return m_winh; }
-	virtual void Resize(int w, int h);
+	virtual bool Resize(int w, int h);
 
 	// Actions
 	void SetUrl(const char *url_text);
@@ -57,9 +59,9 @@ public:
 
 	/* These are hooks for platform specific code */
 	// Frame
-	//virtual void SetTitle(const char *title) = 0;	// OBSOLTE use m_document->SetTitleRef()
 	virtual void SetFrame(int maxX, int maxY) = 0;
 	virtual void SetFrameColor(const Style *style) = 0;
+	virtual HTMLWindow* GetHTMLWindow() = 0;
 
 	// Basic drawing functions
 	virtual void DrawBorder3D(int x, int y, int w, int h, const Style *style, int penWidth = 1, Look look = LOOK_UP) = 0;
@@ -78,7 +80,7 @@ public:
 	virtual void IncResourceWaiting() = 0;
 	virtual void DecResourceWaiting() = 0;
 
-	virtual uint32 SourceEncoding(void) = 0;
+	virtual uint32 SourceEncoding(void) const = 0;
 	virtual void SetSourceEncoding(uint32) = 0;
 	virtual char * Decode(const char *) = 0;
 
