@@ -191,5 +191,6 @@ bool ToolView::SetEnabled(bool enabled)
 {
 	bool prevState = m_enabled;
 	m_enabled = enabled;
+	if (prevState != m_enabled) Invalidate();
 	return prevState;
 }

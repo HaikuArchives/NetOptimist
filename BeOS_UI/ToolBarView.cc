@@ -245,7 +245,7 @@ bool ToolBarView::SetEnabled(uint32 cmd, bool newState) {
 	for (int32 i = 0; NULL != (view = (ToolView *)toolList->ItemAt(i)); i++) {
 		if (NULL != view->message && cmd == view->message->what) {
 			return view->SetEnabled(newState);
-		} 	
+		}
 	}
 	return false;
 }

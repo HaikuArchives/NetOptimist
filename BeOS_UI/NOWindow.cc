@@ -2,11 +2,11 @@
 #include <Screen.h>
 #include <be/interface/MenuBar.h>
 #include <MenuItem.h>
-#include <Entry.h>
-#include <fs_attr.h>
-#include <Directory.h>
-#include <TextControl.h>
+#include <be/storage/fs_attr.h>
 #include <be/storage/Entry.h>
+#include <be/storage/Directory.h>
+#include <be/storage/Entry.h>
+#include <TextControl.h>
 #include <Shelf.h>
 #include "NOWindow.h"      
 #include "EventCodes.h"
@@ -106,6 +106,7 @@ NOWindow::NOWindow(BRect windowfr) : BWindow(windowfr, "NetOptimist", B_DOCUMENT
 	menuitem->SetEnabled(false);
 	m_bookmarks->AddSeparatorItem();
 	
+#ifdef __BEOS__
 	// Read bookmarks
 	BDirectory dir("/boot/home/config/settings/NetPositive/Bookmarks");
 	int32 count = dir.CountEntries();
@@ -129,6 +130,7 @@ NOWindow::NOWindow(BRect windowfr) : BWindow(windowfr, "NetOptimist", B_DOCUMENT
 	m_bookmarks->AddSeparatorItem();
 	// Add Bookmarks submenu
 	m_menu->AddItem(m_bookmarks);
+#endif
 	
 	// Le menu View
 	submenu = new BMenu("View");
@@ -176,16 +178,19 @@ NOWindow::NOWindow(BRect windowfr) : BWindow(windowfr, "NetOptimist", B_DOCUMENT
 	m_debugNoFillRect->SetMarked(! ISTRACE(FILLRECT));
 	m_menu->AddItem(submenu);
 	
+#ifdef __BEOS__
 	r = Bounds();
 	r.top+=m_menu->Frame().bottom+1;
 	r.bottom=r.top+32;
 	toolBarView = new ToolBarView(r, this);
-#ifdef __BEOS__
 	BShelf *fShelf = new BShelf(toolBarView);
 	fShelf->SetDisplaysZombies(true);
-#endif
 	AddChild(toolBarView);
+#else
+	toolBarView = NULL;
+#endif
 	
+#ifdef __BEOS__
 #if 1
 	urlControl = new BTextControl(BRect(30,5,250,20), "url view",NULL, "http://", new BMessage(URL_ENTERED));
 	//urlControl->SetDivider(0);
@@ -194,17 +199,23 @@ NOWindow::NOWindow(BRect windowfr) : BWindow(windowfr, "NetOptimist", B_DOCUMENT
 	urlControl = new BTextView(BRect(3,5,250,20), "url view",BRect(3,5,250,20), B_FOLLOW_TOP | B_FOLLOW_LEFT, B_WILL_DRAW);
 #endif
 	toolBarView->AddChild(urlControl);
+#endif
 	
 	int const LinkBarHeight = 15;
 	
 	r = Bounds();
+	if (toolBarView) // XXX TEMP
 	r.top+=toolBarView->Frame().bottom+3;
 	r.right -= B_V_SCROLL_BAR_WIDTH;
 	r.bottom -= B_H_SCROLL_BAR_HEIGHT * 2 + LinkBarHeight;
 
 	drawArea = new HTMLView (this, r);
+#ifdef __BEOS__
 	scrollView = new BScrollView("HtmlScroll", drawArea, B_FOLLOW_ALL_SIDES, B_NAVIGABLE, true, true);
 	AddChild(scrollView);
+#else
+	AddChild(drawArea);
+#endif
 	drawArea->MakeFocus();
 	
 	rgb_color bgcol = ui_color(B_PANEL_BACKGROUND_COLOR);
@@ -245,30 +256,37 @@ void NOWindow::UrlChanged(const char *str) {
 		m_linkBarView->Invalidate();
 	}
 	fprintf(stderr, "Url changed to %s\n", str);
+#ifdef __BEOS__
 	toolBarView->SetDocumentIcon(drawArea->m_document.Icon());
+#endif
 }
 
 
 // Updates back and forward buttons and menu items state
 void NOWindow::UpdateNavControls() {
-	fprintf(stderr, "*** Updating nav.controls: Back (%u), Fwd (%u)\n", (bool)History::history.Back(), (bool)History::history.Forward());
-	toolBarView->SetEnabled(bmsgButtonBACK, (bool)History::history.Back());
-	m_menu->FindItem(bmsgButtonBACK)->SetEnabled((bool)History::history.Back());
-	toolBarView->SetEnabled(bmsgButtonNEXT, (bool)History::history.Forward());
-	m_menu->FindItem(bmsgButtonNEXT)->SetEnabled((bool)History::history.Forward());
-	toolBarView->Invalidate();
+	bool back = History::history.HasBack();
+	bool forward = History::history.HasForward();
+	fprintf(stderr, "*** Updating nav.controls: Back (%u), Fwd (%u)\n", back, forward);
+#ifdef __BEOS__
+	toolBarView->SetEnabled(bmsgButtonBACK, back);
+	m_menu->FindItem(bmsgButtonBACK)->SetEnabled(back);
+	toolBarView->SetEnabled(bmsgButtonNEXT, forward);
+	m_menu->FindItem(bmsgButtonNEXT)->SetEnabled(forward);
+#endif
 }
 
 
 void NOWindow::MessageReceived(BMessage *message) {
 	switch (message->what) {
 		case URL_ENTERED:
+#ifdef __BEOS__
 			fprintf(stderr, "User asks %s\n", urlControl->Text());
 			if (Lock()) {
 				drawArea->SetUrl(urlControl->Text());
 				Unlock();
 				UpdateNavControls();
 			}
+#endif
 			break;
 		case URL_MODIFIED:
 			const char *str;
@@ -351,8 +369,6 @@ void NOWindow::MessageReceived(BMessage *message) {
 			UpdateNavControls();
 			break;
 		case bmsgButtonHOME:
-			trace(DEBUG_MESSAGING)
-				fprintf(stdout, "######## Message bmsgButtonHOME received in NO Window\n");
 			SetUrl(Pref::Default.HomePage());
 			UpdateNavControls();
 			break;
@@ -367,6 +383,7 @@ void NOWindow::MessageReceived(BMessage *message) {
 			//delete url;
 			break;
 		}
+#ifdef __BEOS__
 		case bmsgViewReload:
 		case bmsgButtonRELOAD:
 			Cache::cache.ClearAll();
@@ -378,6 +395,7 @@ void NOWindow::MessageReceived(BMessage *message) {
 			wnd->Show();
 			break;
 		}
+#endif
 		case bmsgViewFullscreen: {
 			FullScreen();
 			break;
@@ -432,5 +450,4 @@ bool NOWindow::QuitRequested() {
 	be_app->PostMessage(B_QUIT_REQUESTED);
 	return(true);
 }
-
 

@@ -8,6 +8,7 @@
 class BTextControl;
 class BMenu;
 class BMenuItem;
+class BMenuBar;
 class LinkBarView;
 class StatusBarView;
 
