@@ -50,26 +50,18 @@ bool A_DocElem::Action(::Action action, UrlQuery *href) {
 }
 
 void SCRIPT_DocElem::geometry(HTMLFrame *view) { 
-	// TODO : TYPE, LANGUAGE and SRC are currently ignored
+	// TODO : TYPE and SRC are currently ignored
 	char attr_type[50];
-	char attr_language[50];
+	StrRef attr_language;
 	StrRef attr_src;
 
 	TagDocElem::geometry(view);
 	attr_type[0] = '\0';
-	attr_language[0] = '\0';
 
 	for (TagAttr *iter = list; iter!=NULL; iter=iter->Next()) {
-		iter->ReadStrl("TYPE",attr_language,sizeof(attr_language));
-		iter->ReadStrl("LANGUAGE",attr_type,sizeof(attr_type));
+		iter->ReadStrl("TYPE",attr_type,sizeof(attr_type));
+		iter->ReadStrRef("LANGUAGE",&attr_language);
 		iter->ReadStrRef("SRC",&attr_src);
-	}
-	DocElem * elem = Hides();
-	if (elem) {
-		StrDocElem *code = dynamic_cast<StrDocElem *>(Hides());
-		if (code) {
-			printf("<SCRIPT> : %s\n---\n", code->str);
-		}
 	}
 	if (!attr_src.IsFree()) {
 		fprintf(stderr, "Warning : JavaScript code in separate file is not supported (id=%d)\n", id);
