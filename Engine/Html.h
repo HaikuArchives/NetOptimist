@@ -44,14 +44,15 @@ private:
 	void format();
 	void Draw(bool onlyIfChanged = false);
 public:
-	DocFormater(HTMLFrame *view) {
-		m_frame = view;
+	DocFormater() {
+		m_frame = NULL;
 		doc = cur = last = NULL;
 		m_relationAlreadySet = false;
 		m_jsctx = NULL;
 	}
 	virtual ~DocFormater();
 	void parse_html(Resource *resource);
+	void AttachToFrame(HTMLFrame *frame);
 	bool Select(int x, int y, Action action, UrlQuery *name);
 	void Process(int evt) {
 		switch(evt) {

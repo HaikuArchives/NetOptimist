@@ -169,7 +169,7 @@ public:
 		m_curt = m_data;
 		m_curp = m_curt->m_offset;
 	}
-	void InsertText(const char *p) {
+	void InsertText(const char *p, int len) {
 printf("InsertText() : %s\n", p);
 		if (m_curt) {
 			// Verify that all text has been commited
@@ -181,7 +181,7 @@ printf("InsertText() : %s\n", p);
 		m_curp = 0;
 		m_curt = NULL;
 		TextRun *r = m_insert_last;
-		while (*p) {
+		while (len>0 && *p) {
 			if (!r || r->m_contentLen>=r->m_size) {
 				r = CutHead(&m_free, NULL);
 				if (!r) { 
@@ -196,7 +196,8 @@ printf("InsertText() : %s\n", p);
 				// XXX could we use strncpy here ?
 				*(((char*)r) + sizeof(TextRun) + r->m_contentLen) = *p;
 				r->m_contentLen++;
-				p++;
+
+				p++; len--;
 			}
 		}
 	}
@@ -336,7 +337,7 @@ void DocFormater::format() {
 			// XXX Testing for iter->constraint is the only way i have
 			// XXX found to know if this tag is hidden
 			if (iter->constraint)
-				iter->dynamicGeometry();
+				iter->dynamicGeometry(m_frame);
 		}
 
 		doc->constraint->Init(0,0, m_frame->DocWidth());
@@ -1123,7 +1124,20 @@ void DocFormater::parse_html(Resource *resource) {
 		}
 	}
 	m_openedTags->dump();
+	delete m_openedTags;
+
 	if (found) resource->Close();
+
+#ifdef MALLOC_INFO // We don't have mallinfo on beos ?
+	alloc_info_end = mallinfo();
+
+	fprintf(stderr, "new ordinary blocks : %d\n", alloc_info_end.ordblks - alloc_info_start.ordblks);
+	fprintf(stderr, "new small blocks : %d\n", alloc_info_end.smblks - alloc_info_start.smblks);
+#endif
+}
+
+void DocFormater::AttachToFrame(HTMLFrame *frame) {
+	m_frame = frame;
 
 	if (doc) {
 		// -------- This is POST-PARSING --------
@@ -1138,27 +1152,16 @@ void DocFormater::parse_html(Resource *resource) {
 		}
 		if (!m_relationAlreadySet) {
 			/* Do it once but after relation are set */
-	#ifndef __BEOS__
-			ExportToFWT(doc);
-	#endif
+#ifndef __BEOS__
+			if (ISTRACE(WRITE_FWT_FILE))
+				ExportToFWT(doc);
+#endif
 		}
 	}
 	m_relationAlreadySet = true;
 
-	delete m_openedTags;
-
-#ifdef MALLOC_INFO // We don't have mallinfo on beos ?
-	alloc_info_end = mallinfo();
-
-	fprintf(stderr, "new ordinary blocks : %d\n", alloc_info_end.ordblks - alloc_info_start.ordblks);
-	fprintf(stderr, "new small blocks : %d\n", alloc_info_end.smblks - alloc_info_start.smblks);
-#endif
 }
 
 void DocFormater::InsertText(const char *text, int len) {
-	char *code = new char[len+1];
-	memcpy(code, text, len);
-	code[len] = '\0';
-	m_bufferReader->InsertText(code);
-	delete[] code;
+	m_bufferReader->InsertText(text, len);
 }
