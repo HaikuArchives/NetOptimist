@@ -1,4 +1,4 @@
-
+#include <Rect.h>
 #ifdef __BEOS__
 # include <be/support/Debug.h>
 #endif
@@ -44,7 +44,7 @@ void TagDocElem::place() {
 	printPosition("Tag_place");
 }
 
-void TagDocElem::draw(HTMLFrame *, bool onlyIfChanged) {
+void TagDocElem::draw(HTMLFrame *, const BRect *, bool onlyIfChanged) {
 	printPosition("Tag_draw");
 }
 

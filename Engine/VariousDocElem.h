@@ -75,7 +75,7 @@ class HR_DocElem : public TagDocElem {
 public:
 	HR_DocElem(Tag *tag, TagAttr *attrs) : TagDocElem(tag,attrs) {
 	}
-	virtual void draw(HTMLFrame *m_view, bool onlyIfChanged=false);
+	virtual void draw(HTMLFrame *m_view, const BRect*, bool onlyIfChanged=false);
 	virtual void dynamicGeometry(HTMLFrame *view);
 	virtual void geometry(HTMLFrame *view);
 };
@@ -95,7 +95,7 @@ public:
 	virtual void geometry(HTMLFrame */*view*/) {
 		w=h=10;
 	}
-	virtual void draw(HTMLFrame *m_view, bool onlyIfChanged=false);
+	virtual void draw(HTMLFrame *m_view, const BRect*, bool onlyIfChanged=false);
 };
 
 
@@ -110,7 +110,7 @@ public:
 		m_name_attr[0] = '\0';
 	}
 	virtual void geometry(HTMLFrame *view);
-	virtual void draw(HTMLFrame *m_view, bool onlyIfChanged=false);
+	virtual void draw(HTMLFrame *m_view, const BRect*, bool onlyIfChanged=false);
 	virtual bool IsActive();
 	virtual bool Action(::Action action, UrlQuery *href);
 };
@@ -145,7 +145,7 @@ public:
 	~IMG_DocElem();
 	virtual void geometry(HTMLFrame *view);
 	virtual void dynamicGeometry(HTMLFrame *view);
-	virtual void draw(HTMLFrame *m_view, bool onlyIfChanged=false);
+	virtual void draw(HTMLFrame *m_view, const BRect*, bool onlyIfChanged=false);
 };
 
 #endif

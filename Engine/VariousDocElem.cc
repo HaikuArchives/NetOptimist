@@ -95,9 +95,9 @@ void HR_DocElem::dynamicGeometry(HTMLFrame *view) {
 	super::dynamicGeometry(view);
 }
 
-void HR_DocElem::draw(HTMLFrame *view, bool /*onlyIfChanged*/) {
+void HR_DocElem::draw(HTMLFrame *view, const BRect* updateRect, bool /*onlyIfChanged*/) {
 	view->DrawRect(x+10,y+5,w-20,3, m_style);
-	TagDocElem::draw(view);
+	TagDocElem::draw(view, updateRect);
 }
 
 void LIST_DocElem::geometry(HTMLFrame *view) {
@@ -105,9 +105,9 @@ void LIST_DocElem::geometry(HTMLFrame *view) {
 	m_includedStyle->IncIndent(10);
 }
 
-void LI_DocElem::draw(HTMLFrame *view, bool /*onlyIfChanged*/) {
+void LI_DocElem::draw(HTMLFrame *view, const BRect* updateRect, bool /*onlyIfChanged*/) {
 	view->FillCircle(x+5,y+4,3, m_style);
-	TagDocElem::draw(view);
+	TagDocElem::draw(view, updateRect);
 }
 
 
@@ -161,7 +161,7 @@ void FrameDocElem::geometry(HTMLFrame *view) {
 	}
 }
 
-void FrameDocElem::draw(HTMLFrame *view, bool onlyIfChanged) {
+void FrameDocElem::draw(HTMLFrame *view, const BRect*, bool onlyIfChanged) {
 	if (onlyIfChanged) return;
 	const Style *s = m_includedStyle?m_includedStyle:m_style;
 	view->DrawString(x,y+h-3,w-3,m_text.Str(),s); // XXX I don't really like the "-3" (see Also in "StrDocElem.cc")
@@ -215,7 +215,7 @@ void IMG_DocElem::LoadImage() {
 	GetSize();
 }
 
-void IMG_DocElem::draw(HTMLFrame *view, bool onlyIfChanged) {
+void IMG_DocElem::draw(HTMLFrame *view, const BRect* updateRect, bool onlyIfChanged) {
 	bool needRedraw = !bmp || !onlyIfChanged;
 	LoadImage();
 	if (bmp) {
@@ -239,7 +239,7 @@ void IMG_DocElem::draw(HTMLFrame *view, bool onlyIfChanged) {
 	if (attr_border>0 && m_style->IsLink()) {
 		view->DrawRect(x+attr_hspace,y+attr_vspace,imgW+2*(attr_hspace + attr_border),imgH+2*(attr_hspace + attr_border), m_style);
 	}
-	TagDocElem::draw(view);
+	TagDocElem::draw(view, updateRect);
 }
 
 void IMG_DocElem::geometry(HTMLFrame *view) {

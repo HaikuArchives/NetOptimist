@@ -74,7 +74,7 @@ public:
 	virtual void dynamicGeometry(HTMLFrame *);
 
 	virtual void initPlacement();
-	virtual void draw(HTMLFrame *, bool onlyIfChanged=false) = 0;
+	virtual void draw(HTMLFrame *, const BRect*, bool onlyIfChanged=false) = 0;
 	virtual const char* toString() const = 0;
 	DocElem *Next() const { return m_next; }
 	DocElem *Prev() const { return m_prev; }

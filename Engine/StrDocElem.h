@@ -18,7 +18,7 @@ public:
 		str[len] = '\0';
 	}
 	virtual ~StrDocElem() { free(str); }
-	virtual void draw(HTMLFrame *m_view, bool onlyIfChanged=false);
+	virtual void draw(HTMLFrame *m_view, const BRect *, bool onlyIfChanged=false);
 	virtual void geometry(HTMLFrame *view);
 	virtual const char * toString() const { return "STR"; }
 	virtual const char * printSpecific() { return str; }

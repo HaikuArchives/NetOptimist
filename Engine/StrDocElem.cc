@@ -1,9 +1,10 @@
 #include <UTF8.h>
+#include <stdio.h>
+#include <Rect.h>
 #include "StrDocElem.h"
 #include "Frame.h"
-#include <stdio.h>
 
-void StrDocElem::draw(HTMLFrame *view, bool onlyIfChanged) {
+void StrDocElem::draw(HTMLFrame *view, const BRect *, bool onlyIfChanged) {
 	if (onlyIfChanged) return;
 	view->DrawString(x,y+h-1,w,str,m_style); // XXX I don't really like the "-1"
 	printPosition("Str_draw");

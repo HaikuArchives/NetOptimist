@@ -359,7 +359,7 @@ void INPUT_DocElem::GetSize() {
 }
 
 
-void INPUT_DocElem::draw(HTMLFrame *view, bool /*onlyIfChanged*/) { 
+void INPUT_DocElem::draw(HTMLFrame *view, const BRect *, bool /*onlyIfChanged*/) { 
 	if (m_s) m_style = m_s;
 
 	switch(m_type)

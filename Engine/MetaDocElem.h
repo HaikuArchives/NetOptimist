@@ -49,7 +49,7 @@ public:
         BODY_DocElem(Tag *tag, TagAttr *attrs) : TagDocElem(tag,attrs) {
         }
         virtual void geometry(HTMLFrame *view);
-        virtual void draw(HTMLFrame *m_view, bool onlyIfChanged=false);
+        virtual void draw(HTMLFrame *m_view, const BRect *, bool onlyIfChanged=false);
 };
 
 class LINK_DocElem : public TagDocElem {
@@ -68,7 +68,7 @@ public:
 	MetaDocElem(Tag *tag, TagAttr *attrs) : TagDocElem(tag,attrs) {
 	}
 	virtual void geometry(HTMLFrame *view);
-	virtual void draw(HTMLFrame *m_view, bool onlyIfChanged=false);
+	virtual void draw(HTMLFrame *m_view, const BRect *, bool onlyIfChanged=false);
 	virtual bool IsActive();
 	virtual bool Action(::Action action, UrlQuery *href);
 private:

@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
+#include <Rect.h>
 #ifdef __BEOS__
 #include <support/Debug.h>
 #endif
@@ -786,7 +787,7 @@ void TableDocElem::dynamicGeometry(HTMLFrame *view) {
 	// NOTICE : do not call super::dynamicGeometry !
 }
 
-void TableDocElem::draw(HTMLFrame *view, bool onlyIfChanged) {
+void TableDocElem::draw(HTMLFrame *view, const BRect * updateRect, bool onlyIfChanged) {
 	if (onlyIfChanged) return;
 	view->FillRect(x,y,w,h,m_includedStyle);
 	if (borderWidth>0)
@@ -794,7 +795,7 @@ void TableDocElem::draw(HTMLFrame *view, bool onlyIfChanged) {
 	trace(DEBUG_FORCETABLEBORDER) {
 		view->DrawBorder3D(x,y,w,h,m_includedStyle, borderWidth);
 	}
-	TagDocElem::draw(view);
+	TagDocElem::draw(view, updateRect);
 }
 
 void TableDocElem::initPlacement() {
@@ -903,7 +904,7 @@ void TD_DocElem::place() {
 	printPosition("TD_place");
 }
 
-void TD_DocElem::draw(HTMLFrame *view, bool onlyIfChanged) {
+void TD_DocElem::draw(HTMLFrame *view, const BRect * updateRect, bool onlyIfChanged) {
 	if (onlyIfChanged) return;
 	
 	view->FillRect(x,y,w,h, m_includedStyle);
@@ -917,7 +918,7 @@ void TD_DocElem::draw(HTMLFrame *view, bool onlyIfChanged) {
 	trace(DEBUG_FORCETABLEBORDER) {
 		view->DrawRect(x-1,y-1,w+2,h+2, m_includedStyle);
 	}
-	TagDocElem::draw(view);
+	TagDocElem::draw(view, updateRect);
 }
 
 bool TD_DocElem::update(int right, int top, int bottom) {

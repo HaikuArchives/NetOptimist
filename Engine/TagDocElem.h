@@ -30,7 +30,7 @@ public:
 	/*const ?*/ TagAttr *AttributeList() { return list; }
 	const Tag *tag() { return t; }
 	virtual void place();
-	virtual void draw(HTMLFrame *m_view, bool onlyIfChanged=false);
+	virtual void draw(HTMLFrame *m_view, const BRect*, bool onlyIfChanged=false);
 	virtual void ClosingParent(DocElem *openningTag) {
 		if (!isClosing())
 			fprintf(stderr, "ERROR : try to set matching openning tag for a non-closing tag : id=%d\n", id);

@@ -87,7 +87,7 @@ void MetaDocElem::geometry(HTMLFrame *view) {
 	}
 }
 
-void MetaDocElem::draw(HTMLFrame *view, bool onlyIfChanged) {
+void MetaDocElem::draw(HTMLFrame *view, const BRect *, bool onlyIfChanged) {
 	if (onlyIfChanged) return;
 	if (!m_text.IsFree()) {
 		view->DrawString(x,y+h-3,w-3,m_text.Str(),m_includedStyle); // XXX I don't really like the "-3" (see Also in "StrDocElem.cc")
@@ -110,9 +110,9 @@ void BODY_DocElem::geometry(HTMLFrame *view) {
 	view->SetFrameColor(m_includedStyle);
 }
 
-void BODY_DocElem::draw(HTMLFrame *view, bool onlyIfChanged) {
+void BODY_DocElem::draw(HTMLFrame *view, const BRect * updateRect, bool onlyIfChanged) {
 	if (onlyIfChanged) return;
-	TagDocElem::draw(view);
+	TagDocElem::draw(view, updateRect);
 }
 
 void LINK_DocElem::RelationSet(HTMLFrame *view) {

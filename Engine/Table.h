@@ -39,7 +39,7 @@ public:
 	virtual void geometry(HTMLFrame *view);
 	virtual void dynamicGeometry(HTMLFrame *view);
 	virtual void place();
-	virtual void draw(HTMLFrame *m_view, bool onlyIfChanged=false);
+	virtual void draw(HTMLFrame *m_view, const BRect *, bool onlyIfChanged=false);
 	virtual void initPlacement();
 	void RegisterLine(TR_DocElem*);
 	void RegisterCell(TD_DocElem*);
@@ -83,7 +83,7 @@ public:
 		m_attr_height = -1;
 	}
 	virtual ~TD_DocElem() { }
-	virtual void draw(HTMLFrame *m_view, bool onlyIfChanged=false);
+	virtual void draw(HTMLFrame *m_view, const BRect *, bool onlyIfChanged=false);
 	virtual bool update(int right, int top, int bottom);
 	virtual void geometry(HTMLFrame *view);
 	virtual void place();

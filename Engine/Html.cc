@@ -259,8 +259,8 @@ void DocFormater::Draw(BRect r, bool onlyIfChanged) {
 	printf("DocFormater::Draw : top %d, bottom %d\n", (int)r.top, (int)r.bottom);
 	DocWalker walk(doc);
 	while ((iter = walk.Next())) {
-		if (iter->y<=r.bottom || iter->y+iter->h>=r.top) {
-			iter->draw(m_frame, onlyIfChanged);
+		if (iter->y<=r.bottom && iter->y+iter->h>=r.top) {
+			iter->draw(m_frame, &r, onlyIfChanged);
 		}
 		walk.Feed(iter);
 	}
