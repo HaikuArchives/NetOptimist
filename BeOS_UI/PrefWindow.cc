@@ -11,6 +11,7 @@
 #include <Roster.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "Url.h"
 
 #include "PrefWindow.h"
 #include "UIMessages.h"
@@ -1149,9 +1150,7 @@ void PrefWindow::MessageReceived(BMessage *msg) {
 				m_pref->SetCacheSize(atoi(text->Text()));
 			break;
 		case bmsgPrefCacheClearNow:
-			// FIXME: add cache clearing here
-			// should be very simple: remove all entries in the directory CacheLocation
-			//
+			Cache::cache.ClearAll();
 			break;
 		case bmsgPrefSecWarnOnSend: {
 			unsecure_form_warning w;
