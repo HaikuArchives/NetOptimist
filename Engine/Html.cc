@@ -252,7 +252,6 @@ DocFormater::~DocFormater() {
 void DocFormater::Draw(bool onlyIfChanged) {
 	DocElem *iter;
 	DocWalker walk(doc);
-	printf("DocFormater::Draw onlyIfChanged = %d\n", onlyIfChanged);
 	while ((iter = walk.Next())) {
 		iter->draw(m_frame, onlyIfChanged);
 		walk.Feed(iter);
@@ -400,56 +399,64 @@ enum{ /* THESE MUST BE BIT-WISE EXCLUSIVE */
 // FIXME: this would probably be easier to do via sort of HashMap
 // containing html symbol name and symbol itself...
 
-/* substitues &seq;-style charactes in string */
+/* substitues &seq;-style charactes into string */
 void DocFormater::html_ctrlchar_alter(char *wholestr, char *& ptr) {
+	struct CharMap {
+		const char *html_code;		// html code
+		const char *beos_string;	// utf-8(?) mapping
+		const char *unix_string;	// ascii (extended ascii) mapping
+		bool cont;
+	};
+	const CharMap map[] = {
+		{"#183;",	"&middot;",	"&middot;",	true},
+		{"#146;",	"&apos;",	"&apos;",	true},	// XXX ?
+		{"eacute;",	"Ã©",	"é",	false},
+		{"egrave;",	"Ã¨",	"è",	false},
+		{"agrave;",	"",	"à",	false},
+		{"copy;",	"Â©",	"©",	false},
+		{"reg;",	"(r)",	"(r)",	false},
+		{"deg;",	"",	"°",	false},
+		{"middot;",	"",	".",	false},	// XXX low dot
+		{"szlig;",	"ss",	"ss",	false}, // XXX
+		{"iexcl;",	"!",	"!",	false},
+		{"iquest;",	"?",	"?",	false},
+		{"raquo;",	">",	">",	false},	// XXX ?
+		{"mdash;",	"-",	"-",	false}, // XXX ?
+		{"amp;",	"&",	"&",	false},
+		{"nbsp;",	" ",	" ",	false},
+		{"lt;",	"<",	"<",	false},
+		{"gt;",	">",	">",	false},
+		{"quot;",	"\"",	"\"",	false},
+		{"apos;",	"'",	"'",	false},
+		{NULL, "", "", false}
+	};
+	char *c = ptr;
+		// find '&' in string
+	while (c>=wholestr && *c!='&') c--;
+	if (*c != '&') return; // This is not a special html character sequence
+
+	for (const CharMap *p = map; p->html_code; p++) {
+		if (strcmp(c+1, p->html_code)==0) {
+#ifdef __BEOS__
+			strcpy(c, p->beos_string);
+#else
+			strcpy(c, p->unix_string);
+#endif
+			ptr = c;
+			while (*ptr) ptr++;
+			if (!p->cont) return;
+		}
+	}
+	// If the previous table does not contain this code :
+
 	int pos = ptr - wholestr;
 	for(int i=pos; pos-i < 15 && i>=0; i--) {
 		if (wholestr[i]=='&') {
-			if (!strcmp(wholestr+i+1,"#183;")) {
-				/* We are repacing numeric values by symbolic name */
-				strcpy(wholestr+i+1,"middot;");
-				// continue
-			}
-#ifdef __BEOS__
-			if (!strcmp(wholestr+i+1,"eacute;")) {
-				strcpy(wholestr+i,"Ã©");
-				ptr = (wholestr+i) + 2;
-				return;
-			}
-			if (!strcmp(wholestr+i+1,"egrave;")) {
-				strcpy(wholestr+i,"Ã¨");
-				ptr = (wholestr+i) + 2;
-//				int32 state = 0;
-//				int32 len = 2;
-//				int32 olen = 2;
-//				convert_to_utf8(B_ISO1_CONVERSION, "Ã¨", &len, wholestr+i, &olen, &state);
-//				ptr = (wholestr+i) + 2;
-				return;
-			}
-			if (!strcmp(wholestr+i+1,"copy;")) {
-				strcpy(wholestr+i,"Â©");
-				ptr = (wholestr+i) + strlen("Â©");
-				return;
-			}
-#endif
-			if (!strcmp(wholestr+i+1,"middot;")) {
-				strcpy(wholestr+i,".");
+			// Replace '?cedil;' by '?'
+			if (!strcmp(wholestr+i+2,"cedil;")) {
+				wholestr[i] = wholestr[i+1];
+				wholestr[i+1] = '\0';
 				ptr = (wholestr+i) + 1;
-				return;
-			}
-			if (!strcmp(wholestr+i+1,"szlig;")) {
-				strcpy(wholestr+i,"ss");
-				ptr = (wholestr+i) + 2;
-				return;
-			}
-			if (!strcmp(wholestr+i+1,"copy;")) {
-				strcpy(wholestr+i,"(c)");
-				ptr = (wholestr+i) + 3;
-				return;
-			}
-			if (!strcmp(wholestr+i+1,"reg;")) {
-				strcpy(wholestr+i,"(r)");
-				ptr = (wholestr+i) + 3;
 				return;
 			}
 			// Replace '?circ;' by '?'
@@ -480,68 +487,10 @@ void DocFormater::html_ctrlchar_alter(char *wholestr, char *& ptr) {
 				ptr = (wholestr+i) + 1;
 				return;
 			}
-			if (!strcmp(wholestr+i+1,"iexcl;")) {
-				strcpy(wholestr+i,"!");
-				ptr = (wholestr+i) + 1;
-				return;
-			}
-			if (!strcmp(wholestr+i+1,"iquest;")) {
-				strcpy(wholestr+i,"?");
-				ptr = (wholestr+i) + 1;
-				return;
-			}
-			if (!strcmp(wholestr+i+1,"ntilde;")) {
-				strcpy(wholestr+i,"n");
-				ptr = (wholestr+i) + 1;
-				return;
-			}
-			if (!strcmp(wholestr+i+1,"ccedil;")) {
-				strcpy(wholestr+i,"c");
-				ptr = (wholestr+i) + 1;
-				return;
-			}
-			if (!strcmp(wholestr+i+1,"raquo;")) {
-				strcpy(wholestr+i,">");
-				ptr = (wholestr+i) + 1;
-				return;
-			}
-			if (!strcmp(wholestr+i+1,"mdash;")) {
-				strcpy(wholestr+i,"-");
-				ptr = (wholestr+i) + 1;
-				return;
-			}
-			if (!strcmp(wholestr+i+1,"amp;")) {
-				strcpy(wholestr+i,"&");
-				ptr = (wholestr+i) + 1;
-				return;
-			}
-			if (!strcmp(wholestr+i+1,"nbsp;")) {
-				strcpy(wholestr+i," ");
-				ptr = (wholestr+i) + 1;
-				return;
-			}
-			if (!strcmp(wholestr+i+1,"lt;")) {
-				strcpy(wholestr+i,"<");
-				ptr = (wholestr+i) + 1;
-				return;
-			}
-			if (!strcmp(wholestr+i+1,"quot;")) {
-				strcpy(wholestr+i,"\"");
-				ptr = (wholestr+i) + 1;
-				return;
-			}
-			if (!strcmp(wholestr+i+1,"apos;")) {
-				strcpy(wholestr+i,"'");
-				ptr = (wholestr+i) + 1;
-				return;
-			}
-			if (!strcmp(wholestr+i+1,"gt;")) {
-				strcpy(wholestr+i,">");
-				ptr = (wholestr+i) + 1;
-				return;
-			}
-			if (!strcmp(wholestr+i+1,"#146;")) {
-				strcpy(wholestr+i,"'");
+			// Replace '?tilde;' by '?'
+			if (!strcmp(wholestr+i+2,"tilde;")) {
+				wholestr[i] = wholestr[i+1];
+				wholestr[i+1] = '\0';
 				ptr = (wholestr+i) + 1;
 				return;
 			}
