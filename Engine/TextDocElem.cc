@@ -21,13 +21,9 @@ void B_DocElem::geometry(HTMLFrame *view) {
 }
 
 void I_DocElem::geometry(HTMLFrame *view) {
-        	TagDocElem::geometry(view);
-        	m_includedStyle = m_style->clone(id);
-#ifndef __BEOS__
-        	m_includedStyle->SetFont(be_italic_font);
-#else
+	TagDocElem::geometry(view);
+	m_includedStyle = m_style->clone(id);
 	m_includedStyle->SetFace(B_ITALIC_FACE);
-#endif
 }
 
 void U_DocElem::geometry(HTMLFrame *view) {
@@ -54,8 +50,8 @@ void H2_DocElem::geometry(HTMLFrame *view) {
 void H3_DocElem::geometry(HTMLFrame *view) {
         TagDocElem::geometry(view);
         m_includedStyle = m_style->clone(id);
-        	m_includedStyle->SetFace(B_BOLD_FACE);
-        	m_includedStyle->SetSize(14);
+	m_includedStyle->SetFace(B_BOLD_FACE);
+	m_includedStyle->SetSize(14);
 }
 
 void H4_DocElem::geometry(HTMLFrame *view) {
