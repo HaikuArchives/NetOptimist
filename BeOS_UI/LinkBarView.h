@@ -16,6 +16,7 @@ public:
 	}
 	void AddLinkFromDocument(const Document *docInfo); 
 	virtual void Draw(BRect updateRect);
+	virtual void MouseDown(BPoint where);
 };
 
 #endif
