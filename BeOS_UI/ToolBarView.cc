@@ -237,7 +237,7 @@ void ToolBarView::Draw(BRect updateRect) {
 	DrawBitmap(bitmap, BPoint(0,0));
 #endif
 	if (m_documentIcon)
-		DrawBitmap(m_documentIcon, BPoint(3,5));
+		DrawBitmap(m_documentIcon, BPoint(5,5));
 }
 
 void ToolBarView::MessageReceived(BMessage *message) {
