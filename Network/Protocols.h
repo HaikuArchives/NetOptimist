@@ -18,6 +18,7 @@ struct Protocol {
 	const char *name;
 	bool hasHost;
 	unsigned defaultPort;
+	int (*protocolGetter)(Url *, Resource **rsc);
 };
 
 extern const Protocol protocol_list[];
