@@ -84,9 +84,15 @@ bool INPUT_DocElem::Action(::Action action, UrlQuery * href) {
 		case T_SUBMIT:
 		case T_IMAGE:
 			{
+			bool actionSuccess;
 			m_activated = true;
-			printf("Action on submit/image -> calling action on form\n");
-			bool actionSuccess = m_container->Action(action, href);
+			if (m_container) {
+				printf("Action on submit/image -> calling action on form\n");
+				actionSuccess = m_container->Action(action, href);
+			} else {
+				actionSuccess = false;
+				fprintf(stderr, "Couldn't find <FORM> to performat submit\n");
+			}
 			m_activated = false;
 			return actionSuccess;
 			break;
