@@ -449,12 +449,14 @@ Resource *Cache::Retrieve (Url * url, bool async, bool reformat) {
 			}
 		} else {
 			if (AddResource(urlAbsolute, NULL)) {
-				trace (DEBUG_CACHE)
-					printf("Cache::Retreive queueing url %s\n", urlAbsolute);
-				BMessage msg (GET_IMAGE);
-				msg.AddString ("url", urlAbsolute);
-				msg.AddBool ("reformat", reformat);
-				m_getter->PostMessage (&msg);
+				if (Pref::Default.Online()) {
+					trace (DEBUG_CACHE)
+						printf("Cache::Retreive queueing url %s\n", urlAbsolute);
+					BMessage msg (GET_IMAGE);
+					msg.AddString ("url", urlAbsolute);
+					msg.AddBool ("reformat", reformat);
+					m_getter->PostMessage (&msg);
+				}
 			} else {
 				trace (DEBUG_CACHE)
 					printf("Cache::Retreive: Not http'ing %s -- download pending...\n", urlAbsolute);
