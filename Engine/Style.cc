@@ -2,12 +2,17 @@
 
 const StyleMgr StyleMgr::DefaultStyleMgr;
 
-Style::Style() : face_(B_REGULAR_FACE) {
+// NEXUS/TODO: Introduce relative sizes. New field "rsize_", having 0 value will mean that the size 
+// is absolute, otherwise should be relative. New methods: int RSize() and void RSize(int).
+// Tags like H1-6 should set relative size to according positive or negative value
+
+Style::Style() : 
+		face_(B_REGULAR_FACE),
+		size_(0)
+	 {
 	color = kBlack;
 	bgcolor = kLightGray;
 	linkcolor = kLinkColor;
-	// FIXME: Don't need BFont object in Style at all!
-	font = new BFont();
 	isLink = false;
 	isUnderline = false;
 	ownerId = 0;
@@ -19,12 +24,13 @@ Style::Style(const Style &c) {
 	color = c.color;
 	bgcolor = c.bgcolor;
 	linkcolor = c.linkcolor;
-	font = c.font;
+//	font = c.font;
 	isLink = c.isLink;
 	isUnderline = c.isUnderline;
 	m_indent = c.m_indent;
 	m_nobr = c.m_nobr;
 	face_ = c.face_;
+	size_ = c.size_;
 }
 
 void Style::SetLink() {

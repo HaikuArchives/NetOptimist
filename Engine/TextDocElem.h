@@ -64,6 +64,27 @@ public:
         virtual void geometry(HTMLFrame *view);
 };
 
+class H4_DocElem : public TagDocElem {
+public:
+        H4_DocElem(Tag *tag, TagAttr *attrs) : TagDocElem(tag,attrs) {
+        }
+        virtual void geometry(HTMLFrame *view);
+};
+
+class H5_DocElem : public TagDocElem {
+public:
+        H5_DocElem(Tag *tag, TagAttr *attrs) : TagDocElem(tag,attrs) {
+        }
+        virtual void geometry(HTMLFrame *view);
+};
+
+class H6_DocElem : public TagDocElem {
+public:
+        H6_DocElem(Tag *tag, TagAttr *attrs) : TagDocElem(tag,attrs) {
+        }
+        virtual void geometry(HTMLFrame *view);
+};
+
 class BIG_DocElem : public TagDocElem {
 public:
         BIG_DocElem(Tag *tag, TagAttr *attrs) : TagDocElem(tag,attrs) {

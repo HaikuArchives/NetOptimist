@@ -39,15 +39,25 @@ TagDocElem* TagDocElemFactory::New(Tag *t, TagAttr* attrList) {
 		if (!strcmp(tagName,"BIG")) {
 			return new BIG_DocElem(t, attrList);
 		}
-		if (!strcmp(tagName,"H1")
-			|| !strcmp(tagName,"H2")
-			|| !strcmp(tagName,"H3")
-			|| !strcmp(tagName,"H4")
-			|| !strcmp(tagName,"H5")
-			|| !strcmp(tagName,"H6")
-		) {
+		if (!strcmp(tagName,"H1")) {
 			return new H1_DocElem(t, attrList);
 		}
+		if (!strcmp(tagName,"H2")) {
+			return new H2_DocElem(t, attrList);
+		}
+		if (!strcmp(tagName,"H3")) {
+			return new H3_DocElem(t, attrList);
+		}
+		if (!strcmp(tagName,"H4")) {
+			return new H4_DocElem(t, attrList);
+		}
+		if (!strcmp(tagName,"H5")) {
+			return new H5_DocElem(t, attrList);
+		}
+		if (!strcmp(tagName,"H6")) {
+			return new H6_DocElem(t, attrList);
+		}
+
 		if (!strcmp(tagName,"A")) {
 			return new A_DocElem(t, attrList);
 		}

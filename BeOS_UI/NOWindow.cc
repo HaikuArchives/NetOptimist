@@ -181,32 +181,49 @@ NOWindow::NOWindow(BRect windowfr) : BWindow(windowfr, "NetOptimist", B_DOCUMENT
 	menuitem->SetEnabled(false);
 	submenu1->AddSeparatorItem();
 	BMessage *msg;
+	int enc = Pref::Default.Encoding();
 	submenu1->AddItem(menuitem=new BMenuItem("Central European (ISO 8859-2)", msg = new BMessage(bmsgViewSetEncoding)));
 	msg->AddInt32("encoding", B_ISO2_CONVERSION);
+	if (B_ISO2_CONVERSION == enc) menuitem->SetMarked(true);
 	submenu1->AddItem(menuitem=new BMenuItem("Cyrillic (ISO 8859-5)", msg = new BMessage(bmsgViewSetEncoding)));
 	msg->AddInt32("encoding", B_ISO5_CONVERSION);
+	if (B_ISO5_CONVERSION == enc) menuitem->SetMarked(true);
 	submenu1->AddItem(menuitem=new BMenuItem("Cyrillic (KOI8-R)", msg = new BMessage(bmsgViewSetEncoding)));
 	msg->AddInt32("encoding", B_KOI8R_CONVERSION);
+	if (B_KOI8R_CONVERSION == enc) menuitem->SetMarked(true);
 	submenu1->AddItem(menuitem=new BMenuItem("Cyrillic (MS-DOS 866)", msg = new BMessage(bmsgViewSetEncoding)));
 	msg->AddInt32("encoding", B_MS_DOS_866_CONVERSION);
+	if (B_MS_DOS_866_CONVERSION == enc) menuitem->SetMarked(true);
 	submenu1->AddItem(menuitem=new BMenuItem("Cyrillic (Windows 1251)", msg = new BMessage(bmsgViewSetEncoding)));
 	msg->AddInt32("encoding", B_MS_WINDOWS_1251_CONVERSION);
+	if (B_MS_WINDOWS_1251_CONVERSION == enc) menuitem->SetMarked(true);
 	submenu1->AddItem(menuitem=new BMenuItem("Greek (ISO 8859-7)", msg = new BMessage(bmsgViewSetEncoding)));
 	msg->AddInt32("encoding", B_ISO7_CONVERSION);
+	if (B_ISO7_CONVERSION == enc) menuitem->SetMarked(true);
 	submenu1->AddItem(menuitem=new BMenuItem("Japanese (Auto Detect)", msg = new BMessage(bmsgViewSetEncoding)));
 	msg->AddInt32("encoding", B_JIS_CONVERSION); // FIXME: NEXUS: I'm certainly NOT SURE about this one
+	if (B_JIS_CONVERSION == enc) menuitem->SetMarked(true);
 	submenu1->AddItem(menuitem=new BMenuItem("Japanese (Shift-JIS)", msg = new BMessage(bmsgViewSetEncoding)));
 	msg->AddInt32("encoding", B_SJIS_CONVERSION);
+	if (B_SJIS_CONVERSION == enc) menuitem->SetMarked(true);
 	submenu1->AddItem(menuitem=new BMenuItem("Japanese (EUC)", msg = new BMessage(bmsgViewSetEncoding)));
 	msg->AddInt32("encoding", B_EUC_CONVERSION);
+	if (B_EUC_CONVERSION == enc) menuitem->SetMarked(true);
 	submenu1->AddItem(menuitem=new BMenuItem("Unicode", msg = new BMessage(bmsgViewSetEncoding)));
 	msg->AddInt32("encoding", B_UNICODE_CONVERSION);
+	if (B_UNICODE_CONVERSION == enc) menuitem->SetMarked(true);
+/*	
+	// NEXUS: I don't really know what to do with it. Is there a situation where such conversion available?
 	submenu1->AddItem(menuitem=new BMenuItem("Unicode (UTF-8)", msg = new BMessage(bmsgViewSetEncoding)));
-	msg->AddInt32("encoding", B_ISO1_CONVERSION); // FIXME ??
+	msg->AddInt32("encoding", B_UTF8_CONVERSION); 
+	if (B_ISO1_CONVERSION == enc) menuitem->SetMarked(true);
+*/
 	submenu1->AddItem(menuitem=new BMenuItem("Western (ISO 8859-1)", msg = new BMessage(bmsgViewSetEncoding)));
 	msg->AddInt32("encoding", B_ISO1_CONVERSION);
+	if (B_ISO1_CONVERSION == enc) menuitem->SetMarked(true);
 	submenu1->AddItem(menuitem=new BMenuItem("Western (Mac Roman)", msg = new BMessage(bmsgViewSetEncoding)));
 	msg->AddInt32("encoding", B_MAC_ROMAN_CONVERSION);
+	if (B_MAC_ROMAN_CONVERSION == enc) menuitem->SetMarked(true);
 	submenu->AddItem(submenu1);
 	
 	m_menu->AddItem(submenu);
@@ -451,7 +468,6 @@ void NOWindow::MessageReceived(BMessage *message) {
 				if (prevItem) prevItem->SetMarked(false);
 				item->SetMarked(true);
 			}
-			
 			break;
 		}
 		
@@ -528,11 +544,12 @@ bool NOWindow::QuitRequested() {
 }
 
 uint32 NOWindow::SetEncoding(uint32 enc) {
-	uint32 prev = 0;
+	uint32 prev;
 	if (drawArea) {
 		prev = drawArea->SourceEncoding();
 		drawArea->SetSourceEncoding(enc);
-		SetUrl(this->urlControl->Text());
+		SetUrl(this->urlControl->Text()); // reload
+		Pref::Default.SetEncoding(enc);
 	}
 	return prev;
 }

@@ -14,7 +14,7 @@ HTMLView::HTMLView(BLooper *container, BRect fr) :
 		BView(fr, "DrawArea", B_FOLLOW_ALL_SIDES, B_FRAME_EVENTS | B_WILL_DRAW | B_FULL_UPDATE_ON_RESIZE | B_NAVIGABLE/* | B_PULSE_NEEDED */),
 		HTMLFrame(container, fr.Width(), fr.Height())
 {
-	sourceEncoding_ = 0; // western by default 
+	sourceEncoding_ = Pref::Default.Encoding();
 	SetSourceEncoding(sourceEncoding_);
 	SetDrawingMode(B_OP_OVER); // This is needed to support transparent gifs
 	scrollView = NULL;
@@ -152,15 +152,21 @@ void HTMLView::TargetedByScrollView(BScrollView *scroller) {
 }
 
 void HTMLView::StringDim(const char* str, const Style *style, int* w, int *h) {
+
+	
 	BFont *f;
 	if (style) {
-		f = new BFont(style->Font());
+		f = new BFont();
 		f->SetFamilyAndStyle(Pref::Default.FontFamily(displayEncoding_), NULL);
-		f->SetSize(Pref::Default.FontSize(displayEncoding_));
-		f->SetFace(((Style *)style)->Face());
+		if (0 < style->Size())
+			f->SetSize(style->Size());
+		else
+			f->SetSize(Pref::Default.FontSize(displayEncoding_));
+		f->SetFace(style->Face());
 	} else {
 	 	f = new BFont(&propFont_);
 	}
+	f->SetEncoding(B_UNICODE_UTF8);
 	*w = (int) f->StringWidth(str);
 	font_height fh;
 	f->GetHeight(&fh);
@@ -171,17 +177,19 @@ void HTMLView::StringDim(const char* str, const Style *style, int* w, int *h) {
 }
 
 void HTMLView::DrawString(int x, int y, int w, const char *str, const Style *style) {
-
 	BFont *f;
 	if (style) {
-		f = new BFont(style->Font());
+		f = new BFont(/*style->Font()*/);
 		f->SetFamilyAndStyle(Pref::Default.FontFamily(displayEncoding_), NULL);
-		f->SetSize(Pref::Default.FontSize(displayEncoding_));
-		f->SetFace(((Style *)style)->Face());
+		if (0 < style->Size())
+			f->SetSize(style->Size());
+		else		
+			f->SetSize(Pref::Default.FontSize(displayEncoding_));
+		f->SetFace(style->Face());
 		SetHighColor(style->Color());
 		SetLowColor(style->BGColor());
 	} else f = new BFont(propFont_);
-//	f->SetEncoding(B_UNICODE_UTF8);
+	f->SetEncoding(B_UNICODE_UTF8);
 	SetFont(f);
 	delete f;
 
@@ -194,6 +202,7 @@ void HTMLView::DrawString(int x, int y, int w, const char *str, const Style *sty
 	} else {*/
 		MovePenTo(x, y-3);
 		BView::DrawString(str);
+//	fprintf(stdout, "%s\n", str);
 //	}
 }
 

@@ -89,6 +89,8 @@ class Pref {
 	bool m_warnEnterSecureSite;
 	bool m_warnLeaveSecureSite;
 	
+	// Misc...
+	int encoding_;
 	bool m_online; 	// Allows http
 
 public:
@@ -185,6 +187,9 @@ public:
 	void SetWarnLeaveSecureSite(const bool);
 
 	// Misc...
+	int Encoding();
+	void SetEncoding(int);
+	
 	void SetOnline(bool online);
 	bool Online() const;
 	

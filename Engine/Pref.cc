@@ -1,4 +1,5 @@
 #include "Pref.h"
+#include <be/support/UTF8.h>
 #include <stdlib.h>
 #include <string.h> 
 #include <stdio.h> 
@@ -55,7 +56,8 @@ Pref::Pref() :
 	m_cacheSize(10),
 	m_unsecureFormWarning(NO_WARN_ALWAYS),
 	m_warnEnterSecureSite(true),
-	m_warnLeaveSecureSite(true)
+	m_warnLeaveSecureSite(true),
+	encoding_(B_ISO1_CONVERSION)
 {
 	appDir = NULL;
 	for (int i=0; i<MAX_DISPLAY_ENCODINGS; i++) {
@@ -157,6 +159,7 @@ Pref& Pref::operator = (const Pref& p) {
 	m_unsecureFormWarning = p.m_unsecureFormWarning;
 	m_warnEnterSecureSite = p.m_warnEnterSecureSite;
 	m_warnLeaveSecureSite = p.m_warnLeaveSecureSite;
+	encoding_ = p.encoding_;
 	return *this;
 }
 
@@ -176,6 +179,7 @@ void Pref::Init() {
 }
 
 Pref::~Pref() {
+	Save(); // needs to be saved
 	FREE(appDir);
 	FREE(m_homePage);
 	FREE(m_searchPage);
@@ -339,6 +343,9 @@ const bool Pref::WarnLeaveSecureSite() { return m_warnLeaveSecureSite; }
 void Pref::SetWarnLeaveSecureSite(const bool b) { m_warnLeaveSecureSite = b; } 
 
 // Misc
+int Pref::Encoding() { return encoding_; }
+void Pref::SetEncoding(int e) { encoding_ = e; }
+
 void Pref::Save() {
 	Settings *settings = new Settings(APP_NAME"/"APP_NAME);
 	settings->SetString("_homePage", m_homePage);
@@ -386,6 +393,7 @@ void Pref::Save() {
 	settings->SetInt32("_unsecureFormWarning", m_unsecureFormWarning);
 	settings->SetBool("_warnEnterSecureSite", m_warnEnterSecureSite);
 	settings->SetBool("_warnLeaveSecureSite", m_warnLeaveSecureSite);
+	settings->SetInt32("_encoding", encoding_);
 	delete settings;
 }
 
@@ -477,6 +485,8 @@ void Pref::Load() {
 		m_warnEnterSecureSite = b;
 	if (B_OK == settings->FindBool("_warnLeaveSecureSite", &b))
 		m_warnLeaveSecureSite = b;
+	if (B_OK == settings->FindInt32("_encoding", &n))
+		encoding_ = n;
 	delete settings;		
 }
 

@@ -19,8 +19,8 @@ class Style {
 	/* Text attributes */
 	bool isUnderline;
 	uint16 face_;
-	BFont *font;
-
+	int size_;
+	
 	Style(const Style &c);
 public:
 	Style();
@@ -47,15 +47,19 @@ public:
 		s->ownerId = owner;
 		return s;
 	}
-	const BFont *Font() const { return font; }
-	void SetFont(const BFont * f) { if (f) { if (font) delete font; font = new BFont(f); } }
-	void SetFontFamily(font_family f) { if (font) font->SetFamilyAndStyle(f, NULL); }
+	
+//	void SetFontFamily(font_family f) { if (font) font->SetFamilyAndStyle(f, NULL); }
+
+	// Font attributes access
 	void SetFace(uint16 f);
-	uint16 Face() { return face_; }	
+	uint16 Face() const { return face_; }	
+	void SetSize(int s) { size_ = s; }
+	int Size() const { return size_; }
+	
 	const char *toString() const;
 	void SetLink();
 	bool IsLink() const;
-	void SetUnderline();
+	void SetUnderline(); // obsolete
 	bool IsUnderline() const;
 	void IncIndent(short inc);
 	short Indent() const;

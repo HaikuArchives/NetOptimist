@@ -17,6 +17,8 @@ public:
 	virtual void geometry(HTMLFrame *view);
 	virtual const char * toString() const { return "STR"; }
 	virtual const char * printSpecific() { return str; }
+private:
+	char * Decode(const char * str, uint32 encoding);
 };
 
 
