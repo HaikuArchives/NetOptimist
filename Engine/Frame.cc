@@ -62,17 +62,20 @@ HTMLFrame::~HTMLFrame() {
 void HTMLFrame::ModifyUrl(Url *newUrl) {
 	Cache::cache.SetResourceGetter(m_getter);
 
-	Resource *rsc = newUrl->GetDataNow();
+	Resource *rsc = newUrl->GetIfAvail();
 	if (rsc) {
 		if (m_document.CurrentUrl()) delete m_document.CurrentUrl();
 		if (m_format) delete m_format;
 
 		m_document.SetUrl(newUrl);
 
-		m_format = new DocFormater(this);
+		m_format = new DocFormater();
 		ResourceProcessor::Process(newUrl);
 
+		printf("HTMLFrame::ModifyUrl() : parse_html\n");
 		m_format->parse_html(rsc);
+		m_format->AttachToFrame(this);
+		printf("HTMLFrame::ModifyUrl() : Refresh\n");
 		Refresh();
 
 
@@ -86,6 +89,9 @@ void HTMLFrame::ModifyUrl(Url *newUrl) {
 		m_container->PostMessage(&msg);
 #endif
 		NewDocumentLoaded();
+	} else {
+		// XXX we should notify the user that this
+		// XXX resource is not available (anymore ?)
 	}
 }
 
