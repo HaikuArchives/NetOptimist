@@ -87,7 +87,8 @@ bool Cache::cacheLine::IsValid() {
 	int age_when_downloaded = resource->m_modified>0 ? resource->m_date-resource->m_modified : 0;
 	if (in_cache>60*60 && in_cache > age_when_downloaded) {
 		// This resource has been to long in our cache
-		printf("IsValid: in cache since %ds - age when downloaded %ds\n", in_cache, age_when_downloaded);
+		if (ISTRACE(DEBUG_CACHE))
+			printf("IsValid: in cache since %ds - age when downloaded %ds\n", in_cache, age_when_downloaded);
 		return false;
 	}
 	return ((resource->m_expires==0 || resource->m_expires>=now)
@@ -101,7 +102,8 @@ bool Cache::cacheLine::NeedValidate() {
 	int age_when_downloaded = resource->m_modified>0 ? resource->m_date-resource->m_modified : 0;
 	if (in_cache>60*60*8 || (in_cache>60 && in_cache > age_when_downloaded/8)) {
 		// This resource has been to long in our cache
-		printf("NeedValidate: in cache since %ds - age when downloaded %ds\n", in_cache, age_when_downloaded);
+		if (ISTRACE(DEBUG_CACHE))
+			printf("NeedValidate: in cache since %ds - age when downloaded %ds\n", in_cache, age_when_downloaded);
 		return true;
 	}
 	return (resource->m_expires>0 && resource->m_expires<=now);
@@ -540,7 +542,8 @@ Resource *Cache::Retrieve (Url * url, bool async, bool reformat) {
 						l->m_state = cacheLine::STATE_OK;
 						rsc = l->resource;
 						rsc->m_date = time(0);
-						fprintf(stderr, "Url %s re-validated\n", urlAbsolute);
+						trace (DEBUG_CACHE)
+							fprintf(stderr, "Url %s re-validated\n", urlAbsolute);
 					}
 				}
 		} else {
