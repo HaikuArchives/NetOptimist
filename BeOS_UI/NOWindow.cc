@@ -1,6 +1,7 @@
 #include <Application.h>
 #include <Roster.h>
 #include <Screen.h>
+#include <ScrollView.h>
 #include <be/interface/MenuBar.h>
 #include <MenuItem.h>
 #include <UTF8.h>
@@ -262,12 +263,8 @@ NOWindow::NOWindow(BRect windowfr) : BWindow(windowfr, "NetOptimist", B_DOCUMENT
 	r.bottom -= B_H_SCROLL_BAR_HEIGHT * 2 + LinkBarHeight;
 
 	drawArea = new HTMLView (this, r);
-#if defined(__BEOS__) || 1
 	scrollView = new BScrollView("HtmlScroll", drawArea, B_FOLLOW_ALL_SIDES, B_NAVIGABLE, true, true);
 	AddChild(scrollView);
-#else
-	AddChild(drawArea);
-#endif
 	drawArea->MakeFocus();
 	
 	rgb_color bgcol = ui_color(B_PANEL_BACKGROUND_COLOR);
@@ -527,7 +524,7 @@ void NOWindow::MessageReceived(BMessage *message) {
 			break;
 		default:
 			trace(DEBUG_MESSAGING)
-				fprintf(stderr, "Message received %4s in NO Window\n", (char *)&message->what);
+				fprintf(stderr, "Message received %4.4s in NO Window\n", (char *)&message->what);
 			BWindow::MessageReceived(message);
 	}
 }
