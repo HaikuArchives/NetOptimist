@@ -21,4 +21,5 @@ int enableTrace =
 	WRITE_FWT_FILE |
 	DEBUG_FILE |
 	//DEBUG_FORMS |
+	//DEBUG_JAVASCRIPT |
 	0;

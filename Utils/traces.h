@@ -28,7 +28,8 @@ enum TraceLevel {
 	DEBUG_FORCETABLEBORDER = (1<<23),
 	X11_EVENT = (1<<24),
 	DEBUG_FILE = (1<<25),
-	DEBUG_FORMS = (1<<26)
+	DEBUG_FORMS = (1<<26),
+	DEBUG_JAVASCRIPT = (1<<27)
 };
 
 extern int enableTrace;
