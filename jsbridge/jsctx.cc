@@ -3,7 +3,14 @@
 #include "js.h"
 #include "Html.h"
 #include "NOWindow.h"
+#include "HTMLView.h"
 #include "traces.h"
+#include "Url.h"
+
+/* XXX TODO
+	- We need to ask the user if automatic window open is not allowed
+	- User agent, appName, ... should have a Mozilla-compatible behaviour
+*/
 
 /* I/O function for the standard error stream. */
 int io_stderr (void *context, unsigned char *buffer, unsigned int amount) {
@@ -91,16 +98,10 @@ nojs_window_open(JSClassPtr , void *instance_context, JSInterpPtr ,
 	char *url = new char[argv[0].u.s->len + 1];
 	strncpy(url, (char *)argv[0].u.s->data, argv[0].u.s->len);
 	url[argv[0].u.s->len] = '\0';
-#ifdef DEBUG_ONLY
-	fprintf(stderr, "openning new window for url %s\n", url);
-	delete[] url;
-#else
-	{
+
 	NOWindow *win = new NOWindow(BRect(10,100,600,600));
 	win->SetUrl(url);
 	win->Show();
-	}
-#endif
 
 	return JS_OK;
 }
@@ -118,8 +119,15 @@ nojs_navigator_javaEnabled(JSClassPtr , void *instance_context, JSInterpPtr ,
 }
 
 static JSMethodResult
-nojs_window_url(JSClassPtr , void *instance_context, JSInterpPtr ,
+nojs_window_url(JSClassPtr , void *instance_context, JSInterpPtr interp,
 		int setp, JSType *value, char *error_return) {
+
+	HTMLWindow *window = (HTMLWindow *)instance_context;
+	if (!window) {
+		strcpy(error_return, "no window for document");
+		return JS_ERROR;
+	}
+
 	if (setp) {
 		fprintf(stderr, "nojs_window_url : trying to set property\n");
 		if (value->type != JS_TYPE_STRING) {
@@ -134,8 +142,9 @@ nojs_window_url(JSClassPtr , void *instance_context, JSInterpPtr ,
 		strcpy(error_return, "not implemented");
 		return JS_ERROR;
 	} else {
-		fprintf(stderr, "nojs_window_url : trying to read property\n");
-		// XXX TODO
+		const char * url = window->MainFrame()->m_document.CurrentUrl()->DisplayName()->Str();
+		js_type_make_string (interp, value, (unsigned char*)url, strlen(url));
+
 		return JS_OK;
 	}
 }
@@ -144,8 +153,7 @@ static JSMethodResult
 nojs_navigator_appCodeName(JSClassPtr , void *instance_context, JSInterpPtr interp,
 		int setp, JSType *value, char *error_return) {
 	if (setp) {
-		fprintf(stderr, "nojs_navigator_appCodeName : trying to set property\n");
-		// XXX Do we have a read-only property ?
+		fprintf(stderr, "nojs_navigator_appCodeName : trying to set read-only property\n");
 		return JS_ERROR;
 	} else {
 		const char appCodeName[] = "NetO";
@@ -155,11 +163,23 @@ nojs_navigator_appCodeName(JSClassPtr , void *instance_context, JSInterpPtr inte
 }
 
 static JSMethodResult
+nojs_navigator_userAgent(JSClassPtr , void *instance_context, JSInterpPtr interp,
+		int setp, JSType *value, char *error_return) {
+	if (setp) {
+		fprintf(stderr, "nojs_navigator_useAgent : trying to set read-only property\n");
+		return JS_ERROR;
+	} else {
+		const char userAgent[] = "NetOptimist/dev";
+		js_type_make_string (interp, value, (unsigned char*)userAgent, sizeof(userAgent)-1);
+		return JS_OK;
+	}
+}
+
+static JSMethodResult
 nojs_navigator_appName(JSClassPtr , void *instance_context, JSInterpPtr interp,
 		int setp, JSType *value, char *error_return) {
 	if (setp) {
-		fprintf(stderr, "nojs_navigator_appName : trying to set property\n");
-		// XXX Do we have a read-only property ?
+		fprintf(stderr, "nojs_navigator_appName : trying to set read-only property\n");
 		return JS_ERROR;
 	} else {
 		const char appName[] = "NetOptimist";
@@ -211,21 +231,11 @@ void JsCtx::Init(DocFormater *document) {
 	js_instantiate_class (m_jsdata->interp, cls, document, NULL, documentObject);
 	js_set_var (m_jsdata->interp, "document", documentObject);
 	
-	// window class
-	cls = js_class_create (NULL, NULL, 0 /* no_auto_destroy */, NULL /*ctor*/);
-	js_class_define_method (cls, "open", JS_CF_STATIC, nojs_window_open);
-	js_class_define_property (cls, "url", 0, nojs_window_url);
-	js_define_class (m_jsdata->interp, cls, "NetOptimistWindow");
-
-	// window object
-	JSType * windowObject = new JSType;
-	js_instantiate_class (m_jsdata->interp, cls, document, NULL, windowObject);
-	js_set_var (m_jsdata->interp, "window", windowObject);
-
 	// navigator class
 	cls = js_class_create (NULL, NULL, 0 /* no_auto_destroy */, NULL /*ctor*/);
 	js_class_define_property (cls, "appCodeName", JS_CF_IMMUTABLE, nojs_navigator_appCodeName);
 	js_class_define_property (cls, "appName", JS_CF_IMMUTABLE, nojs_navigator_appName);
+	js_class_define_property (cls, "userAgent", JS_CF_IMMUTABLE, nojs_navigator_userAgent);
 	js_class_define_method (cls, "javaEnabled", JS_CF_STATIC, nojs_navigator_javaEnabled);
 	js_define_class (m_jsdata->interp, cls, "NetOptimistNavigator");
 
@@ -235,12 +245,31 @@ void JsCtx::Init(DocFormater *document) {
 	js_set_var (m_jsdata->interp, "navigator", navigatorObject);
 }
 
+void JsCtx::SetWindow(HTMLWindow *window) {
+	JSClassPtr cls;
+
+	// window class
+	cls = js_class_create (NULL, NULL, 0 /* no_auto_destroy */, NULL /*ctor*/);
+	js_class_define_method (cls, "open", JS_CF_STATIC, nojs_window_open);
+	js_class_define_property (cls, "url", 0, nojs_window_url); // XXX replace by a Location object
+	js_define_class (m_jsdata->interp, cls, "NetOptimistWindow");
+
+	// window object
+	JSType * windowObject = new JSType;
+	js_instantiate_class (m_jsdata->interp, cls, window, NULL, windowObject);
+	js_set_var (m_jsdata->interp, "window", windowObject);
+};
+
 void JsCtx::Execute(const char *t) {
 	if (ISTRACE(DEBUG_JAVASCRIPT)) {
 		fprintf (stdout, ">> JsCtx::Execute code:\n%s\n", t);
 	}
 	if (!js_eval(m_jsdata->interp, (char*)t)) {
 		fprintf (stderr, ">> JsCtx::Execute failed: %s\n", js_error_message (m_jsdata->interp));
+		if (!ISTRACE(DEBUG_JAVASCRIPT)) {
+			// Print source code only if not printed above
+			fprintf (stdout, ">> JsCtx::Execute code:\n%s\n", t);
+		}
 	}
 }
 
