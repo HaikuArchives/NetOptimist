@@ -20,14 +20,16 @@
 #include "Pref.h"
 #include "StrPlus.h"
 
+int httpGetter(Url *url, Resource** rsc);
+int fileGetter(Url *url, Resource **rsc);
 
 const Protocol protocol_list[] = {
-	{ HttpId, "http:", true, 80 },
-	{ FileId, "file:", false, 0 },
-	{ HttpsId, "https:", true, 443 },
-	{ MailToId, "mailto:", false, 0 },
-	{ FtpId, "ftp:", true, 21 },
-	{ BoggusId, NULL, false, 0 }
+	{ HttpId, "http:", true, 80, httpGetter },
+	{ FileId, "file:", false, 0, fileGetter },
+	{ HttpsId, "https:", true, 443, NULL },
+	{ MailToId, "mailto:", false, 0, NULL },
+	{ FtpId, "ftp:", true, 21, NULL },
+	{ BoggusId, NULL, false, 0, NULL }
 };
 
 static char *my_dirname(register char *pathname)
@@ -100,8 +102,11 @@ void Cache::cacheLine::Remove() {
 			struct stat buf;
 			if (stat (resource->CachedFile(), &buf) >= 0
 					&& (buf.st_mode & S_IFREG) == S_IFREG) {
-				fprintf(stderr, "Cache: removing %s\n", resource->CachedFile());
-				remove(resource->CachedFile());
+				if (remove(resource->CachedFile())==0) {
+					fprintf(stdout, "Cache: removed %s\n", resource->CachedFile());
+				} else {
+					fprintf(stderr, "Cache: could not remove %s : %s\n", resource->CachedFile(), strerror(errno));
+				}
 			}
 			delete resource;
 			resource = NULL;
@@ -119,6 +124,10 @@ void Cache::cacheLine::Remove() {
 }
 
 Cache::Cache ()
+{
+}
+
+void Cache::Init()
 {
 	char line[1000];
 	char url[1000];
@@ -234,7 +243,7 @@ Cache::~Cache () {
 				case cacheLine::TYPE_FILEREF:
 				{
 					const char *filename;
-					if (strncmp(l->resource->CachedFile(), Pref::Default.CacheDir(), strlen(Pref::Default.CacheDir()))==0)
+					if (strncmp(l->resource->CachedFile(), Pref::Default.CacheLocation(), strlen(Pref::Default.CacheLocation()))==0)
 						filename = my_basename(l->resource->CachedFile());
 					else
 						filename = l->resource->CachedFile();
@@ -254,7 +263,7 @@ Cache::~Cache () {
 
 						char absfname[500];
 						char *fname;
-						strcpy(absfname, Pref::Default.CacheDir());
+						strcpy(absfname, Pref::Default.CacheLocation());
 						fname = absfname + strlen(absfname);
 						if (fname>absfname && fname[-1]!='/') { *fname = '/'; fname++; }
 						if (!strnull(mimetype)) {
@@ -414,39 +423,19 @@ Resource *Cache::Retrieve (Url * url, bool async, bool reformat) {
 
 	rsc = Find (url);
 
-	if (!rsc && url->Protocol()->id == HttpId) {
-		// http:// protocol
-		if (Pref::Default.Online()) {
-			if (!async) {
-				// Here we try to get the resource via http
-				ServerConnection *server =
-					ConnectionMgr::Default.GetConnection (url);
-	
-				if (server) {
-					int protocol_result;
+	if (!rsc) {
+		if (!async) {
+			const Protocol *proto = url->Protocol();
+				// If the protocol has host in url, we need to be online to connect
+				// Otherwise, protocol getter is allowed
+			if (!proto->hasHost || Pref::Default.Online()) {
+				if (proto->protocolGetter) {
 					trace (DEBUG_FILE)
-						printf("Cache->HTTP %s\n", urlAbsolute);
-					server->OpenConnection (url);
-					server->PrepareHeader (url);
-					server->SendHeader (url);
-					server->ReadHeader (&protocol_result);
-
-					if (protocol_result != 204) {
-						// XXX Code 204 => no body but this should be handled in http specific code
-						rsc = server->GetData ();
+						printf("Cache->%s for url %s ...\n", proto->name, urlAbsolute);
+					int status = proto->protocolGetter(url, &rsc);
+					if (status) {
+						fprintf(stderr, "%s error when downloading : %s\n", proto->name, urlAbsolute);
 					}
-					StrRef reason;
-					if (!server->Status(&reason)) {
-						fprintf(stderr, "Http error when downloading : %s\n", urlAbsolute);
-						if (!reason.IsFree()) {
-							fprintf(stderr, "Reason : %s\n", reason.Str());
-						} else {
-							fprintf(stderr, "Unknown http reason\n");
-						}
-					}
-					ConnectionMgr::Default.ReleaseConnection (server);
-				} else {
-					fprintf (stderr, "Could not get connection to Server\n");
 				}
 				if (rsc) {
 					//Add this resource in the cache
@@ -457,24 +446,20 @@ Resource *Cache::Retrieve (Url * url, bool async, bool reformat) {
 						url->SetDisplayName(&r);
 					}
 				}
+			}
+		} else {
+			if (AddResource(urlAbsolute, NULL)) {
+				trace (DEBUG_CACHE)
+					printf("Cache::Retreive queueing url %s\n", urlAbsolute);
+				BMessage msg (GET_IMAGE);
+				msg.AddString ("url", urlAbsolute);
+				msg.AddBool ("reformat", reformat);
+				m_getter->PostMessage (&msg);
 			} else {
-				if (AddResource(urlAbsolute, NULL)) {
-					trace (DEBUG_CACHE)
-						printf("Cache::Retreive queueing url %s\n", urlAbsolute);
-					BMessage msg (GET_IMAGE);
-					msg.AddString ("url", urlAbsolute);
-					msg.AddBool ("reformat", reformat);
-					m_getter->PostMessage (&msg);
-				} else {
-					trace (DEBUG_CACHE)
-						printf("Cache::Retreive: Not http'ing %s -- download pending...\n", urlAbsolute);
-				}
+				trace (DEBUG_CACHE)
+					printf("Cache::Retreive: Not http'ing %s -- download pending...\n", urlAbsolute);
 			}
 		}
-	}
-	if (! rsc && url->Protocol()->id == FileId) {
-		// file://
-		rsc = new FileResource(url->File());
 	}
 
 	if (! rsc && !async) {
@@ -739,4 +724,43 @@ Resource *Url::GetDataNow() {
 	if (!m_resource && !m_error)
 		m_resource = Cache::cache.Retrieve (this, false, false);
 	return m_resource;
+}
+
+int httpGetter(Url *url, Resource** rsc) {
+	*rsc = NULL;
+
+	ServerConnection *server =
+		ConnectionMgr::Default.GetConnection (url);
+
+	if (server) {
+		int protocol_result;
+		server->OpenConnection (url);
+		server->PrepareHeader (url);
+		server->SendHeader (url);
+		server->ReadHeader (&protocol_result);
+
+		if (protocol_result != 204) {
+			// XXX Code 204 => no body but why ?
+			*rsc = server->GetData ();
+		}
+		StrRef reason;
+		if (!server->Status(&reason)) {
+			if (!reason.IsFree()) {
+				fprintf(stderr, "Reason : %s\n", reason.Str());
+			} else {
+				fprintf(stderr, "Unknown http reason\n");
+			}
+		}
+		ConnectionMgr::Default.ReleaseConnection (server);
+	} else {
+		fprintf (stderr, "Could not get connection to Server\n");
+	}
+	if (*rsc) return 0;
+	else	  return -1;
+}
+
+int fileGetter(Url *url, Resource **rsc) {
+	* rsc = new FileResource(url->File());
+	if (*rsc) return 0;
+	else	  return -1;
 }
