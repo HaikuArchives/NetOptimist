@@ -24,7 +24,7 @@ public:
 	bool HasBack();
 	bool HasForward();
 	void Add(const StrRef *);
-	void Query(const char *pattern);
+	int Query(StrRef entries[], int maxEntries, const char *pattern);
 };
 
 #endif

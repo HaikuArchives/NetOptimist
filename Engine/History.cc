@@ -60,13 +60,16 @@ bool History::HasForward() {
 	return (cur && cur->next);
 }
 
-void History::Query(const char *url) {
-	if (strlen(url)<5) return;
+int History::Query(StrRef entries[], int maxEntries, const char *url) {
+	//if (strlen(url)<5) return;
+	int nb = 0;
 	HistLine *p = last;
-	while (p) {
+	while (p && nb < maxEntries) {
 		if (strstr(p->url.Str(), url)) {
-			printf("Matches %s\n", p->url.Str());
+			entries[nb].SetToRef(&p->url);
+			nb++;
 		}
 		p = p->prev;
 	}
+	return nb;
 }
