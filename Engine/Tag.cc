@@ -17,7 +17,7 @@ const TagInfo TagInfo::tagInfos[] = {
 	{" BR",		0,	-1,	NEVER_CLOSE,	true},
 	{"/NOBR",	-1,	-1,	ALWAYS_CLOSE,	false},
 	{" HR",		2,	0,	NEVER_CLOSE,	true},
-	{"/P",		5,	-1,	CAN_CLOSE,	false},
+	{"/P",		5,	0,	CAN_CLOSE,	false},
 	{"/A",		-1,	-1,	ALWAYS_CLOSE,	true},
 	{"/SPAN",	-1,	-1,	ALWAYS_CLOSE,	true},
 	{" LINK",	-1,	-1,	NEVER_CLOSE,	true},
@@ -62,7 +62,7 @@ const TagInfo TagInfo::tagInfos[] = {
 	{" TEXTAREA",	-1,	-1,	ALWAYS_CLOSE,	false},
 	{"/BUTTON",	-1,	-1,	ALWAYS_CLOSE,	true},
 	{"/SELECT",	-1,	-1,	ALWAYS_CLOSE,	false},
-	{"/OPTION",	0,	0,	CAN_CLOSE,	false},	// XXX break values are temporary because this tag should be hidden
+	{"/OPTION",	-1,	-1,	CAN_CLOSE,	false},
 	{"/FORM",	-1,	-1,	ALWAYS_CLOSE,	true},
 	{"/PRE",	0,	-1,	ALWAYS_CLOSE,	true},
 	{" !--",	-1,	-1,	NEVER_CLOSE,	true},
