@@ -60,19 +60,6 @@ static inline void StrFree(char *str) {
 	delete[] str;
 }
 
-#if 0
-void StrRelease(StrRef *ref) {
-	ref->m_nbrefs--;
-	if (ref->m_nbrefs==0 {
-		if (!ro) {
-			delete[] ref->str;
-			ref->str = NULL;
-		}
-		delete ref;
-	}
-}
-#endif
-
 class StrRef {
 public:
 	StrRef() {
