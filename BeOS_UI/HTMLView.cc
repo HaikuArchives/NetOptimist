@@ -80,17 +80,20 @@ void HTMLView::Refresh() {
 
 void HTMLView::Redraw() {
 	//Draw(Bounds());
-	m_format->Msg(EXPOSE_IF_CHANGED);
-	m_format->ProcessAll();
+	if (m_format) {
+		m_format->Msg(EXPOSE_IF_CHANGED);
+		m_format->ProcessAll();
+	}
 }
 
 void HTMLView::NewDocumentLoaded() {
-	if (strnull(m_document.TitleRef())) {
+	const char *title = m_document.TitleRef();
+	if (strnull(title)) {
 		fprintf(stderr, "HTMLView::SetTitle : title is null\n");
-	} else {
-		BWindow *window = Window();
-		if (window) window->SetTitle(m_document.TitleRef());
+		title = "NetOptimist";
 	}
+	BWindow *window = Window();
+	if (window) window->SetTitle(title);
 }
 
 void HTMLView::MouseDown(BPoint point) {
@@ -141,17 +144,20 @@ void HTMLView::StringDim(const char* str, const Style *style, int* w, int *h) {
 void HTMLView::DrawString(int x, int y, int w, const char *str, const Style *style) {
 	if (style) {
 		const BFont *f = (style->Font()) ? style->Font() : be_plain_font;
+#if __BEOS__
 		BFont f2(f);
 		f2.SetEncoding(B_ISO_8859_1);
 		SetFont(&f2);
+#else
+		SetFont(f);
+#endif
 		SetHighColor(style->Color());
 		SetLowColor(style->BGColor());
 	}
 	if (style->IsUnderline()) {
 		MovePenTo(x, y-1);
 		BView::DrawString(str);
-		MovePenBy( 0, 1);
-		StrokeLine(BPoint(x,y));
+		StrokeLine(BPoint(x,y), BPoint(x+w,y));
 	} else {
 		MovePenTo(x, y);
 		BView::DrawString(str);
@@ -175,7 +181,7 @@ void HTMLView::DrawBorder3D(int x, int y, int w, int h, const Style *style, int 
 	rgb_color c1, c2;
 	if (look == LOOK_UP) {
 		c1 = kLightGray;
-		c2 = kGray;
+		c2 = kDarkGray;
 	} else {
 		c1 = kDarkGray;
 		c2 = kLightGray;
