@@ -7,6 +7,7 @@
 #include <Alert.h>
 #include <Entry.h>
 #include <Application.h>
+#include <Window.h>
 #include <stdio.h>
 #include "ToolBarView.h"
 
@@ -16,7 +17,7 @@
 ToolView::	ToolView(BRect r, const char *a_name, BMessage *msg, BBitmap *low, BBitmap *high, BBitmap *disabled)
 :BView(r, a_name , B_FOLLOW_NONE, B_FRAME_EVENTS|B_WILL_DRAW|B_NAVIGABLE)
 {
-	message=msg;
+	invok_message=msg;
 	
 	bitmapLow=low;
 	bitmapHigh=high;
@@ -68,7 +69,7 @@ ToolView::ToolView(BMessage *data) : BView(data)
 	BMessage r;	
 	if(data->FindMessage("my_message", &r) == B_OK)
 	{
-		//message = (BMessage *)instantiate_object(&restore);
+		//invok_message = (BMessage *)instantiate_object(&restore);
 	}
 	else
 	{
@@ -76,8 +77,8 @@ ToolView::ToolView(BMessage *data) : BView(data)
 		alert->Go();
 	}
 	
-	message = new BMessage(r);
-	if(message==NULL)
+	invok_message = new BMessage(r);
+	if(invok_message==NULL)
 	{
 		BAlert *alert = new BAlert(NULL, "Message Null lors de la restauration!", "OK");
 		alert->Go();
@@ -89,7 +90,7 @@ ToolView::ToolView(BMessage *data) : BView(data)
 
 ToolView::~ToolView()
 {
-	delete message;
+	delete invok_message;
 }	
 
 status_t ToolView::Archive(BMessage *data, bool deep) const
@@ -97,7 +98,7 @@ status_t ToolView::Archive(BMessage *data, bool deep) const
 	
 	BView::Archive(data, deep);
 	BMessage archive1,archive2;
-	BMessage me(*message);
+	BMessage me(*invok_message);
 	bitmapLow->Archive(&archive1);
 	data->AddMessage("bitmapLow", &archive1);
 	
@@ -124,16 +125,16 @@ ToolView* ToolView::Instantiate(BMessage *data)
 
 
 
-void ToolView::MouseDown(BPoint point)
+void ToolView::MouseDown(BPoint /*point*/)
 { 
-	if(message==NULL)
+	if(invok_message==NULL)
 	{
 		BAlert *alert = new BAlert(NULL, "Message Null!", "OK");
 		alert->Go();
 	}
 	else if (m_enabled)
 	{
-		if (be_app->PostMessage(message) != B_OK) {
+		if (Window()->PostMessage(invok_message) != B_OK) {
 			BAlert *alert = new BAlert(NULL, "Could not send message to application", "OK");
 			alert->Go();
 		}
@@ -149,8 +150,8 @@ void ToolView::MouseMoved(BPoint point,uint32 transit, const BMessage *message)
 	{	
 		MouseUp(point);
 	}
-
 }
+
 void ToolView::MouseUp(BPoint point)
 {
 	click=false;

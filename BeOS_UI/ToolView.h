@@ -11,7 +11,7 @@ public:
 	BBitmap *bitmapLow;
 	BBitmap *bitmapHigh;
 	BBitmap *bitmapDisabled;
-	BMessage *message;
+	BMessage *invok_message;
 	bool click;
 	bool original;
 	

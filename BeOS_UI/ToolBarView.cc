@@ -34,7 +34,11 @@ ToolBarView::ToolBarView(BRect frame, BLooper *l) :
 	bg1=BTranslationUtils::GetBitmapFile("Icons/BackGround1.png");
 	bg12=BTranslationUtils::GetBitmapFile("Icons/BackGround1_2.png");
 	bg2=BTranslationUtils::GetBitmapFile("Icons/BackGround2.png");
+#ifdef __BEOS__
 	SetViewColor(B_TRANSPARENT_COLOR);
+#else
+	SetViewColor(ui_color(B_PANEL_BACKGROUND_COLOR));
+#endif
 
 	/*
 	BFile file("NetOptimist", B_READ_ONLY);
@@ -108,7 +112,7 @@ ToolBarView::ToolBarView(BRect frame, BLooper *l) :
 	t=new ToolView(r, "Stop",msg, BTranslationUtils::GetBitmapFile(bitmapLow),BTranslationUtils::GetBitmapFile(bitmapHigh));
 	if(t)
 	{
-		t->SetEnabled(false);	// XXX not implemented yet
+		t->SetEnabled(false);	// Only enabled during downloads
 		toolList->AddItem(t);
 		AddChild(t);		
 		dragger= new BDragger(r2, t,0);
@@ -253,7 +257,7 @@ bool ToolBarView::SetEnabled(uint32 cmd, bool newState) {
 	if (!toolList) return false;
 	ToolView *view = NULL;
 	for (int32 i = 0; NULL != (view = (ToolView *)toolList->ItemAt(i)); i++) {
-		if (NULL != view->message && cmd == view->message->what) {
+		if (NULL != view->invok_message && cmd == view->invok_message->what) {
 			return view->SetEnabled(newState);
 		}
 	}
