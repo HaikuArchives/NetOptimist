@@ -47,7 +47,7 @@ const TagInfo TagInfo::tagInfos[] = {
 	{"/TR",		0,	0,	ALWAYS_CLOSE,	false},
 	{"/TABLE",	5,	5,	ALWAYS_CLOSE,	true},
 	{"/DIV",	0,	0,	ALWAYS_CLOSE,	true},
-	{"/CENTER",	0,	-1,	ALWAYS_CLOSE,	true},
+	{"/CENTER",	0,	0,	ALWAYS_CLOSE,	true},
 	{"/SCRIPT",	-1,	-1,	NEVER_CLOSE,	false},	// due to a specific javascript parsing, this
 												// tag is marked as NEVER_CLOSE
 	{"/NOSCRIPT",	-1,	-1,	ALWAYS_CLOSE,	false},
