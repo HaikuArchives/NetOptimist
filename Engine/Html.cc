@@ -1123,24 +1123,20 @@ void DocFormater::AttachToWindow(HTMLWindow *win) {
 void DocFormater::AttachToFrame(HTMLFrame *frame) {
 	m_frame = frame;
 
-	if (doc) {
+	if (doc && !m_relationAlreadySet) {
 		// -------- This is POST-PARSING --------
 		DocWalker walk(doc);
 		DocElem *iter;
 
 		while ((iter = walk.Next())) {
-			if (!m_relationAlreadySet) {
-				iter->RelationSet(m_frame);
-			}
+			iter->RelationSet(frame);
 			walk.Feed(iter);
 		}
-		if (!m_relationAlreadySet) {
-			/* Do it once but after relation are set */
+		/* Do it once but after relation are set */
 #ifndef __BEOS__
-			if (ISTRACE(WRITE_FWT_FILE))
-				ExportToFWT(doc);
+		if (ISTRACE(WRITE_FWT_FILE))
+			ExportToFWT(doc);
 #endif
-		}
 	}
 	m_relationAlreadySet = true;
 
