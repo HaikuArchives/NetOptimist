@@ -100,9 +100,9 @@ public:
 		
 #ifdef __BEOS__
 	~Pref();
-	const char *AppDir();
 	void Init();
 #endif
+	const char *AppDir();
 	// General
 	void SetHomePage(const char *);
 	const char * HomePage();

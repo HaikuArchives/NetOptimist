@@ -84,9 +84,9 @@ Pref& Pref::operator = (const Pref& p) {
 	FREE(m_httpProxyName);
 	FREE(m_ftpProxyName);
 	FREE(m_cacheLocation);
-	for (int i=0; i<MAX_DISPLAY_ENCODINGS; i++) {
-		FREE(m_fontFamily[i]);
-		FREE(m_fixedFontFamily[i]);
+	for (int fi=0; fi<MAX_DISPLAY_ENCODINGS; fi++) {
+		FREE(m_fontFamily[fi]);
+		FREE(m_fixedFontFamily[fi]);
 	}
 	// copy everything		
 	m_homePage = strdup(p.m_homePage); 
@@ -160,10 +160,6 @@ Pref::~Pref() {
 	}
 }
 
-const char* Pref::AppDir() {
-	return appDir;
-}
-
 const char* Pref::CacheDir() {
 	static char cacheDir[1024];
 	// FIXME: shouldn't calculate it every time (!!!)
@@ -191,6 +187,14 @@ const char* Pref::CacheDir() {
 }
 
 #endif
+
+const char* Pref::AppDir() {
+#ifdef __BEOS__
+	return appDir;
+#else
+	return ".";
+#endif
+}
 
 bool Pref::Online() const {
 	return m_online;
