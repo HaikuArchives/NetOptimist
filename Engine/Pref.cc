@@ -6,10 +6,10 @@
 #include <be/app/Application.h>
 #ifdef __BEOS__
 #include <app/Roster.h>
+#endif
 #include <storage/Path.h> 
 #include <storage/Entry.h> 
 #include <storage/FindDirectory.h>
-#endif
 
 #include "Settings.h"
 
@@ -57,9 +57,7 @@ Pref::Pref() :
 	m_warnEnterSecureSite(true),
 	m_warnLeaveSecureSite(true)
 {
-#ifdef __BEOS__
 	appDir = NULL;
-#endif
 	for (int i=0; i<MAX_DISPLAY_ENCODINGS; i++) {
 		m_fontFamily[i] = strdup(DEFAULT_PROP_FONT);
 		m_fontSize[i] = 12;
@@ -162,8 +160,8 @@ Pref& Pref::operator = (const Pref& p) {
 	return *this;
 }
 
-#ifdef __BEOS__
 void Pref::Init() {
+#ifdef __BEOS__
 	app_info info; 
 	BPath path; 
 	be_app->GetAppInfo(&info); 
@@ -171,6 +169,9 @@ void Pref::Init() {
 	entry.GetPath(&path); 
 	path.GetParent(&path); 
 	appDir = strdup(path.Path());
+#else
+	appDir = strdup(".");
+#endif
 	printf("--- current dir %s\n", appDir);
 }
 
@@ -187,40 +188,8 @@ Pref::~Pref() {
 	}
 }
 
-const char* Pref::CacheDir() {
-	static char cacheDir[1024];
-	// FIXME: shouldn't calculate it every time (!!!)
-	BPath path;
-	find_directory(B_USER_SETTINGS_DIRECTORY, &path);
-	path.Append(APP_NAME"/NetCache/");
-	strcpy(cacheDir, path.Path());
-	strcat(cacheDir, "/");
-	return cacheDir;
-}
-
-#else
-
-const char* Pref::CacheDir() {
-	static char cacheDir[1024];
-/*
-	struct stat st;
-	sprintf(cacheDir, "/local/%s/NetOptimist/NetCache/", getenv("USER"));
-	if (stat(cacheDir, &st)==0 && (st.st_mode & S_IFDIR == S_IFDIR)) {
-		return cacheDir;
-	}
-*/
-	sprintf(cacheDir, "%s/%s", getenv("HOME"), ".w3m/");
-	return cacheDir;
-}
-
-#endif
-
 const char* Pref::AppDir() {
-#ifdef __BEOS__
 	return appDir;
-#else
-	return ".";
-#endif
 }
 
 bool Pref::Online() const {
