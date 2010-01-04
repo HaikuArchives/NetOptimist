@@ -6,6 +6,7 @@
 #include "DocElem.h"
 #ifdef __BEOS__
 #include <be/support/Debug.h>
+#include <assert.h>
 #endif
 
 

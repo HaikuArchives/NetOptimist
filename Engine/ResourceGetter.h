@@ -1,7 +1,7 @@
 #ifndef ResourceGetter_H
 #define ResourceGetter_H
 
-#ifdef __BEOS__
+#if defined(__BEOS__) || defined(__HAIKU__)
  #include <OS.h>
 #else
  #include "Be.h"

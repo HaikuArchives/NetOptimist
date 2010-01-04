@@ -13,6 +13,7 @@ class HTMLFrame;
 class Style;
 class Constraint;
 class UrlQuery;
+class BRect;
 
 class DocElem {
 	static int idGen;
