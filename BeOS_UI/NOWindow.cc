@@ -1,3 +1,4 @@
+class BAlignment;
 #include <Application.h>
 #include <Roster.h>
 #include <Screen.h>
@@ -5,7 +6,7 @@
 #include <be/interface/MenuBar.h>
 #include <MenuItem.h>
 #include <UTF8.h>
-#ifdef __BEOS__
+#if defined(__BEOS__) || defined(__HAIKU__)
 #include <be/kernel/fs_attr.h>
 #endif
 #include <be/storage/Directory.h>
@@ -13,7 +14,7 @@
 #include <be/storage/Path.h>
 #include <be/storage/Node.h>
 #include <be/support/SupportDefs.h>
-#ifdef __BEOS__
+#if defined(__BEOS__) || defined(__HAIKU__)
 #include <be/storage/FilePanel.h>
 #endif
 #include <TextControl.h>

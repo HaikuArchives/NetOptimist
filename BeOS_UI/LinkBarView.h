@@ -1,6 +1,7 @@
 #ifndef LinkBarView_H
 #define LinkBarView_H
 
+class BAlignment;
 #include <View.h>
 
 class Document;

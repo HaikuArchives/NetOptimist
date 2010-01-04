@@ -1,3 +1,4 @@
+class BAlignment;
 #include <Application.h>
 #include <TextControl.h>
 #include <TabView.h>
@@ -836,7 +837,7 @@ PrefWindow::PrefWindow() : BWindow(BRect(WND_X, WND_Y, WND_W, WND_H),
 	FocusButton *but = new FocusButton(r, "cancel_button", "Cancel", new BMessage(B_CANCEL));
 	b->AddChild(but);
 	r.OffsetBy(75+10, 0);
-	but = new FocusButton(r, "ok_button", "OK", new BMessage(B_OK));
+	but = new FocusButton(r, "ok_button", "OK", new BMessage((unsigned long)B_OK));
 	but->MakeDefault(true);
 	b->AddChild(but);
 	AddChild(b);

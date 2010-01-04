@@ -56,7 +56,7 @@ void NetOptimist::CreateWindow(const char *url_text) {
 	main->SetUrl(url_text);
 }
 
-#ifdef __BEOS__
+#if defined(__BEOS__) || defined (__HAIKU__)
 void NetOptimist::RefsReceived(BMessage *message) {
 	entry_ref file;
 	int nb = 0;

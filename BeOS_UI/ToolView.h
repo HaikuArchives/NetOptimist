@@ -1,5 +1,6 @@
 #ifndef ToolView_h
 #define ToolView_h
+class BAlignment;
 #include <Bitmap.h>
 #include <View.h>
 

@@ -1,6 +1,7 @@
 #ifndef HTMLView_H
 #define HTMLView_H
 
+class BAlignment;
 #include <View.h>
 #include <Message.h>
 #include <Font.h>

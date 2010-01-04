@@ -1,7 +1,8 @@
 #ifndef NOWindow_H
 #define NOWindow_H
-#include <Window.h>
 
+class BAlignment;
+#include <Window.h>
 #include "HTMLWindow.h"
 
 class BTextControl;

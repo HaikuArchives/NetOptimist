@@ -21,7 +21,8 @@ static inline int min(int a, int b) { return a>b?b:a; }
 static inline void create_directory(const char *, int) {}
 #endif
 
-#ifdef __BEOS__
+#if defined(__BEOS__) || defined(__HAIKU__)
+#include <Debug.h>
 static inline int max(int a, int b) { return a>b?a:b; }
 static inline int min(int a, int b) { return a>b?b:a; }
 #else

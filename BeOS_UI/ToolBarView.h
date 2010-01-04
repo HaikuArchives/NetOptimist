@@ -1,9 +1,10 @@
 #ifndef ToolBarView_H
 #define ToolBarView_H
-#include <View.h>
 
 class BList;
 class BLooper;
+class BAlignment;
+#include <View.h>
 
 class ToolBarView : public BView 
 {
