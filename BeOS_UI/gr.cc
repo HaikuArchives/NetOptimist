@@ -140,7 +140,7 @@ void NetOptimist::MessageReceived(BMessage *message) {
 	}
 }
 
-#ifdef __BEOS__
+#if defined(__BEOS__) || defined (__HAIKU__)
 int main(int argc, char* argv[]) {
 	const char *url = NULL;
 	const char *filename = NULL;
