@@ -59,6 +59,7 @@ const TagInfo TagInfo::tagInfos[] = {
 	{"/NOFRAMES",	-1,	-1,	ALWAYS_CLOSE,	false},
 	{"/FRAMESET",	-1,	-1,	ALWAYS_CLOSE,	false},
 	{"/INPUT",	-1,	-1,	CAN_CLOSE,	false},
+	{"/LABEL",	-1,	-1,	ALWAYS_CLOSE,	false},
 	{" TEXTAREA",	-1,	-1,	ALWAYS_CLOSE,	false},
 	{"/BUTTON",	-1,	-1,	ALWAYS_CLOSE,	true},
 	{"/SELECT",	-1,	-1,	ALWAYS_CLOSE,	false},

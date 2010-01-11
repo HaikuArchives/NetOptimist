@@ -151,6 +151,7 @@ TagDocElem* TagDocElemFactory::New(Tag *t, TagAttr* attrList) {
 			    strcmp(tagName,"ILAYER") &&
 			    strcmp(tagName,"NOLAYER") &&
 			    strcmp(tagName,"MAP") &&
+			    strcmp(tagName,"LABEL") &&
 			    strcmp(tagName,"AREA") &&
 			    strcmp(tagName,"BASE") && // XXX this one is urgent
 			    strcmp(tagName,"!DOCTYPE") && // XXX Is this one usefull for browsers ?
