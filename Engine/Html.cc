@@ -462,7 +462,7 @@ void DocFormater::html_ctrlchar_alter(char *wholestr, char *& ptr) {
 
 	for (const CharMap *p = map; p->html_code; p++) {
 		if (strcmp(c+1, p->html_code)==0) {
-#ifdef __BEOS__
+#if defined __BEOS__ || __HAIKU__
 			strcpy(c, p->beos_string);
 #else
 			strcpy(c, p->unix_string);
@@ -1227,7 +1227,7 @@ void DocFormater::AttachToFrame(HTMLFrame *frame) {
 			walk.Feed(iter);
 		}
 		/* Do it once but after relation are set */
-#ifndef __BEOS__
+#if defined __BEOS__ || __HAIKU__
 		if (ISTRACE(WRITE_FWT_FILE))
 			ExportToFWT(doc);
 #endif

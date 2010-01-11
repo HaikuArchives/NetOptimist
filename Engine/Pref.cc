@@ -5,7 +5,7 @@
 #include <stdio.h> 
 
 #include <be/app/Application.h>
-#ifdef __BEOS__
+#if defined __BEOS__ || __HAIKU__
 #include <app/Roster.h>
 #endif
 #include <storage/Path.h> 
@@ -74,7 +74,7 @@ Pref::Pref() :
 
 	// Cache
 	char cacheDir[1024];
-#ifdef __BEOS__
+#if defined __BEOS__ || __HAIKU__
 	cacheDir[0] = 0;
 	BPath path;
 	find_directory(B_USER_SETTINGS_DIRECTORY, &path);
@@ -170,7 +170,7 @@ Pref& Pref::operator = (const Pref& p) {
 }
 
 void Pref::Init() {
-#ifdef __BEOS__
+#if defined __BEOS__ || __HAIKU__
 	app_info info; 
 	BPath path; 
 	be_app->GetAppInfo(&info); 
