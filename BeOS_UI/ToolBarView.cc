@@ -32,7 +32,7 @@ ToolBarView::ToolBarView(BRect frame, BLooper *l) :
 	bg1=BTranslationUtils::GetBitmapFile("Icons/BackGround1.png");
 	bg12=BTranslationUtils::GetBitmapFile("Icons/BackGround1_2.png");
 	bg2=BTranslationUtils::GetBitmapFile("Icons/BackGround2.png");
-#ifdef __BEOS__
+#if defined(__BEOS__) || defined(__HAIKU__)
 	SetViewColor(B_TRANSPARENT_COLOR);
 #else
 	SetViewColor(ui_color(B_PANEL_BACKGROUND_COLOR));
@@ -187,7 +187,7 @@ void ToolBarView::FrameResized(float w, float h)
 }
 void ToolBarView::computeBitmap(BRect r)
 {
-#ifdef __BEOS__
+#if defined __BEOS__ || __HAIKU__
 	if(bitmap!=NULL)
 	{
 		bitmap->RemoveChild(bitmapView);
@@ -197,16 +197,13 @@ void ToolBarView::computeBitmap(BRect r)
 	bitmap= new BBitmap(r,ARGB_FORMAT,true);
 	bitmapView=new BView(r,"",B_FOLLOW_ALL,B_WILL_DRAW);
 	bitmap->AddChild(bitmapView);
-	bitmapView->LockLooper();
 	int toolWidth;
 	int totalWidth=(int)r.Width();
 	
-	if (totalWidth>400)
-		toolWidth=totalWidth-200;
-	else
-		toolWidth=200;	
+	toolWidth=max(200,totalWidth-200);
 
 	if (bg1 && bg2 && bg12) {
+		bitmapView->LockLooper();
 		int bg1Width=(int)bg1->Bounds().Width();
 		int bg12Width=(int)bg12->Bounds().Width();
 		int bg2Width=(int)bg2->Bounds().Width();
@@ -233,7 +230,7 @@ void ToolBarView::computeBitmap(BRect r)
 
 	
 void ToolBarView::Draw(BRect updateRect) {
-#ifdef __BEOS__
+#if defined __BEOS__ || __HAIKU__
 	DrawBitmap(bitmap, BPoint(0,0));
 #endif
 	if (m_documentIcon)

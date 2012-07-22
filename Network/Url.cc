@@ -57,7 +57,7 @@ static const char* my_basename(const char *path) {
 	return last+1;
 }
 
-#ifdef __BEOS__
+#if defined __BEOS__ || __HAIKU__
 static const char cacheLog[] = "/boot/home/config/settings/NetOptimist/NetCache/CacheLog";
 #else
 static const char cacheLog[] = "CacheLog";

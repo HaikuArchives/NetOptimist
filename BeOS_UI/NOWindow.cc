@@ -248,7 +248,7 @@ NOWindow::NOWindow(BRect windowfr) : BWindow(windowfr, "NetOptimist", B_DOCUMENT
 	r.top+=m_menu->Frame().bottom+1;
 	r.bottom=r.top+32;
 	toolBarView = new ToolBarView(r, this);
-#ifdef __BEOS__
+#if defined(__BEOS__) || defined(__HAIKU__)
 	BShelf *fShelf = new BShelf(toolBarView);
 	fShelf->SetDisplaysZombies(true);
 #endif
@@ -291,7 +291,7 @@ NOWindow::NOWindow(BRect windowfr) : BWindow(windowfr, "NetOptimist", B_DOCUMENT
 	drawArea->SetStatusBarView(m_statusView);
 	UpdateNavControls();
 	
-#ifdef __BEOS__
+#if defined(__BEOS__) || defined(__HAIKU__)
 	fileOpenPanel_ = new BFilePanel;
 #endif
 }
@@ -331,7 +331,7 @@ void NOWindow::UpdateNavControls() {
 	fprintf(stderr, "*** Updating nav.controls: Back (%u), Fwd (%u)\n", back, forward);
 	toolBarView->SetEnabled(bmsgButtonBACK, back);
 	toolBarView->SetEnabled(bmsgButtonNEXT, forward);
-#ifdef __BEOS__
+#if defined(__BEOS__) || defined(__HAIKU__)
 	m_menu->FindItem(bmsgButtonBACK)->SetEnabled(back);
 	m_menu->FindItem(bmsgButtonNEXT)->SetEnabled(forward);
 #endif
@@ -448,7 +448,7 @@ void NOWindow::MessageReceived(BMessage *message) {
 			SetUrl(this->urlControl->Text());
 			break;
 
-#ifdef __BEOS__
+#if defined(__BEOS__) || defined(__HAIKU__)
 		case bmsgEditPreferences: {
 			PrefWindow *wnd = new PrefWindow();
 			wnd->Show();
@@ -495,7 +495,7 @@ void NOWindow::MessageReceived(BMessage *message) {
 			break;
 		}
 
-#ifdef __BEOS__
+#if defined(__BEOS__) || defined(__HAIKU__)
 		case bmsgFileOpenFile:
 			fileOpenPanel_->Show();
 			break;
