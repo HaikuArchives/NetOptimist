@@ -110,6 +110,7 @@ const TagInfo TagInfo::tagInfos[] = {
 	{"/VAR",	D_INLINE,	-1,	-1,	ALWAYS_CLOSE,	false},
 	{" WBR",	D_INLINE,	-1,	-1,	NEVER_CLOSE,	false},
 	{"/MENU",	D_BLOCK,	1,	1,	ALWAYS_CLOSE,	false},
+	{"/NAV",	D_BLOCK,	1,	1,	ALWAYS_CLOSE,	false},
 	{"/EMBED",	D_BLOCK,	1,	1,	ALWAYS_CLOSE,	false},
 	{" PARAM",	D_NONE,		1,	1,	NEVER_CLOSE,	false},
 	{"/DT",		D_INLINE,	0,	-1,	ALWAYS_CLOSE,	false},

@@ -812,7 +812,7 @@ void DocFormater::parse_html(Resource *resource) {
 	int ch;
 	char *ptr;
 	char *curStr;
-	char normal_text[10000] ;
+	char normal_text[100000] ;
 
 #ifdef MALLOC_INFO // We don't have mallinfo on beos ?
 	struct mallinfo alloc_info_start;
