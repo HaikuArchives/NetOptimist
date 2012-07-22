@@ -153,6 +153,10 @@ TagDocElem* TagDocElemFactory::New(Tag *t, TagAttr* attrList) {
 			    strcmp(tagName,"MAP") &&
 			    strcmp(tagName,"LABEL") &&
 			    strcmp(tagName,"AREA") &&
+			    strcmp(tagName,"MENU") &&
+			    strcmp(tagName,"NAV") &&
+			    strcmp(tagName,"HEADER") &&
+			    strcmp(tagName,"FOOTER") &&
 			    strcmp(tagName,"BASE") && // XXX this one is urgent
 			    strcmp(tagName,"!DOCTYPE") && // XXX Is this one usefull for browsers ?
 			    strcmp(tagName,"BUTTON") && // Forms
