@@ -261,15 +261,11 @@ void JsCtx::SetWindow(HTMLWindow *window) {
 };
 
 void JsCtx::Execute(const char *t) {
-	if (ISTRACE(DEBUG_JAVASCRIPT)) {
-		fprintf (stdout, ">> JsCtx::Execute code:\n%s\n", t);
-	}
 	if (!js_eval(m_jsdata->interp, (char*)t)) {
 		fprintf (stderr, ">> JsCtx::Execute failed: %s\n", js_error_message (m_jsdata->interp));
-		if (!ISTRACE(DEBUG_JAVASCRIPT)) {
-			// Print source code only if not printed above
-			fprintf (stdout, ">> JsCtx::Execute code:\n%s\n", t);
-		}
+	}
+	if (ISTRACE(DEBUG_JAVASCRIPT)) {
+		fprintf (stdout, ">> JsCtx::Execute code:\n%s\n", t);
 	}
 }
 
