@@ -510,7 +510,7 @@ void TableDocElem::place() {
 										iterW, cellWidth);
 								}
 							}
-							if (te && te->info && te->info->vspace_before>=0 ) {
+							if (te && te->info && te->info->marginTop>=0 ) {
 								if (cellWidth>maxW) 
 									maxW = cellWidth;
 								TDlineH += contentH;

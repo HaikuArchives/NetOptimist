@@ -41,10 +41,10 @@ public:
 		lineH = 0;
 		m_nbFloat = 0;
 	}
-	void NewLine(short indent, int vspace) {
-		if(vspace<0) { fprintf(stderr, "XXX warning vspace<0\n"); }
-		nextX = minX + indent;
-		nextY += lineH + vspace;
+	void NewLine(short marginLeft, int marginTop) {
+		if(marginTop<0) { fprintf(stderr, "XXX warning vspace<0\n"); }
+		nextX = minX + marginLeft;
+		nextY += lineH + marginTop;
 		lineH = 0;
 		if (m_nbFloat>0 && m_float[m_nbFloat-1].h<nextY) {
 			// XXX should not remove the list, but shift elements;

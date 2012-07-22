@@ -21,8 +21,8 @@ TagDocElem::~TagDocElem() {
 void TagDocElem::place() {
 	if (t->info) {
 		if (!t->closing) {
-			if (t->info->vspace_before >= 0) {
-				constraint->NewLine(m_style->Indent(), t->info->vspace_before);
+			if (t->info->css_display == D_BLOCK && t->info->marginTop >= 0) {
+				constraint->NewLine(m_style->Indent(), t->info->marginTop);
 			}
 		}
 	}
@@ -31,8 +31,8 @@ void TagDocElem::place() {
 
 	if (t->info) {
 		if (t->closing || t->info->closeMode==NEVER_CLOSE) {
-			if (t->info->vspace_after >= 0) {
-				constraint->NewLine(m_style->Indent(), t->info->vspace_after);
+			if (t->info->css_display == D_BLOCK && t->info->marginBottom >= 0) {
+				constraint->NewLine(m_style->Indent(), t->info->marginBottom);
 			}
 		}
 	}

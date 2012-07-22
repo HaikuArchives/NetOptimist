@@ -5,11 +5,13 @@
 #include "platform.h"
 
 typedef enum { ALWAYS_CLOSE, NEVER_CLOSE, CAN_CLOSE } CloseMode;
+typedef enum { D_INLINE, D_BLOCK, D_NONE } Css_display;
 
 struct TagInfo {
 	const char *name;
-	int vspace_before;
-	int vspace_after;
+	Css_display css_display;
+	int marginTop;
+	int marginBottom;
 	CloseMode closeMode;
 	bool canReopen; // if false tag is closed before reopening it
 	static const TagInfo tagInfos[];
