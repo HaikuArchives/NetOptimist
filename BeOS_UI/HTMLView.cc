@@ -27,7 +27,6 @@ void HTMLView::SetFrameColor(const Style *style) {
 }
 
 void HTMLView::AttachedToWindow() {
-	printf("attached to window\n");
 	//this->SetEventMask(B_POINTER_EVENTS); // this is to have soft MouseMoved events
 }
 
@@ -161,14 +160,8 @@ void HTMLView::TargetedByScrollView(BScrollView *scroller) {
 }
 
 void HTMLView::StringDim(const char* str, const Style *style, int* w, int *h) {
-	if (style) {
-		font_.SetFamilyAndStyle(Pref::Default.FontFamily(displayEncoding_), NULL);
-		if (0 < style->Size()) font_.SetSize(style->Size());
-		else font_.SetSize(Pref::Default.FontSize(displayEncoding_));
-		font_.SetFace(style->Face());
-	} else font_ = propFont_; 
 
-	font_.SetEncoding(B_UNICODE_UTF8);
+	PrepareFont(style);
 
 	*w = (int) font_.StringWidth(str);
 	font_height fh;
@@ -179,30 +172,33 @@ void HTMLView::StringDim(const char* str, const Style *style, int* w, int *h) {
 }
 
 void HTMLView::DrawString(int x, int y, int w, const char *str, const Style *style) {
-	if (style) {
 
-		font_.SetFamilyAndStyle(Pref::Default.FontFamily(displayEncoding_), NULL);
-		if (0 < style->Size())
-			font_.SetSize(style->Size());
-		else		
-			font_.SetSize(Pref::Default.FontSize(displayEncoding_));
-		font_.SetFace(style->Face());
-		SetHighColor(style->Color());
-		SetLowColor(style->BGColor());
-	} else font_ = propFont_;
-	font_.SetEncoding(B_UNICODE_UTF8);
+	PrepareFont(style);
+
+	SetHighColor(style->Color());
+	SetLowColor(style->BGColor());
+
 	BView::SetFont(&font_);
 
 // NEXUS/FIXME: B_UNDERSCORE_FACE should do the trick, but doesn't do it for some reason...
 
 	if (style->IsUnderline()) {
-		MovePenTo(x, y-1);
-		BView::DrawString(str);
 		StrokeLine(BPoint(x,y), BPoint(x+w,y));
+		MovePenTo(x, y-1);
 	} else {
 		MovePenTo(x, y);
-		BView::DrawString(str);
 	}
+	BView::DrawString(str);
+
+}
+
+void HTMLView::PrepareFont(const Style *style) {
+	font_.SetEncoding(B_UNICODE_UTF8);
+	font_.SetFamilyAndStyle(Pref::Default.FontFamily(displayEncoding_), NULL);
+	// HACK : Depending on font chosen, B_UNDERSCORE_FACE is not supported
+	font_.SetFace(style->Face()&~B_UNDERSCORE_FACE);
+	if (0 < style->Size()) font_.SetSize(style->Size());
+	else font_.SetSize(Pref::Default.FontSize(displayEncoding_));
 }
 
 void HTMLView::FillRect(int x, int y, int w, int h, const Style *style) {
@@ -296,8 +292,6 @@ void HTMLView::SetSourceEncoding(uint32 enc) {
 			displayEncoding_ = NO_JAPANESE;
 			break;
 	}
-	propFont_.SetFamilyAndStyle(Pref::Default.FontFamily(displayEncoding_), NULL);
-	propFont_.SetSize(Pref::Default.FontSize(displayEncoding_));	
 }
 
 uint32 HTMLView::SourceEncoding() const { return sourceEncoding_; }

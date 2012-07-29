@@ -18,11 +18,10 @@ class HTMLView : public BView, public HTMLFrame
 	BScrollView *scrollView;
 	StatusBarView *m_statusBar;
 	uint32 sourceEncoding_;
-	BFont propFont_;
-	int32 propFontSize_;
 	display_encoding displayEncoding_;
 	
 	BFont font_;
+	void PrepareFont(const Style *style);
 		
 public :
 	HTMLView(BLooper *container, BRect fr);
