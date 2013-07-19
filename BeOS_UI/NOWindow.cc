@@ -366,7 +366,7 @@ void NOWindow::MessageReceived(BMessage *message) {
 		case B_SIMPLE_DATA:
 		case B_MIME_DATA:
 			{
-#ifdef __BEOS__
+#if defined(__BEOS__) || defined(__HAIKU__)
 #if B_BEOS_VERSION >= 0x0510
 				const char *name; // BMessage::GetInfo changed in Dano : it now requires a const
 #else
