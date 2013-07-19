@@ -13,7 +13,7 @@
 #include <be/storage/Path.h>
 #include <be/storage/AppFileInfo.h>
 #include <Alert.h>
-#ifdef __BEOS__
+#if defined(__BEOS__) || defined(__HAIKU__)
 #include <NodeInfo.h>
 #endif
 #include <Application.h>
