@@ -18,7 +18,8 @@ static const char *known_mime_types[] = {
 	"text/html",
 	"text/plain",
 	"image/gif",
-	"image/jpg" };
+	"image/jpg",
+	"notype" };
 
 class ResourceProcessor {
 public:
@@ -42,6 +43,9 @@ public:
 				break;
 			case 1:
 				format->parse_text(rsc);
+				break;
+			case 4:
+				format->parse_html(rsc);
 				break;
 			default:
 				printf("Error : don't know how to parse mimetype %s\n", mimetype);

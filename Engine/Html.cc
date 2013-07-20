@@ -412,7 +412,7 @@ void DocFormater::html_ctrlchar_alter(char *wholestr, char *& ptr) {
 		const char *unix_string;	// ascii (extended ascii) mapping
 		bool cont;
 	};
-	const CharMap map[] = {
+	static const CharMap map[] = {
 		{"#183;",	"&middot;",	"&middot;",	true},
 		{"#146;",	"&apos;",	"&apos;",	true},	// XXX ?
 		{"eacute;",	"Ã©",	"é",	false},
@@ -509,7 +509,7 @@ void DocFormater::html_ctrlchar_alter(char *wholestr, char *& ptr) {
 	note : the leading '<' is already eaten
 */
 TagDocElem* DocFormater::html_parse_tag() {
-	char buf[10000];
+	char buf[100000]; // XXX Static buf len, can cause problem with <scritp> tag
 	char *ptr;
 	int ch;
 	buf[0] = '\0';

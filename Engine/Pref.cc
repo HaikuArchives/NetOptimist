@@ -74,7 +74,7 @@ Pref::Pref() :
 
 	// Cache
 	char cacheDir[1024];
-#if defined __BEOS__ || __HAIKU__
+#if defined __BEOS__ || defined __HAIKU__
 	cacheDir[0] = 0;
 	BPath path;
 	find_directory(B_USER_SETTINGS_DIRECTORY, &path);
@@ -170,7 +170,7 @@ Pref& Pref::operator = (const Pref& p) {
 }
 
 void Pref::Init() {
-#if defined __BEOS__ || __HAIKU__
+#if defined __BEOS__ || defined __HAIKU__
 	app_info info; 
 	BPath path; 
 	be_app->GetAppInfo(&info); 

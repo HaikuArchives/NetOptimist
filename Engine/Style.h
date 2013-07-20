@@ -22,6 +22,11 @@ class Style {
 	uint16 face_;
 	int size_;
 	Alignment m_alignment;
+
+	int m_marginTop;
+	int m_marginBottom;
+	int m_marginLeft;
+	int m_marginRight;
 	
 	Style(const Style &c);
 public:

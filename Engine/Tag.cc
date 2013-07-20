@@ -47,6 +47,7 @@ const TagInfo TagInfo::tagInfos[] = {
 	{"/TR",		D_BLOCK,	0,	0,	ALWAYS_CLOSE,	false},
 	{"/TABLE",	D_BLOCK,	5,	5,	ALWAYS_CLOSE,	true},
 	{"/HEADER",	D_BLOCK,	0,	0,	ALWAYS_CLOSE,	true},
+	{"/HGROUP",	D_BLOCK,	0,	0,	ALWAYS_CLOSE,	true},
 	{"/FOOTER",	D_BLOCK,	0,	0,	ALWAYS_CLOSE,	true},
 	{"/SECTION",	D_BLOCK,	0,	0,	ALWAYS_CLOSE,	true},
 	{"/ASIDE",	D_BLOCK,	0,	0,	ALWAYS_CLOSE,	true},

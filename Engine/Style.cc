@@ -7,7 +7,7 @@ const StyleMgr StyleMgr::DefaultStyleMgr;
 // Tags like H1-6 should set relative size to according positive or negative value
 
 Style::Style() : 
-		face_(0),
+		face_(B_REGULAR_FACE),
 		size_(0)
 	 {
 	color = kBlack;
@@ -19,6 +19,10 @@ Style::Style() :
 	m_indent = 0;
 	m_nobr = false;
 	m_alignment = al_bottom;
+	m_marginTop = 0;
+	m_marginBottom = 0;
+	m_marginLeft = 0;
+	m_marginRight = 0;
 }
 
 Style::Style(const Style &c) {
@@ -32,6 +36,12 @@ Style::Style(const Style &c) {
 	face_ = c.face_;
 	size_ = c.size_;
 	m_alignment = c.m_alignment;
+
+	// No inherit
+	m_marginTop =0;
+	m_marginBottom =0;
+	m_marginLeft =0;
+	m_marginRight =0;
 }
 
 void Style::SetLink() {
@@ -43,7 +53,11 @@ bool Style::IsLink() const {
 }
 
 void Style::SetFace(uint16 f) {
-	face_ |= f;
+	if (face_ == B_REGULAR_FACE)
+		face_ =f;
+	else
+		face_ |= f;
+
 }
 void Style::SetUnderline() {
 	isUnderline = true;
@@ -53,8 +67,9 @@ bool Style::IsUnderline() const {
 	return isUnderline;
 }
 
-void Style::IncIndent(short inc) {
-	m_indent += inc;
+void Style::IncIndent(short marginLeft) {
+	m_marginLeft = marginLeft;
+	m_indent += marginLeft;
 }
 
 short Style::Indent() const {

@@ -21,7 +21,7 @@ TagDocElem::~TagDocElem() {
 void TagDocElem::place() {
 	if (t->info) {
 		if (!t->closing) {
-			if (t->info->css_display == D_BLOCK && t->info->marginTop >= 0) {
+			if (t->info->css_display == D_BLOCK) {
 				constraint->NewLine(m_style->Indent(), t->info->marginTop);
 			}
 		}

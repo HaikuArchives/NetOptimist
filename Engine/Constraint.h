@@ -42,7 +42,7 @@ public:
 		m_nbFloat = 0;
 	}
 	void NewLine(short marginLeft, int marginTop) {
-		if(marginTop<0) { fprintf(stderr, "XXX warning vspace<0\n"); }
+		if(marginTop<0) { fprintf(stderr, "XXX warning margin top<0\n"); }
 		nextX = minX + marginLeft;
 		nextY += lineH + marginTop;
 		lineH = 0;
@@ -61,7 +61,9 @@ public:
 		if (m_nbFloat==5) align = al_bottom;	// XXX this is bad...
 		switch (align) {
 		case al_center: // XXX not supported
+			break;
 		case al_top: // XXX not supported
+			break;
 		case al_bottom:
 			if (nextX>minX+indent && nextX+w-1>maxX)
 				NewLine(indent, 0);
