@@ -187,15 +187,14 @@ void ToolBarView::FrameResized(float w, float h)
 }
 void ToolBarView::computeBitmap(BRect r)
 {
-#if defined __BEOS__ || __HAIKU__
+#if defined(__BEOS__) || defined(__HAIKU__)
 	if(bitmap!=NULL)
 	{
-		bitmap->RemoveChild(bitmapView);
 		delete bitmap;
-		delete bitmapView;
 	}
 	bitmap= new BBitmap(r,ARGB_FORMAT,true);
-	bitmapView=new BView(r,"",B_FOLLOW_ALL,B_WILL_DRAW);
+	BView *bitmapView=new BView(r,"",B_FOLLOW_ALL,B_WILL_DRAW);
+	bitmap->Lock();
 	bitmap->AddChild(bitmapView);
 	int toolWidth;
 	int totalWidth=(int)r.Width();
@@ -203,7 +202,9 @@ void ToolBarView::computeBitmap(BRect r)
 	toolWidth=max(200,totalWidth-200);
 
 	if (bg1 && bg2 && bg12) {
+		fprintf(stderr, "Computing background bitmap ; width : %d\n", totalWidth);
 		bitmapView->LockLooper();
+		bitmapView->SetViewColor(ui_color(B_PANEL_BACKGROUND_COLOR));
 		int bg1Width=(int)bg1->Bounds().Width();
 		int bg12Width=(int)bg12->Bounds().Width();
 		int bg2Width=(int)bg2->Bounds().Width();
@@ -222,7 +223,10 @@ void ToolBarView::computeBitmap(BRect r)
 		}
 		bitmapView->Sync();
 		bitmapView->UnlockLooper();
-	}	
+	}
+	bitmap->RemoveChild(bitmapView);
+	bitmap->Unlock();
+	delete bitmapView;
 #endif
 	Draw(Bounds());
 }
@@ -230,8 +234,18 @@ void ToolBarView::computeBitmap(BRect r)
 
 	
 void ToolBarView::Draw(BRect updateRect) {
-#if defined __BEOS__ || __HAIKU__
+#if defined(__BEOS__)
 	DrawBitmap(bitmap, BPoint(0,0));
+#elsif defined(__HAIKU__)
+	int x;
+	for (x=0; x<100; x+=bg1->Bounds().Width()) {
+		DrawBitmap(bg1, BPoint(x,0));
+	}
+	DrawBitmap(bg12, BPoint(x,0));
+	x+=bg12->Bounds().Width();
+	for (; x<Bounds().Width(); x+=bg2->Bounds().Width()) {
+		DrawBitmap(bg2, BPoint(x,0));
+	}
 #endif
 	if (m_documentIcon)
 		DrawBitmap(m_documentIcon, BPoint(5,5));

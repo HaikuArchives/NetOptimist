@@ -1,0 +1,3 @@
+ACLOCAL_AMFLAGS='-Im4' 
+
+SUBDIRS = BeOS_UI Engine Network

@@ -9,7 +9,6 @@ class BAlignment;
 class ToolBarView : public BView 
 {
 private:
-	BView 	*bitmapView; //view associated to the bitmap;
 	BList *toolList;
 	BBitmap *bg1,*bg12,*bg2;
 	const BBitmap *m_documentIcon;
