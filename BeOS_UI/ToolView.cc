@@ -25,7 +25,7 @@ ToolView::	ToolView(BRect r, const char *a_name, BMessage *msg, BBitmap *low, BB
 	
 	
 	click=false;
-	//SetViewColor(B_TRANSPARENT_COLOR);
+	SetViewColor(B_TRANSPARENT_COLOR);
 	original=true;
 	m_enabled = true;
 	
